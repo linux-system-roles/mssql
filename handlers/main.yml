@@ -1,10 +1,6 @@
 # SPDX-License-Identifier: MIT
 ---
-# Put handlers for tasks here.
-
-# Example:
-- name: template handler to restart services
+- name: Restart the mssql-server service
   service:
-    name: "{{ item }}"
+    name: mssql-server
     state: restarted
-  loop: "{{ __template_services }}"

@@ -1,0 +1,93 @@
+- name: Verify edition
+  when: __verify_mssql_edition is defined
+  block:
+    - name: Check if the errorlog file exists and its location
+      shell: |
+        set -euo pipefail
+        errorlog="$(/opt/mssql/bin/mssql-conf get filelocation errorlogfile \
+        2>&1 | sed 's\errorlogfile : \\')" || :
+        if [ -f "${errorlog}" ]; then
+          echo "${errorlog}"
+        elif [ -f /var/opt/mssql/log/errorlog ]; then
+          echo "/var/opt/mssql/log/errorlog"
+        else
+          echo ""
+        fi
+      changed_when: false
+      register: __mssql_errorlog
+
+    - name: Check if the set edition matches the existing edition
+      shell: |
+        errorlog_edition="$(grep -oi '{{ __verify_mssql_edition }} edition' \
+        {{ __mssql_errorlog.stdout }})"
+        if [ -z "${errorlog_edition}" ]; then
+          edition_matches=false
+        else
+          edition_matches=true
+        fi
+        echo "${edition_matches}"
+      register: __mssql_edition_matches
+      ignore_errors: true
+      changed_when: false
+
+    - name: Verify if the edition matches
+      assert:
+        that: __mssql_edition_matches.stdout | bool
+
+- name: Verify the IP address setting
+  when: __mssql_ip_address_matches is defined
+  block:
+    - name: Check if the IP address setting is defined
+      command: /opt/mssql/bin/mssql-conf get network ipaddress
+      ignore_errors: true
+      changed_when: false
+      register: __mssql_conf_get_ip_address
+
+    - name: Verify if the IP address setting matches
+      assert:
+        that: >-
+          __mssql_conf_get_ip_address.stdout | regex_search('[0-9].*') ==
+          __mssql_ip_address_matches
+
+- name: Verify the TCP port setting
+  when: __mssql_tcp_port_matches is defined
+  block:
+    - name: Check if the TCP port setting is defined
+      command: /opt/mssql/bin/mssql-conf get network tcpport
+      ignore_errors: true
+      changed_when: false
+      register: __mssql_conf_get_tcp_port
+
+    - name: Verify if the TCP port setting matches
+      assert:
+        that: >-
+          __mssql_conf_get_tcp_port.stdout | regex_search('[0-9].*') ==
+          __mssql_tcp_port_matches
+
+- name: Verify password
+  when: __verify_mssql_password is defined
+  block:
+
+    - name: Prepare MSSQL and facts for logging in
+      include_role:
+        name: linux-system-roles.mssql
+        tasks_from: verify_password
+        public: true
+      vars:
+        __mssql_password: "{{ __verify_mssql_password }}"
+
+    - name: Wait for mssql-server to start and prepare for client connections
+      wait_for:
+        path: /var/opt/mssql/log/errorlog
+        search_regex: SQL Server is now ready for client connections
+        delay: 3
+
+    - name: Check if the set password matches the existing password
+      command: "{{ __mssql_sqlcmd_login_cmd }} -Q 'SELECT @@VERSION'"
+      ignore_errors: true
+      changed_when: false
+      register: __mssql_password_query
+
+    - name: Verify if the password matched
+      assert:
+        that: __mssql_password_query is success
