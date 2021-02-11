@@ -3,7 +3,7 @@
 dependency:
   name: galaxy
 driver:
-   name: ${LSR_MOLECULE_DRIVER:-docker}
+  name: ${LSR_MOLECULE_DRIVER:-docker}
 platforms:
   - name: centos-6
     image: registry.centos.org/centos:6
