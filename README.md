@@ -63,7 +63,7 @@ includes those symbols.
 
 This variable is required when you run the role to install MSSQL.
 
-When running this role on a host that has MSSQL set up, the mssql_password
+When running this role on a host that has MSSQL installed, the mssql_password
 variable overwrites the existing sa user password to the one that you specified.
 
 Default: `null`
@@ -96,8 +96,8 @@ The port that MSSQL listens on.
 If you define this variable, the role configures MSSQL with the defined TCP
 port.
 
-If you do not define this variable when setting up MSSQL, the role sets up MSSQL
-to listen on the MSSQL default TCP port `1443`.
+If you do not define this variable when installing MSSQL, the role configures
+MSSQL to listen on the MSSQL default TCP port `1443`.
 
 If you do not define this variable when configuring running MSSQL, the role does
 not change the TCP port setting on MSSQL.
@@ -111,8 +111,9 @@ The IP address that MSSQL listens on.
 If you define this variable, the role configures MSSQL with the defined IP
 address.
 
-If you do not define this variable when setting up MSSQL, the role sets up MSSQL
-to listen on the MSSQL default IP address `0.0.0.0`.
+If you do not define this variable when installing MSSQL, the role configures
+MSSQL to listen on the MSSQL default IP address `0.0.0.0`, that is, to listen on
+every available network interface.
 
 If you do not define this variable when configuring running MSSQL, the role does
 not change the IP address setting on MSSQL.
