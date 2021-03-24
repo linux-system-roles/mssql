@@ -61,6 +61,8 @@ non-alphanumeric symbols. Do not use single quotes ('), double quotes ("), and
 spaces in the password because `sqlcmd` cannot authorize when the password
 includes those symbols.
 
+This variable is required when you run the role to install MSSQL.
+
 When running this role on a host that has MSSQL set up, the mssql_password
 variable overwrites the existing sa user password to the one that you specified.
 
@@ -68,7 +70,11 @@ Default: `null`
 
 ### `mssql_edition`
 
-The edition of MSSQL to install. Use one of the following values:
+The edition of MSSQL to install.
+
+This variable is required when you run the role to install MSSQL.
+
+Use one of the following values:
 
 * `Enterprise`
 * `Standard`
