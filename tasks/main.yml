@@ -283,14 +283,15 @@
 
     - name: Input the {{ mssql_input_sql_file }} file with the sqlcmd command
       command: >-
-        {{ __mssql_sqlcmd_login_cmd }} -i {{ __mssql_sql_tempfile.path }}
+        {{ __mssql_sqlcmd_login_cmd }} -i {{ __mssql_sql_tempfile.path }} -b
       register: __mssql_sqlcmd_input_file
+      ignore_errors: true
 
+  always:
     - name: Print the output of the sqlcmd command
       debug:
         var: __mssql_sqlcmd_input_file.stdout_lines
 
-  always:
     - name: Remove the {{ __mssql_sql_tempfile.path }} file
       file:
         path: "{{ __mssql_sql_tempfile.path }}"
