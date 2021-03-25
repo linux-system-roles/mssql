@@ -21,5 +21,5 @@
         - name: Assert that the role failed with variables undefined
           assert:
             that: >-
-              "You must define the following variables to set up MSSQL" in
+              'You must define the following variables to set up MSSQL' in
               ansible_failed_result.msg.0

@@ -17,4 +17,4 @@
         - name: Assert that the role failed with EULA not accepted
           assert:
             that: >-
-              "You must accept EULA" in ansible_failed_result.msg.0
+              'You must accept EULA' in ansible_failed_result.msg.0
