@@ -1,12 +1,7 @@
 # SPDX-License-Identifier: MIT
 ---
-# Put the tasks for your role here.
-
-# An example of how to set distribution and version specific internal variables
-# (defined in vars/ directory)
-# see https://github.com/oasis-roles/meta_standards#platform-specific-variables
 - name: Set platform/version specific variables
-  include_vars: "{{ __template_vars_file }}"
+  include_vars: "{{ __mssql_vars_file }}"
   loop:
     - "{{ ansible_facts['os_family'] }}.yml"
     - "{{ ansible_facts['distribution'] }}.yml"
@@ -17,26 +12,287 @@
       {{ ansible_facts['distribution'] ~ '_' ~
       ansible_facts['distribution_version'] }}.yml
   vars:
-    __template_vars_file: "{{ role_path }}/vars/{{ item }}"
-  when: __template_vars_file is file
+    __mssql_vars_file: "{{ role_path }}/vars/{{ item }}"
+  when: __mssql_vars_file is file
 
-# Examples of some tasks:
-- name: Ensure required packages are installed
-  package:
-    name: "{{ __template_packages }}"
+- name: Verify that the user accepts EULA variables
+  assert:
+    that:
+      - mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula | bool
+      - mssql_accept_microsoft_cli_utilities_for_sql_server_eula | bool
+      - mssql_accept_microsoft_sql_server_2019_standard_eula | bool
+    fail_msg:
+      - "You must accept EULA by setting the following variables to true:"
+      - "mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula"
+      - "mssql_accept_microsoft_cli_utilities_for_sql_server_eula"
+      - "mssql_accept_microsoft_sql_server_2019_standard_eula"
+
+- name: Deploy the GPG key for Microsoft repositories
+  rpm_key:
+    key: https://packages.microsoft.com/keys/microsoft.asc
     state: present
 
-- name: Ensure required services are enabled and started
-  service:
-    name: "{{ item }}"
-    state: started
-    enabled: yes
-  loop: "{{ __template_services }}"
+- name: Configure the Microsoft SQL Server 2019 repository
+  yum_repository:
+    name: packages-microsoft-com-mssql-server-2019-gdr
+    description: Microsoft SQL Server 2019
+    baseurl: "{{ __mssql_server_repository }}"
+    gpgcheck: true
 
-- name: Generate /etc/{{ __template_foo_config }}
-  template:
-    src: "{{ __template_foo_config }}.j2"
-    dest: /etc/{{ __template_foo_config }}
-    backup: yes
-    mode: 0400
-  notify: template handler to restart services
+- name: Ensure that the Microsoft SQL Server package is installed
+  package:
+    name: "{{ __mssql_server_packages }}"
+    state: present
+
+- name: Check if the errorlog file exists and its location
+  shell: |
+    set -euo pipefail
+    errorlog="$(/opt/mssql/bin/mssql-conf get filelocation errorlogfile 2>&1 \
+    | sed 's/errorlogfile : //')" || :
+    if [ -s "${errorlog}" ]; then
+      echo "${errorlog}"
+    elif [ -s /var/opt/mssql/log/errorlog ]; then
+      echo /var/opt/mssql/log/errorlog
+    else
+      echo ""
+    fi
+  changed_when: false
+  register: __mssql_errorlog
+
+- name: Gather system services facts
+  service_facts:
+
+- name: Set up MSSQL
+  when: not __mssql_is_setup
+  vars:
+    __mssql_is_setup: >-
+      {{ ('running' in
+      ansible_facts['services']['mssql-server.service']['state']) or
+      ('enabled' in
+      ansible_facts['services']['mssql-server.service']['status']) or
+      (__mssql_errorlog.stdout | length > 0) }}
+  block:
+    - name: Verify that the variables required for setting up MSSQL are defined
+      assert:
+        that:
+          - mssql_password is not none
+          - mssql_edition is not none
+        fail_msg:
+          - "You must define the following variables to set up MSSQL:"
+          - "mssql_password"
+          - "mssql_edition"
+
+    - name: Set up MSSQL
+      command: /opt/mssql/bin/mssql-conf -n setup
+      environment:
+        - ACCEPT_EULA: "Y"
+        - MSSQL_SA_PASSWORD: "{{ mssql_password }}"
+        - MSSQL_PID: "{{ mssql_edition }}"
+      when: not __mssql_is_setup
+      register: __mssql_conf_setup
+
+- name: Ensure that the tuned-profiles-mssql package is installed
+  package:
+    name: tuned-profiles-mssql
+    state: present
+
+- name: Ensure that the tuned service is started and enabled
+  service:
+    name: tuned
+    state: started
+    enabled: true
+
+- name: Get the active Tuned profiles
+  command: tuned-adm active
+  changed_when: false
+  register: __mssql_tuned_active_profiles
+
+# adding the mssql profile to the end of the list ensures
+# that it overrides conflicting settings in other profiles
+- name: Add mssql to the list of Tuned profiles
+  when: '"mssql" not in __mssql_tuned_active_profiles.stdout'
+  block:
+    - name: Add mssql to the list of Tuned profiles
+      command: >-
+        tuned-adm profile {{ __mssql_tuned_active_profiles.stdout |
+        regex_replace( '^Current active profile: ', '' ) }} mssql
+      register: __mssql_tuned_adm_profile
+
+  # Rescue is needed because there is a bug in tuned that causes issues when
+  # adding multiple profiles with common ancestors. Fail happens for example,
+  # when running `tuned-adm profile virtual-guest mssql` because both profiles
+  # include `throughput-performance`
+  # https://bugzilla.redhat.com/show_bug.cgi?id=1825882
+  rescue:
+    - name: Remove troublemaking include from the mssql profile
+      lineinfile:
+        path: /usr/lib/tuned/mssql/tuned.conf
+        regexp: include=throughput-performance
+        state: absent
+      when: >-
+        "Cannot find profile 'throughput-performance'" in
+        __mssql_tuned_adm_profile.stderr
+
+    - name: Add mssql to the list of Tuned profiles
+      command: >-
+        tuned-adm profile {{ __mssql_tuned_active_profiles.stdout |
+        regex_replace( '^Current active profile: ', '' ) }} mssql
+      when: >-
+        "Cannot find profile 'throughput-performance'" in
+        __mssql_tuned_adm_profile.stderr
+
+
+- name: Configure the Microsoft SQL Server Tools repository
+  yum_repository:
+    name: packages-microsoft-com-prod
+    description: Microsoft SQL Server Tools
+    baseurl: "{{ __mssql_client_repository }}"
+    gpgcheck: true
+
+- name: Ensure that SQL Server client tools are installed
+  package:
+    name: "{{ __mssql_client_packages }}"
+    state: present
+  environment:
+    - ACCEPT_EULA: Y
+
+- name: Set a new password for the MSSQL sa user
+  when:
+    - __mssql_conf_setup is skipped
+    - mssql_password is not none
+  block:
+    - name: Prepare MSSQL and facts for logging in
+      include_tasks: verify_password.yml
+      vars:
+        __mssql_password: "{{ mssql_password }}"
+
+    - name: Check if the set password matches the existing password
+      command: "{{ __mssql_sqlcmd_login_cmd }} -Q 'SELECT @@VERSION'"
+      ignore_errors: true
+      changed_when: false
+      register: __mssql_password_query
+
+    - name: Ensure that the mssql-server service is stopped
+      service:
+        name: mssql-server
+        state: stopped
+      when: __mssql_password_query is failed
+      notify: Restart the mssql-server service
+
+    - name: Change the password of the sa user
+      command: /opt/mssql/bin/mssql-conf set-sa-password
+      environment:
+        - MSSQL_SA_PASSWORD: "{{ mssql_password }}"
+      when: __mssql_password_query is failed
+      notify: Restart the mssql-server service
+
+- name: Set a new edition for MSSQL
+  when:
+    - __mssql_conf_setup is skipped
+    - mssql_edition is not none
+  block:
+    - name: Check if the set edition matches the existing edition
+      shell: |
+        errorlog_edition="$(grep -oi '{{ mssql_edition }} edition' \
+        {{ __mssql_errorlog.stdout }})"
+        if [ -z "${errorlog_edition}" ]; then
+          edition_matches=false
+        else
+          edition_matches=true
+        fi
+        echo "${edition_matches}"
+      register: __mssql_edition_matches
+      changed_when: false
+
+    - name: Ensure that the mssql-server service is stopped
+      service:
+        name: mssql-server
+        state: stopped
+      notify: Restart the mssql-server service
+      when: not __mssql_edition_matches.stdout | bool
+
+    - name: Change the edition of MSSQL
+      command: /opt/mssql/bin/mssql-conf set-edition
+      environment:
+        MSSQL_PID: "{{ mssql_edition }}"
+      register: __mssql_conf_set_edition
+      changed_when: '"The new edition is" in __mssql_conf_set_edition.stdout'
+      when: not __mssql_edition_matches.stdout | bool
+      notify: Restart the mssql-server service
+
+- name: Set the IP address setting for MSSQL
+  when: mssql_ip_address is not none
+  block:
+    - name: Check if the IP address setting is defined
+      command: /opt/mssql/bin/mssql-conf get network ipaddress
+      ignore_errors: true
+      changed_when: false
+      register: __mssql_conf_get_ip_address
+
+    - name: Change the IP address setting
+      command: >
+        /opt/mssql/bin/mssql-conf set network.ipaddress {{ mssql_ip_address }}
+      when: >
+        ("No setting for the given" in __mssql_conf_get_ip_address.stdout) or
+        (__mssql_conf_get_ip_address.stdout | regex_replace( 'ipaddress : ', '')
+        not in mssql_ip_address)
+      notify: Restart the mssql-server service
+
+- name: Set the new TCP port for MSSQL
+  command: "/opt/mssql/bin/mssql-conf set network.tcpport {{ mssql_tcp_port }}"
+  register: __mssql_conf_set_tcp_port
+  ignore_errors: true
+  changed_when: >
+    "SQL Server needs to be restarted in order to apply this setting."
+    in __mssql_conf_set_tcp_port.stdout
+  notify: Restart the mssql-server service
+  when: mssql_tcp_port is not none
+
+- name: Verify that the mssql_password variable is defined
+  assert:
+    that:
+      - mssql_password is not none
+    fail_msg: >-
+      You must define the mssql_password variable because MSSQL requires
+      the sa user to authenticate to input SQL files.
+  when: mssql_input_sql_file is not none
+
+- name: Input the {{ mssql_input_sql_file }} file to MSSQL
+  when: mssql_input_sql_file is not none
+  block:
+    - name: Create a tempfile on the host
+      tempfile:
+        state: file
+      register: __mssql_sql_tempfile
+
+    - name: Copy the {{ mssql_input_sql_file }} file to the host
+      copy:
+        src: "{{ mssql_input_sql_file }}"
+        dest: "{{ __mssql_sql_tempfile.path }}"
+        mode: preserve
+
+    - name: Ensure that the mssql-server service is started
+      service:
+        name: mssql-server
+        state: started
+
+    - name: Prepare MSSQL and facts for logging in
+      include_tasks: verify_password.yml
+      vars:
+        __mssql_password: "{{ mssql_password }}"
+
+    - name: Input the {{ mssql_input_sql_file }} file with the sqlcmd command
+      command: >-
+        {{ __mssql_sqlcmd_login_cmd }} -i {{ __mssql_sql_tempfile.path }} -b
+      register: __mssql_sqlcmd_input_file
+      ignore_errors: true
+
+  always:
+    - name: Print the output of the sqlcmd command
+      debug:
+        var: __mssql_sqlcmd_input_file.stdout_lines
+
+    - name: Remove the {{ __mssql_sql_tempfile.path }} file
+      file:
+        path: "{{ __mssql_sql_tempfile.path }}"
+        state: absent
