@@ -1,4 +1,4 @@
-# mssql
+# Microsoft SQL Server
 
 ![CI Testing](https://github.com/linux-system-roles/template/workflows/tox/badge.svg)
 
@@ -63,7 +63,7 @@ includes those symbols.
 
 This variable is required when you run the role to install MSSQL.
 
-When running this role on a host that has MSSQL installed, the mssql_password
+When running this role on a host that has MSSQL installed, the `mssql_password`
 variable overwrites the existing sa user password to the one that you specified.
 
 Default: `null`
