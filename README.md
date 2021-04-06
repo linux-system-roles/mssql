@@ -141,13 +141,15 @@ Default: `null`
 
 ### `mssql_enable_sql_agent`
 
-Set this variable to `true` to enable the MSSQL Server agent.
+Set this variable to `true` to enable the SQL agent. The role does not disable
+the SQL agent if this variable is set to `false`.
 
 Default: `false`
 
 ### `mssql_install_fts`
 
-Set this variable to `true` to install the MSSQL Server full-text search.
+Set this variable to `true` to install the full-text search. The role does not
+uninstall the full-text search if this variable is set to `false`.
 
 Default: `false`
 

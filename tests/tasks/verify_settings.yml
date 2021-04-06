@@ -115,6 +115,12 @@
       package_facts:
         manager: auto
 
+    - debug:
+        var: '"mssql-server-fts" in ansible_facts.packages'
+
+    - debug:
+        var: __verify_mssql_fts_is_installed
+
     - name: Verify that the fts package is installed
       assert:
         that: >-
