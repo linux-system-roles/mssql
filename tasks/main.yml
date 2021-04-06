@@ -208,8 +208,8 @@
       service:
         name: mssql-server
         state: stopped
-      notify: Restart the mssql-server service
       when: not __mssql_edition_matches.stdout | bool
+      notify: Restart the mssql-server service
 
     - name: Change the edition of MSSQL
       command: /opt/mssql/bin/mssql-conf set-edition
@@ -238,15 +238,15 @@
         not in mssql_ip_address)
       notify: Restart the mssql-server service
 
-- name: Set the new TCP port for MSSQL
+- name: Change the TCP port setting
   command: "/opt/mssql/bin/mssql-conf set network.tcpport {{ mssql_tcp_port }}"
   register: __mssql_conf_set_tcp_port
   ignore_errors: true
   changed_when: >
     "SQL Server needs to be restarted in order to apply this setting."
     in __mssql_conf_set_tcp_port.stdout
-  notify: Restart the mssql-server service
   when: mssql_tcp_port is not none
+  notify: Restart the mssql-server service
 
 - name: Verify that the mssql_password variable is defined
   assert:
@@ -309,8 +309,8 @@
     - name: Enable the SQL agent
       command: /opt/mssql/bin/mssql-conf set sqlagent.enabled true
       when: >
-        ("No setting for the given" in __mssql_conf_get_sqlagent_enabled.stdout) or
-        ("false" in __mssql_conf_get_sqlagent_enabled.stdout)
+        ("No setting for the given" in __mssql_conf_get_sqlagent_enabled.stdout)
+        or ("false" in __mssql_conf_get_sqlagent_enabled.stdout)
       notify: Restart the mssql-server service
 
 - name: Install full-text search
