@@ -37,7 +37,7 @@
 - name: Verify the IP address setting
   when: __mssql_ip_address_matches is defined
   block:
-    - name: Check if the IP address setting is defined
+    - name: Get the value of the IP address setting
       command: /opt/mssql/bin/mssql-conf get network ipaddress
       ignore_errors: true
       changed_when: false
@@ -52,7 +52,7 @@
 - name: Verify the TCP port setting
   when: __mssql_tcp_port_matches is defined
   block:
-    - name: Check if the TCP port setting is defined
+    - name: Get the value of the TCP port setting
       command: /opt/mssql/bin/mssql-conf get network tcpport
       ignore_errors: true
       changed_when: false
@@ -91,3 +91,32 @@
     - name: Verify if the password matched
       assert:
         that: __mssql_password_query is success
+
+- name: Verify that the SQL agent is enabled
+  when: __verify_mssql_agent_is_enabled is defined
+  block:
+    - name: Get the value of the sqlagent.enabled setting
+      command: /opt/mssql/bin/mssql-conf get sqlagent enabled
+      ignore_errors: true
+      changed_when: false
+      register: __mssql_conf_get_sqlagent
+
+    - name: Verify the SQL agent setting
+      assert:
+        that: >-
+          __verify_mssql_agent_is_enabled | string | lower in
+          __mssql_conf_get_sqlagent.stdout
+
+
+- name: Verify that the fts package is installed
+  when: __verify_mssql_fts_is_installed is defined
+  block:
+    - name: Gather package facts
+      package_facts:
+        manager: auto
+
+    - name: Verify that the fts package is installed
+      assert:
+        that: >-
+          ("mssql-server-fts" in ansible_facts.packages) ==
+          __verify_mssql_fts_is_installed

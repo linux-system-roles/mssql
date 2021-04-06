@@ -1,0 +1,17 @@
+- name: Modify the mssql-server service start limit interval
+  replace:
+    path: /etc/systemd/system/multi-user.target.wants/mssql-server.service
+    regexp: StartLimitInterval.*
+    replace: StartLimitInterval=0
+
+- name: Modify the mssql-server service start limit burst
+  replace:
+    path: /etc/systemd/system/multi-user.target.wants/mssql-server.service
+    regexp: StartLimitBurst.*
+    replace: StartLimitBurst=0
+
+- name: Reload service daemon
+  systemd:
+    name: mssql-server
+    state: restarted
+    daemon_reload: yes
