@@ -139,6 +139,18 @@ You can find an example of the SQL file at `tests/sql_script.sql`.
 
 Default: `null`
 
+### `mssql_enable_sql_agent`
+
+Set this variable to `true` to enable the MSSQL Server agent.
+
+Default: `false`
+
+### `mssql_install_fts`
+
+Set this variable to `true` to install the MSSQL Server full-text search.
+
+Default: `false`
+
 ## Example Playbook
 
 ```yaml
