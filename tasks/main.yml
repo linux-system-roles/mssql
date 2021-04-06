@@ -296,3 +296,26 @@
       file:
         path: "{{ __mssql_sql_tempfile.path }}"
         state: absent
+
+- name: Enable the SQL agent
+  when: mssql_enable_sql_agent
+  block:
+    - name: Check if SQL agent is enabled
+      command: /opt/mssql/bin/mssql-conf get sqlagent enabled
+      ignore_errors: true
+      changed_when: false
+      register: __mssql_conf_get_sqlagent_enabled
+
+    - name: Enable the SQL agent
+      command: /opt/mssql/bin/mssql-conf set sqlagent.enabled true
+      when: >
+        ("No setting for the given" in __mssql_conf_get_sqlagent_enabled.stdout) or
+        ("false" in __mssql_conf_get_sqlagent_enabled.stdout)
+      notify: Restart the mssql-server service
+
+- name: Install full-text search
+  package:
+    name: mssql-server-fts
+    state: present
+  when: mssql_install_fts
+  notify: Restart the mssql-server service
