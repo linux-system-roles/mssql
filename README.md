@@ -184,6 +184,8 @@ Type: `bool`
     mssql_tcp_port: 1433
     mssql_ip_address: 0.0.0.0
     mssql_input_sql_file: mydatabase.sql
+    mssql_enable_sql_agent: true
+    mssql_install_fts: true
   roles:
     - linux-system-roles.mssql
 ```
