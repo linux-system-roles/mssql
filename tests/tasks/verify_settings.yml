@@ -80,7 +80,7 @@
       wait_for:
         path: /var/opt/mssql/log/errorlog
         search_regex: SQL Server is now ready for client connections
-        delay: 10
+        delay: 3
 
     - name: Check if the set password matches the existing password
       command: "{{ __mssql_sqlcmd_login_cmd }} -Q 'SELECT @@VERSION'"
@@ -111,6 +111,9 @@
 - name: Verify that the mssql-server-fts package is installed
   when: __verify_mssql_fts_is_installed is defined
   block:
+    - name: Clean yum cache to free storage
+      command: yum clean all  # noqa 303
+
     - name: Gather package facts
       package_facts:
         manager: auto
