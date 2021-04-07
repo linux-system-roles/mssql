@@ -8,5 +8,5 @@ mssql_edition: null
 mssql_tcp_port: null
 mssql_ip_address: null
 mssql_input_sql_file: null
-mssql_enable_sql_agent: false
-mssql_install_fts: false
+mssql_enable_sql_agent: null
+mssql_install_fts: null

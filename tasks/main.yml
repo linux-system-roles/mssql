@@ -298,24 +298,39 @@
         state: absent
 
 - name: Enable the SQL agent
-  when: mssql_enable_sql_agent
+  when: mssql_enable_sql_agent is not none
   block:
+    - name: Check if the mssql_enable_sql_agent variable is of type bool
+      assert:
+        that: mssql_enable_sql_agent | type_debug == "bool"
+        fail_msg: The mssql_enable_sql_agent variable must be of type bool
+
     - name: Check if SQL agent is enabled
       command: /opt/mssql/bin/mssql-conf get sqlagent enabled
       ignore_errors: true
       changed_when: false
       register: __mssql_conf_get_sqlagent_enabled
 
-    - name: Enable the SQL agent
-      command: /opt/mssql/bin/mssql-conf set sqlagent.enabled true
-      when: >
+    - name: Configure the SQL agent
+      command: >-
+        /opt/mssql/bin/mssql-conf set sqlagent.enabled
+        {{ mssql_enable_sql_agent }}
+      when: >-
         ("No setting for the given" in __mssql_conf_get_sqlagent_enabled.stdout)
-        or ("false" in __mssql_conf_get_sqlagent_enabled.stdout)
+        or (mssql_enable_sql_agent | string | lower not in
+        __mssql_conf_get_sqlagent_enabled.stdout | lower)
       notify: Restart the mssql-server service
 
 - name: Install full-text search
-  package:
-    name: mssql-server-fts
-    state: present
-  when: mssql_install_fts
-  notify: Restart the mssql-server service
+  when: mssql_install_fts is not none
+  block:
+    - name: Check if the mssql_install_fts variable is of type bool
+      assert:
+        that: mssql_install_fts | type_debug == "bool"
+        fail_msg: The mssql_install_fts variable must be of type bool
+
+    - name: Install full-text search
+      package:
+        name: mssql-server-fts
+        state: "{{ 'present' if mssql_install_fts else 'absent' }}"
+      notify: Restart the mssql-server service

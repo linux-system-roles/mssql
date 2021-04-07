@@ -30,6 +30,8 @@ from <https://aka.ms/odbc17eula> and found in `/usr/share/doc/msodbcsql17/LICENS
 
 Default: `false`
 
+Type: `bool`
+
 ### `mssql_accept_microsoft_cli_utilities_for_sql_server_eula`
 
 Set this variable to `true` to indicate that you accept EULA for installing the
@@ -40,6 +42,8 @@ from <http://go.microsoft.com/fwlink/?LinkId=746949> and found in
 `/usr/share/doc/mssql-tools/LICENSE.txt`.
 
 Default: `false`
+
+Type: `bool`
 
 ### `mssql_accept_microsoft_sql_server_2019_standard_eula`
 
@@ -52,6 +56,8 @@ The privacy statement can be viewed at
 <https://go.microsoft.com/fwlink/?LinkId=853010&clcid=0x409>.
 
 Default: `false`
+
+Type: `bool`
 
 ### `mssql_password`
 
@@ -67,6 +73,8 @@ When running this role on a host that has MSSQL installed, the `mssql_password`
 variable overwrites the existing sa user password to the one that you specified.
 
 Default: `null`
+
+Type: `str`
 
 ### `mssql_edition`
 
@@ -89,6 +97,8 @@ Use one of the following values:
 
 Default: `null`
 
+Type: `str`
+
 ### `mssql_tcp_port`
 
 The port that MSSQL listens on.
@@ -103,6 +113,8 @@ If you do not define this variable when configuring running MSSQL, the role does
 not change the TCP port setting on MSSQL.
 
 Default: `null`
+
+Type: `str`
 
 ### `mssql_ip_address`
 
@@ -119,6 +131,8 @@ If you do not define this variable when configuring running MSSQL, the role does
 not change the IP address setting on MSSQL.
 
 Default: `null`
+
+Type: `str`
 
 ### `mssql_input_sql_file`
 
@@ -139,19 +153,23 @@ You can find an example of the SQL file at `tests/sql_script.sql`.
 
 Default: `null`
 
+Type: `str`
+
 ### `mssql_enable_sql_agent`
 
-Set this variable to `true` to enable the SQL agent. The role does not disable
-the SQL agent if this variable is set to `false`.
+Set this variable to `true` or `false` to enable or disable the SQL agent.
 
-Default: `false`
+Default: `null`
+
+Type: `bool`
 
 ### `mssql_install_fts`
 
-Set this variable to `true` to install the full-text search. The role does not
-uninstall the full-text search if this variable is set to `false`.
+Set this variable to `true` or `false` to install or remove full-text search.
 
-Default: `false`
+Default: `null`
+
+Type: `bool`
 
 ## Example Playbook
 
