@@ -111,9 +111,6 @@
 - name: Verify that the mssql-server-fts package is installed
   when: __verify_mssql_fts_is_installed is defined
   block:
-    - name: Clean yum packages cache to free storage
-      command: yum clean packages  # noqa 303
-
     - name: Gather package facts
       package_facts:
         manager: auto
