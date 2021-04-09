@@ -18,6 +18,7 @@
         mssql_enable_sql_agent: true
         mssql_install_fts: true
         mssql_enable_ha: true
+        mssql_tune_for_fua_storage: true
 
     - name: Configure the mssql-server service start limit interval and burst
       include_tasks: tasks/mssql-sever-increase-start-limit.yml
@@ -36,6 +37,7 @@
         mssql_enable_sql_agent: true
         mssql_install_fts: true
         mssql_enable_ha: true
+        mssql_tune_for_fua_storage: true
 
     - name: Flush handlers
       meta: flush_handlers
@@ -50,3 +52,4 @@
         __verify_mssql_agent_is_enabled: true
         __verify_mssql_fts_is_installed: true
         __verify_mssql_ha_is_installed: true
+        __verify_mssql_is_tuned_for_fua: true

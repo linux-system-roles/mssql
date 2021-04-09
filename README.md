@@ -181,6 +181,32 @@ Default: `null`
 
 Type: `bool`
 
+### `mssql_tune_for_fua_storage`
+
+Set this variable to `true` or `false` to enable or disable settings that
+improve performance on hosts that support Forced Unit Access (FUA) capability.
+
+Only set this variable to `true` if your hosts are configured for FUA
+capability.
+
+When set to `true`, the role applies the following settings:
+
+* Set the `traceflag 3979 on` setting to enable trace flag 3979 as a startup
+parameter
+* Set the `control.alternatewritethrough` setting to `0`
+* Set the `control.writethrough` setting to `1`
+
+When set to `false`, the role applies the following settings:
+
+* Set the `traceflag 3982 off` parameter to disable trace flag 3979 as a startup
+parameter
+* Set the `control.alternatewritethrough` setting to `0`
+* Set the `control.writethrough` setting to `0`
+
+Default: `null`
+
+Type: `bool`
+
 ## Example Playbook
 
 ```yaml

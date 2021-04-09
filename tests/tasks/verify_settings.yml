@@ -141,3 +141,40 @@
         that: >-
           __verify_mssql_ha_is_installed | string | lower in
           __mssql_conf_get_hadrenabled.stdout | lower
+
+- name: Verify that MSSQL is tuned for FUA
+  when: __verify_mssql_is_tuned_for_fua is defined
+  block:
+    - name: Get the value of the traceflag setting
+      command: /opt/mssql/bin/mssql-conf get traceflag
+      ignore_errors: true
+      changed_when: false
+      register: __mssql_conf_get_traceflag
+
+    - name: Verify the traceflag setting
+      assert:
+        that: >-
+          (" 3979" in __mssql_conf_get_traceflag.stdout) ==
+          __verify_mssql_is_tuned_for_fua
+
+    - name: Get the value of the alternatewritethrough setting
+      command: /opt/mssql/bin/mssql-conf get control alternatewritethrough
+      ignore_errors: true
+      changed_when: false
+      register: __mssql_conf_get_alternatewritethrough
+
+    - name: Verify the alternatewritethrough setting
+      assert:
+        that: '"false" in __mssql_conf_get_alternatewritethrough.stdout | lower'
+
+    - name: Get the value of the writethrough setting
+      command: /opt/mssql/bin/mssql-conf get control writethrough
+      ignore_errors: true
+      changed_when: false
+      register: __mssql_conf_get_writethrough
+
+    - name: Verify the alternatewritethrough setting
+      assert:
+        that: >-
+          __verify_mssql_is_tuned_for_fua | string | lower in
+          __mssql_conf_get_writethrough.stdout | lower

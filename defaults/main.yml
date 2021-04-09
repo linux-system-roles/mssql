@@ -11,3 +11,4 @@ mssql_input_sql_file: null
 mssql_enable_sql_agent: null
 mssql_install_fts: null
 mssql_enable_ha: null
+mssql_tune_for_fua_storage: null
