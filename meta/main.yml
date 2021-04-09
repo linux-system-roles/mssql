@@ -10,6 +10,7 @@ galaxy_info:
         - all
     - name: EL
       versions:
+        - 9
         - 8
         - 7
   galaxy_tags:
