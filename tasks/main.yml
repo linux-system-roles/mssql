@@ -220,33 +220,19 @@
       when: not __mssql_edition_matches.stdout | bool
       notify: Restart the mssql-server service
 
-- name: Set the IP address setting for MSSQL
+- name: Configure the IP address setting
+  include_tasks: mssql_conf_setting.yml
+  vars:
+    __mssql_conf_setting: "network ipaddress"
+    __mssql_conf_setting_value: "{{ mssql_ip_address }}"
   when: mssql_ip_address is not none
-  block:
-    - name: Check if the IP address setting is defined
-      command: /opt/mssql/bin/mssql-conf get network ipaddress
-      ignore_errors: true
-      changed_when: false
-      register: __mssql_conf_get_ip_address
 
-    - name: Change the IP address setting
-      command: >
-        /opt/mssql/bin/mssql-conf set network.ipaddress {{ mssql_ip_address }}
-      when: >
-        ("No setting for the given" in __mssql_conf_get_ip_address.stdout) or
-        (__mssql_conf_get_ip_address.stdout | regex_replace( 'ipaddress : ', '')
-        not in mssql_ip_address)
-      notify: Restart the mssql-server service
-
-- name: Change the TCP port setting
-  command: "/opt/mssql/bin/mssql-conf set network.tcpport {{ mssql_tcp_port }}"
-  register: __mssql_conf_set_tcp_port
-  ignore_errors: true
-  changed_when: >
-    "SQL Server needs to be restarted in order to apply this setting."
-    in __mssql_conf_set_tcp_port.stdout
+- name: Configure the TCP port setting
+  include_tasks: mssql_conf_setting.yml
+  vars:
+    __mssql_conf_setting: "network tcpport"
+    __mssql_conf_setting_value: "{{ mssql_tcp_port }}"
   when: mssql_tcp_port is not none
-  notify: Restart the mssql-server service
 
 - name: Verify that the mssql_password variable is defined
   assert:
@@ -305,21 +291,11 @@
         that: mssql_enable_sql_agent | type_debug == "bool"
         fail_msg: The mssql_enable_sql_agent variable must be of type bool
 
-    - name: Check if SQL agent is enabled
-      command: /opt/mssql/bin/mssql-conf get sqlagent enabled
-      ignore_errors: true
-      changed_when: false
-      register: __mssql_conf_get_sqlagent_enabled
-
-    - name: Configure the SQL agent
-      command: >-
-        /opt/mssql/bin/mssql-conf set sqlagent.enabled
-        {{ mssql_enable_sql_agent }}
-      when: >-
-        ("No setting for the given" in __mssql_conf_get_sqlagent_enabled.stdout)
-        or (mssql_enable_sql_agent | string | lower not in
-        __mssql_conf_get_sqlagent_enabled.stdout | lower)
-      notify: Restart the mssql-server service
+    - name: Configure the sqlagent setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: "sqlagent enabled"
+        __mssql_conf_setting_value: "{{ mssql_enable_sql_agent }}"
 
 - name: Install the {{ __mssql_server_fts_packages }} package
   when: mssql_install_fts is not none
@@ -349,18 +325,8 @@
         state: "{{ 'present' if mssql_enable_ha else 'absent' }}"
       notify: Restart the mssql-server service
 
-    - name: Check if the hadrenabled setting is enabled
-      command: /opt/mssql/bin/mssql-conf get hadr hadrenabled
-      ignore_errors: true
-      changed_when: false
-      register: __mssql_conf_get_hadrenabled
-
     - name: Configure the hadrenabled setting
-      command: >-
-        /opt/mssql/bin/mssql-conf set hadr.hadrenabled
-        {{ mssql_enable_ha }}
-      when: >-
-        ("No setting for the given" in __mssql_conf_get_hadrenabled.stdout)
-        or (mssql_enable_ha | string | lower not in
-        __mssql_conf_get_hadrenabled.stdout | lower)
-      notify: Restart the mssql-server service
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: "hadr hadrenabled"
+        __mssql_conf_setting_value: "{{ mssql_enable_ha }}"
