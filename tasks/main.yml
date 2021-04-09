@@ -321,7 +321,7 @@
         __mssql_conf_get_sqlagent_enabled.stdout | lower)
       notify: Restart the mssql-server service
 
-- name: Install full-text search
+- name: Install the {{ __mssql_server_fts_packages }} package
   when: mssql_install_fts is not none
   block:
     - name: Check if the mssql_install_fts variable is of type bool
@@ -329,8 +329,38 @@
         that: mssql_install_fts | type_debug == "bool"
         fail_msg: The mssql_install_fts variable must be of type bool
 
-    - name: Install full-text search
+    - name: Install the {{ __mssql_server_fts_packages }} package
       package:
         name: "{{ __mssql_server_fts_packages }}"
         state: "{{ 'present' if mssql_install_fts else 'absent' }}"
+      notify: Restart the mssql-server service
+
+- name: Install {{ __mssql_server_ha_packages }} and enable hadr
+  when: mssql_enable_ha is not none
+  block:
+    - name: Check if the mssql_enable_ha variable is of type bool
+      assert:
+        that: mssql_enable_ha | type_debug == "bool"
+        fail_msg: The mssql_enable_ha variable must be of type bool
+
+    - name: Install the {{ __mssql_server_ha_packages }} package
+      package:
+        name: "{{ __mssql_server_ha_packages }}"
+        state: "{{ 'present' if mssql_enable_ha else 'absent' }}"
+      notify: Restart the mssql-server service
+
+    - name: Check if the hadrenabled setting is enabled
+      command: /opt/mssql/bin/mssql-conf get hadr hadrenabled
+      ignore_errors: true
+      changed_when: false
+      register: __mssql_conf_get_hadrenabled
+
+    - name: Configure the hadrenabled setting
+      command: >-
+        /opt/mssql/bin/mssql-conf set hadr.hadrenabled
+        {{ mssql_enable_ha }}
+      when: >-
+        ("No setting for the given" in __mssql_conf_get_hadrenabled.stdout)
+        or (mssql_enable_ha | string | lower not in
+        __mssql_conf_get_hadrenabled.stdout | lower)
       notify: Restart the mssql-server service

@@ -17,6 +17,7 @@
         mssql_ip_address: 0.0.0.0
         mssql_enable_sql_agent: true
         mssql_install_fts: true
+        mssql_enable_ha: true
 
     - name: Configure the mssql-server service start limit interval and burst
       include_tasks: tasks/mssql-sever-increase-start-limit.yml
@@ -34,6 +35,7 @@
         mssql_ip_address: 0.0.0.0
         mssql_enable_sql_agent: true
         mssql_install_fts: true
+        mssql_enable_ha: true
 
     - name: Flush handlers
       meta: flush_handlers
@@ -47,3 +49,4 @@
         __verify_mssql_ip_address: 0.0.0.0
         __verify_mssql_agent_is_enabled: true
         __verify_mssql_fts_is_installed: true
+        __verify_mssql_ha_is_installed: true

@@ -172,6 +172,15 @@ Default: `null`
 
 Type: `bool`
 
+### `mssql_enable_ha`
+
+Set this variable to `true` or `false` to install or remove the
+`mssql-server-ha` package and enable or disable the `hadrenabled` setting.
+
+Default: `null`
+
+Type: `bool`
+
 ## Example Playbook
 
 ```yaml

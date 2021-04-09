@@ -115,6 +115,29 @@
       package_facts:
         manager: auto
 
-    - name: Verify that the fts package is installed
+    - name: Verify that the mssql-server-fts package is installed
       assert:
         that: '"mssql-server-fts" in ansible_facts.packages'
+
+- name: Verify that ha is installed and enabled
+  when: __verify_mssql_ha_is_installed is defined
+  block:
+    - name: Gather package facts
+      package_facts:
+        manager: auto
+
+    - name: Verify that the mssql-server-ha package is installed
+      assert:
+        that: '"mssql-server-ha" in ansible_facts.packages'
+
+    - name: Get the value of the hadrenabled setting
+      command: /opt/mssql/bin/mssql-conf get hadr hadrenabled
+      ignore_errors: true
+      changed_when: false
+      register: __mssql_conf_get_hadrenabled
+
+    - name: Verify the hadrenabled setting
+      assert:
+        that: >-
+          __verify_mssql_ha_is_installed | string | lower in
+          __mssql_conf_get_hadrenabled.stdout | lower
