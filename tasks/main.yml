@@ -331,6 +331,6 @@
 
     - name: Install full-text search
       package:
-        name: mssql-server-fts
+        name: "{{ __mssql_server_fts_packages }}"
         state: "{{ 'present' if mssql_install_fts else 'absent' }}"
       notify: Restart the mssql-server service

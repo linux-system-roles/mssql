@@ -165,7 +165,8 @@ Type: `bool`
 
 ### `mssql_install_fts`
 
-Set this variable to `true` or `false` to install or remove full-text search.
+Set this variable to `true` or `false` to install or remove the
+`mssql-server-fts` package that provides full-text search.
 
 Default: `null`
 
