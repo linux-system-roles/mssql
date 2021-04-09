@@ -297,16 +297,17 @@
   when: mssql_install_fts
   notify: Restart the mssql-server service
 
-- name: Install the {{ __mssql_server_ha_packages }} package
-  package:
-    name: "{{ __mssql_server_ha_packages }}"
-    state: "{{ 'present' if mssql_enable_ha else 'absent' }}"
+- name: Install and enable HA
   when: mssql_enable_ha is not none
-  notify: Restart the mssql-server service
+  block:
+    - name: Install the {{ __mssql_server_ha_packages }} package
+      package:
+        name: "{{ __mssql_server_ha_packages }}"
+        state: "{{ 'present' if mssql_enable_ha else 'absent' }}"
+      notify: Restart the mssql-server service
 
-- name: Configure the hadrenabled setting
-  include_tasks: mssql_conf_setting.yml
-  vars:
-    __mssql_conf_setting: "hadr hadrenabled"
-    __mssql_conf_setting_value: "{{ mssql_enable_ha }}"
-  when: mssql_enable_ha is not none
+    - name: Configure the hadrenabled setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: "hadr hadrenabled"
+        __mssql_conf_setting_value: "{{ mssql_enable_ha }}"
