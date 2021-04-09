@@ -12,4 +12,6 @@
     ("No setting for the given" in __mssql_conf_get_setting.stdout)
     or (__mssql_conf_setting_value | string | lower not in
     __mssql_conf_get_setting.stdout | lower)
+  register: __mssql_conf_set
+  failed_when: '"error" in __mssql_conf_set.stdout | lower'
   notify: Restart the mssql-server service

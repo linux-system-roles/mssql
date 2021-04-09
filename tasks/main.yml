@@ -283,50 +283,30 @@
         path: "{{ __mssql_sql_tempfile.path }}"
         state: absent
 
-- name: Enable the SQL agent
+- name: Configure the sqlagent setting
+  include_tasks: mssql_conf_setting.yml
+  vars:
+    __mssql_conf_setting: "sqlagent enabled"
+    __mssql_conf_setting_value: "{{ mssql_enable_sql_agent }}"
   when: mssql_enable_sql_agent is not none
-  block:
-    - name: Check if the mssql_enable_sql_agent variable is of type bool
-      assert:
-        that: mssql_enable_sql_agent | type_debug == "bool"
-        fail_msg: The mssql_enable_sql_agent variable must be of type bool
-
-    - name: Configure the sqlagent setting
-      include_tasks: mssql_conf_setting.yml
-      vars:
-        __mssql_conf_setting: "sqlagent enabled"
-        __mssql_conf_setting_value: "{{ mssql_enable_sql_agent }}"
 
 - name: Install the {{ __mssql_server_fts_packages }} package
-  when: mssql_install_fts is not none
-  block:
-    - name: Check if the mssql_install_fts variable is of type bool
-      assert:
-        that: mssql_install_fts | type_debug == "bool"
-        fail_msg: The mssql_install_fts variable must be of type bool
+  package:
+    name: "{{ __mssql_server_fts_packages }}"
+    state: "{{ 'present' if mssql_install_fts else 'absent' }}"
+  when: mssql_install_fts
+  notify: Restart the mssql-server service
 
-    - name: Install the {{ __mssql_server_fts_packages }} package
-      package:
-        name: "{{ __mssql_server_fts_packages }}"
-        state: "{{ 'present' if mssql_install_fts else 'absent' }}"
-      notify: Restart the mssql-server service
-
-- name: Install {{ __mssql_server_ha_packages }} and enable hadr
+- name: Install the {{ __mssql_server_ha_packages }} package
+  package:
+    name: "{{ __mssql_server_ha_packages }}"
+    state: "{{ 'present' if mssql_enable_ha else 'absent' }}"
   when: mssql_enable_ha is not none
-  block:
-    - name: Check if the mssql_enable_ha variable is of type bool
-      assert:
-        that: mssql_enable_ha | type_debug == "bool"
-        fail_msg: The mssql_enable_ha variable must be of type bool
+  notify: Restart the mssql-server service
 
-    - name: Install the {{ __mssql_server_ha_packages }} package
-      package:
-        name: "{{ __mssql_server_ha_packages }}"
-        state: "{{ 'present' if mssql_enable_ha else 'absent' }}"
-      notify: Restart the mssql-server service
-
-    - name: Configure the hadrenabled setting
-      include_tasks: mssql_conf_setting.yml
-      vars:
-        __mssql_conf_setting: "hadr hadrenabled"
-        __mssql_conf_setting_value: "{{ mssql_enable_ha }}"
+- name: Configure the hadrenabled setting
+  include_tasks: mssql_conf_setting.yml
+  vars:
+    __mssql_conf_setting: "hadr hadrenabled"
+    __mssql_conf_setting_value: "{{ mssql_enable_ha }}"
+  when: mssql_enable_ha is not none
