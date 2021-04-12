@@ -198,10 +198,13 @@ parameter
 
 When set to `false`, the role applies the following settings:
 
-* Set the `traceflag 3982 off` parameter to disable trace flag 3979 as a startup
-parameter
-* Set the `control.alternatewritethrough` setting to `0`
-* Set the `control.writethrough` setting to `0`
+* Set the `traceflag 3982 off` parameter to disable trace flag 3979 as a
+startup parameter
+* Set the `control.alternatewritethrough` setting to its default value `0`
+* Set the `control.writethrough` setting to its default value `0`
+
+For more details, see SQL Server and Forced Unit Access (FUA) I/O subsystem
+capability at <https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-performance-best-practices?view=sql-server-ver15>.
 
 Default: `null`
 
