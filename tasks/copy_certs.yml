@@ -1,0 +1,29 @@
+- name: Copy certificate and private key to the host
+  block:
+    - name: Create a tempfile for the {{ item }} file on the host
+      tempfile:
+        state: file
+      register: __mssql_certificate_tempfile
+
+    - name: Copy the {{ item }} file to the host
+      copy:
+        src: "{{ item }}"
+        dest: "{{ __mssql_certificate_tempfile.path }}"
+        owner: mssql
+        group: mssql
+        mode: 0600
+
+    - name: Move the {{ item }} file to the appropriate location
+      copy:
+        remote_src: true
+        src: __mssql_certificate_tempfile.path
+        dest: >
+          /etc/pki/tls/certs/{{ item }} if
+          item == mssql_enable_tls_encryption.certificate else
+          /etc/pki/tls/private/{{ item }}
+        mode: preserve
+  always:
+    - name: Remove the tempfile
+      file:
+        path: "{{ __mssql_certificate_tempfile.path }}"
+        state: absent

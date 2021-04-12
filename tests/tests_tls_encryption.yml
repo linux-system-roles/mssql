@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: MIT
+---
+- name: Ensure that tls encryption configuration works
+  hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_2019_standard_eula: true
+  tasks:
+    - name: Generate certificate and public key
+      command: >-
+        openssl req -x509 -nodes -newkey rsa:2048 -subj "/CN=$HOSTNAME"
+        -keyout mssql.key -out mssql.pem -days 365
+      changed_when: true
+
+    - name: Set up MSSQL
+      include_role:
+        name: linux-system-roles.mssql
+      vars:
+        mssql_password: "p@55w0rD"
+        mssql_edition: Evaluation
+        mssql_enable_tls_encryption:
+          certificate: mssql.key
+          private_key: mssql.pem
+          tls_version: 1.2

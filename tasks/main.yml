@@ -246,7 +246,7 @@
 - name: Input the {{ mssql_input_sql_file }} file to MSSQL
   when: mssql_input_sql_file is not none
   block:
-    - name: Create a tempfile on the host
+    - name: Create a tempfile for the SQL file on the host
       tempfile:
         state: file
       register: __mssql_sql_tempfile
@@ -278,7 +278,7 @@
       debug:
         var: __mssql_sqlcmd_input_file.stdout_lines
 
-    - name: Remove the {{ __mssql_sql_tempfile.path }} file
+    - name: Remove the tempfile
       file:
         path: "{{ __mssql_sql_tempfile.path }}"
         state: absent
@@ -338,3 +338,39 @@
       vars:
         __mssql_conf_setting: "control writethrough"
         __mssql_conf_setting_value: "{{ mssql_tune_for_fua_storage }}"
+
+- name: Configure MSSQL to encrypt connections
+  when: mssql_enable_tls_encryption is not none
+  block:
+    - name: Copy certificate and private key to the host
+      include_tasks: copy_certs.yml
+      with_items:
+        - "{{ mssql_enable_tls_encryption.certificate }}"
+        - "{{ mssql_enable_tls_encryption.private_key }}"
+
+    - name: Configure the tlscert setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: "network tlscert"
+        __mssql_conf_setting_value: >
+          /etc/pki/tls/certs/{{ mssql_enable_tls_encryption.certificate }}
+
+    - name: Configure the tlskey setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: "network tlskey"
+        __mssql_conf_setting_value: >
+          /etc/pki/tls/private/{{ mssql_enable_tls_encryption.private_key }}
+
+    - name: Configure the tlsprotocols setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: "network tlsprotocols"
+        __mssql_conf_setting_value: >
+          {{ mssql_enable_tls_encryption.tls_version }}
+
+    - name: Configure the forceencryption setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: "network forceencryption"
+        __mssql_conf_setting_value: true

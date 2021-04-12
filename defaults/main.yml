@@ -12,3 +12,7 @@ mssql_enable_sql_agent: null
 mssql_install_fts: null
 mssql_enable_ha: null
 mssql_tune_for_fua_storage: null
+mssql_enable_tls_encryption:
+  certificate: null
+  private_key: null
+  tls_version: 1.2
