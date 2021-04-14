@@ -11,17 +11,29 @@
         dest: "{{ __mssql_certificate_tempfile.path }}"
         owner: mssql
         group: mssql
-        mode: 0600
 
-    - name: Move the {{ item }} file to the appropriate location
+    - name: Move the certificate file to the appropriate location
       copy:
         remote_src: true
-        src: __mssql_certificate_tempfile.path
-        dest: >
-          /etc/pki/tls/certs/{{ item }} if
-          item == mssql_enable_tls_encryption.certificate else
-          /etc/pki/tls/private/{{ item }}
-        mode: preserve
+        src: "{{ __mssql_certificate_tempfile.path }}"
+        dest: /etc/pki/tls/certs/{{ item }}
+        owner: mssql
+        group: mssql
+        mode: 0600
+        force: true
+      when: item == mssql_enable_tls_encryption.certificate
+
+    - name: Move the private key file to the appropriate location
+      copy:
+        remote_src: true
+        src: "{{ __mssql_certificate_tempfile.path }}"
+        dest: /etc/pki/tls/private/{{ item }}
+        owner: mssql
+        group: mssql
+        mode: 0600
+        force: true
+      when: item == mssql_enable_tls_encryption.private_key
+
   always:
     - name: Remove the tempfile
       file:
