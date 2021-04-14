@@ -81,6 +81,7 @@
         path: /var/opt/mssql/log/errorlog
         search_regex: SQL Server is now ready for client connections
         delay: 3
+        timeout: 10
 
     - name: Check if the set password matches the existing password
       command: "{{ __mssql_sqlcmd_login_cmd }} -Q 'SELECT @@VERSION'"
