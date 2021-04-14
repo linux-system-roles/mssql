@@ -11,6 +11,7 @@
         dest: "{{ __mssql_certificate_tempfile.path }}"
         owner: mssql
         group: mssql
+        mode: 0600
 
     - name: Move the certificate file to the appropriate location
       copy:
