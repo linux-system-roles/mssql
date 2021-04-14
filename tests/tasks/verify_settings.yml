@@ -154,10 +154,15 @@
 
     - name: Print vars to debug weird test failures in the CI
       debug:
-        msg: |-
-          {{ __mssql_conf_get_traceflag.stdout }}
-          {{ __verify_mssql_is_tuned_for_fua }}
-          {{ "3979" in __mssql_conf_get_traceflag.stdout }}
+        var: __mssql_conf_get_traceflag.stdout
+
+    - name: Print vars to debug weird test failures in the CI
+      debug:
+        var: __verify_mssql_is_tuned_for_fua
+
+    - name: Print vars to debug weird test failures in the CI
+      debug:
+        var: '"3979" in __mssql_conf_get_traceflag.stdout'
 
     - name: Verify the traceflag setting
       assert:
