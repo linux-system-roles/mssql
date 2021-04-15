@@ -11,13 +11,24 @@
     /opt/mssql/bin/mssql-conf set {{ __mssql_conf_setting }}
     {{ __mssql_conf_setting_value }}
   when: >-
-    ("No setting for the given" in __mssql_conf_get_setting.stdout) or
+    (__mssql_conf_setting_value != 'unset') and
+    (("No setting for the given" in __mssql_conf_get_setting.stdout) or
     ((__mssql_conf_setting_value | type_debug != "bool") and
     (__mssql_conf_setting_value | string | lower not in
     __mssql_conf_get_setting.stdout | lower)) or
     ((__mssql_conf_setting_value | type_debug == "bool") and
-    (__mssql_conf_setting_value != __mssql_conf_get_setting.stdout | bool))
-
+    (__mssql_conf_setting_value != __mssql_conf_get_setting.stdout | bool)))
   register: __mssql_conf_set
-  failed_when: '"error" in __mssql_conf_set.stdout | lower'
+  failed_when: >
+    ("error" in __mssql_conf_set.stdout | lower) or (__mssql_conf_set.rc == 1)
+  notify: Restart the mssql-server service
+
+- name: Unset the {{ __mssql_conf_setting }} setting
+  command: /opt/mssql/bin/mssql-conf unset {{ __mssql_conf_setting }}
+  when:
+    - '__mssql_conf_setting_value == "unset"'
+    - '"No setting for the given" not in __mssql_conf_get_setting.stdout'
+  register: __mssql_conf_set
+  failed_when: >-
+    ("error" in __mssql_conf_set.stdout | lower) or (__mssql_conf_set.rc == 1)
   notify: Restart the mssql-server service

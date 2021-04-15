@@ -22,7 +22,7 @@
         group: mssql
         mode: 0600
         force: true
-      when: item == mssql_enable_tls_encryption.certificate
+      when: item == mssql_tls_encryption.certificate
 
     - name: Move the private key file to the appropriate location
       copy:
@@ -33,7 +33,7 @@
         group: mssql
         mode: 0600
         force: true
-      when: item == mssql_enable_tls_encryption.private_key
+      when: item == mssql_tls_encryption.private_key
 
   always:
     - name: Remove the tempfile

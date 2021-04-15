@@ -340,39 +340,63 @@
         __mssql_conf_setting_value: "{{ mssql_tune_for_fua_storage }}"
 
 - name: Configure MSSQL to encrypt connections
-  when:
-    - mssql_enable_tls_encryption.certificate is not none
-    - mssql_enable_tls_encryption.private_key is not none
+  when: mssql_tls_encryption.enable
   block:
     - name: Copy certificate and private key to the host
       include_tasks: copy_certs.yml
       with_items:
-        - "{{ mssql_enable_tls_encryption.certificate }}"
-        - "{{ mssql_enable_tls_encryption.private_key }}"
+        - "{{ mssql_tls_encryption.certificate }}"
+        - "{{ mssql_tls_encryption.private_key }}"
 
     - name: Configure the tlscert setting
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_conf_setting: "network tlscert"
         __mssql_conf_setting_value: >-
-          /etc/pki/tls/certs/{{ mssql_enable_tls_encryption.certificate }}
+          /etc/pki/tls/certs/{{ mssql_tls_encryption.certificate }}
 
     - name: Configure the tlskey setting
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_conf_setting: "network tlskey"
         __mssql_conf_setting_value: >-
-          /etc/pki/tls/private/{{ mssql_enable_tls_encryption.private_key }}
+          /etc/pki/tls/private/{{ mssql_tls_encryption.private_key }}
 
     - name: Configure the tlsprotocols setting
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_conf_setting: "network tlsprotocols"
-        __mssql_conf_setting_value: >-
-          {{ mssql_enable_tls_encryption.tls_version }}
+        __mssql_conf_setting_value: "{{ mssql_tls_encryption.tls_version }}"
 
     - name: Configure the forceencryption setting
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_conf_setting: "network forceencryption"
-        __mssql_conf_setting_value: 1
+        __mssql_conf_setting_value: '1'
+
+- name: Configure MSSQL to not encrypt connections
+  when: not mssql_tls_encryption.enable
+  block:
+    - name: Unset the tlscert setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: "network tlscert"
+        __mssql_conf_setting_value: "unset"
+
+    - name: Unset the tlskey setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: "network tlskey"
+        __mssql_conf_setting_value: "unset"
+
+    - name: Unset the tlsprotocols setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: "network tlsprotocols"
+        __mssql_conf_setting_value: "unset"
+
+    - name: Unset the forceencryption setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: "network forceencryption"
+        __mssql_conf_setting_value: "unset"

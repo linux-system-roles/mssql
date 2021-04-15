@@ -203,3 +203,80 @@
         that: >-
           __verify_mssql_is_tuned_for_fua | string | lower in
           __mssql_conf_get_writethrough.stdout | lower
+
+- name: Verify that MSSQL configuration for TSL encryption
+  when: __verify_mssql_is_tsl_encrypted is defined
+  block:
+    - name: Get the value of the tlscert setting
+      command: /opt/mssql/bin/mssql-conf get network tlscert
+      ignore_errors: true
+      changed_when: false
+      register: __mssql_conf_get_tlscert
+
+    - name: Verify the tlscert setting
+      assert:
+        that: >-
+          (mssql_tls_encryption.certificate | string in
+          __mssql_conf_get_tlscert.stdout)
+          == __verify_mssql_is_tsl_encrypted
+      when: mssql_tls_encryption.certificate is defined
+
+    - name: Verify if the tlscert setting is unset
+      assert:
+        that: "'No setting for the given' in __mssql_conf_get_tlscert.stdout"
+      when: mssql_tls_encryption.certificate is not defined
+
+    - name: Get the value of the tlskey setting
+      command: /opt/mssql/bin/mssql-conf get network tlskey
+      ignore_errors: true
+      changed_when: false
+      register: __mssql_conf_get_tlskey
+
+    - name: Verify the tlskey setting
+      assert:
+        that: >-
+          (mssql_tls_encryption.private_key in __mssql_conf_get_tlskey.stdout)
+          == __verify_mssql_is_tsl_encrypted
+      when: mssql_tls_encryption.private_key is defined
+
+    - name: Verify that the tlskey setting is unset
+      assert:
+        that: "'No setting for the given' in __mssql_conf_get_tlskey.stdout"
+      when: mssql_tls_encryption.certificate is not defined
+
+    - name: Get the value of the tlsprotocols setting
+      command: /opt/mssql/bin/mssql-conf get network tlsprotocols
+      ignore_errors: true
+      changed_when: false
+      register: __mssql_conf_get_tlsprotocols
+
+    - name: Verify the tlsprotocols setting
+      assert:
+        that: >-
+          (mssql_tls_encryption.tls_version | string in
+          __mssql_conf_get_tlsprotocols.stdout) ==
+          __verify_mssql_is_tsl_encrypted
+      when: mssql_tls_encryption.tls_version is defined
+
+    - name: Verify if the tlsprotocols setting is unset
+      assert:
+        that: >-
+          'No setting for the given' in __mssql_conf_get_tlsprotocols.stdout
+      when: mssql_tls_encryption.tls_version is not defined
+
+    - name: Get the value of the forceencryption setting
+      command: >-
+        /opt/mssql/bin/mssql-conf get network forceencryption |
+        cut -d ':' -f 2- | sed \'s/^ //\'
+      ignore_errors: true
+      changed_when: false
+      register: __mssql_conf_get_forceencryption
+
+    - name: Verify the forceencryption setting
+      assert:
+        that: >-
+          (__mssql_conf_get_forceencryption.stdout | bool ==
+          __verify_mssql_is_tsl_encrypted) or
+          ("No setting for the given" in
+          __mssql_conf_get_forceencryption.stdout ==
+          __verify_mssql_is_tsl_encrypted)

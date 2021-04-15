@@ -26,7 +26,8 @@
           vars:
             mssql_password: "p@55w0rD"
             mssql_edition: Evaluation
-            mssql_enable_tls_encryption:
+            mssql_tls_encryption:
+              enable: true
               certificate: mssql.pem
               private_key: mssql.key
               tls_version: 1.2
@@ -44,7 +45,25 @@
     - name: Flush handlers
       meta: flush_handlers
 
-    - name: Verify connectivity
+    - name: Verify connectivity and settings
       include_tasks: tasks/verify_settings.yml
       vars:
         __verify_mssql_password: "p@55w0rD"
+        __verify_mssql_is_tsl_encrypted: true
+
+    - name: Disable TLS encryption
+      include_role:
+        name: linux-system-roles.mssql
+        public: true
+      vars:
+        mssql_password: "p@55w0rD"
+        mssql_edition: Evaluation
+        mssql_enable_ha: false
+        mssql_tls_encryption:
+          enable: false
+
+    - name: Verify connectivity and settings
+      include_tasks: tasks/verify_settings.yml
+      vars:
+        __verify_mssql_password: "p@55w0rD"
+        __verify_mssql_is_tsl_encrypted: false
