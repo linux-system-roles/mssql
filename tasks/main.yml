@@ -294,7 +294,7 @@
   package:
     name: "{{ __mssql_server_fts_packages }}"
     state: "{{ 'present' if mssql_install_fts else 'absent' }}"
-  when: mssql_install_fts | bool
+  when: mssql_install_fts is not none
   notify: Restart the mssql-server service
 
 - name: Configure HA
