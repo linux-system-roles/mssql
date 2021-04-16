@@ -1,7 +1,6 @@
 - name: Check if the {{ __mssql_conf_setting }} setting is enabled
   command: >-
-    /opt/mssql/bin/mssql-conf get {{ __mssql_conf_setting }} |
-    cut -d ':' -f 2- | sed \'s/^ //\'
+    /opt/mssql/bin/mssql-conf get {{ __mssql_conf_setting }}
   ignore_errors: true
   changed_when: false
   register: __mssql_conf_get_setting
@@ -10,14 +9,18 @@
   command: >-
     /opt/mssql/bin/mssql-conf set {{ __mssql_conf_setting }}
     {{ __mssql_conf_setting_value }}
+  vars:
+    __mssql_conf_get_value: >-
+      {{ __mssql_conf_get_setting.stdout |
+      regex_replace('^.*\s:\s', '') }}
   when: >-
     (__mssql_conf_setting_value != 'unset') and
     (("No setting for the given" in __mssql_conf_get_setting.stdout) or
     ((__mssql_conf_setting_value | type_debug != "bool") and
     (__mssql_conf_setting_value | string | lower not in
-    __mssql_conf_get_setting.stdout | lower)) or
+    __mssql_conf_get_value | lower)) or
     ((__mssql_conf_setting_value | type_debug == "bool") and
-    (__mssql_conf_setting_value != __mssql_conf_get_setting.stdout | bool)))
+    (__mssql_conf_setting_value != __mssql_conf_get_value | bool)))
   register: __mssql_conf_set
   failed_when: >
     ("error" in __mssql_conf_set.stdout | lower) or (__mssql_conf_set.rc == 1)
