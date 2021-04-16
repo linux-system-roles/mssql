@@ -56,9 +56,6 @@
         name: linux-system-roles.mssql
         public: true
       vars:
-        mssql_password: "p@55w0rD"
-        mssql_edition: Evaluation
-        mssql_enable_ha: false
         mssql_tls:
           enable: false
 
