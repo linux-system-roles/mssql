@@ -210,14 +210,14 @@ Default: `null`
 
 Type: `bool`
 
-### `mssql_tls_encryption`
+### `mssql_tls`
 
 Use this variable to configure MSSQL to encrypt connections using TLS
 certificates. You must have the TLS certificate and private key on the Ansible
 control node.
 
-When you use this variable, the role copies the TLS certificate and private key
-files to MSSQL and configure MSSQL to use these files to encrypt connections.
+When you use this variable, the role copies TLS cert and private key files to
+MSSQL and configures MSSQL to use these files to encrypt connections.
 
 Default: `null`
 
@@ -236,7 +236,7 @@ Default: `null`
 
 Type: `bool`
 
-#### `certificate`
+#### `cert`
 
 Path to the certificate file to copy to MSSQL.
 
@@ -275,9 +275,9 @@ Type: `str`
     mssql_enable_sql_agent: true
     mssql_install_fts: true
     mssql_tune_for_fua_storage: true
-    mssql_tls_encryption:
+    mssql_tls:
       enable: true
-      certificate: mycertificate.pem
+      cert: mycert.pem
       private_key: mykey.key
       tls_version: 1.2
   roles:

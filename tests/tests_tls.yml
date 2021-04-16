@@ -26,9 +26,9 @@
           vars:
             mssql_password: "p@55w0rD"
             mssql_edition: Evaluation
-            mssql_tls_encryption:
+            mssql_tls:
               enable: true
-              certificate: mssql.pem
+              cert: mssql.pem
               private_key: mssql.key
               tls_version: 1.2
 
@@ -59,7 +59,7 @@
         mssql_password: "p@55w0rD"
         mssql_edition: Evaluation
         mssql_enable_ha: false
-        mssql_tls_encryption:
+        mssql_tls:
           enable: false
 
     - name: Verify connectivity and settings

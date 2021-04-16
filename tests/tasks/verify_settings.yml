@@ -216,15 +216,15 @@
     - name: Verify the tlscert setting
       assert:
         that: >-
-          (mssql_tls_encryption.certificate | string in
+          (mssql_tls.cert | string in
           __mssql_conf_get_tlscert.stdout)
           == __verify_mssql_is_tsl_encrypted
-      when: mssql_tls_encryption.certificate is defined
+      when: mssql_tls.cert is defined
 
     - name: Verify if the tlscert setting is unset
       assert:
         that: "'No setting for the given' in __mssql_conf_get_tlscert.stdout"
-      when: mssql_tls_encryption.certificate is not defined
+      when: mssql_tls.cert is not defined
 
     - name: Get the value of the tlskey setting
       command: /opt/mssql/bin/mssql-conf get network tlskey
@@ -235,14 +235,14 @@
     - name: Verify the tlskey setting
       assert:
         that: >-
-          (mssql_tls_encryption.private_key in __mssql_conf_get_tlskey.stdout)
+          (mssql_tls.private_key in __mssql_conf_get_tlskey.stdout)
           == __verify_mssql_is_tsl_encrypted
-      when: mssql_tls_encryption.private_key is defined
+      when: mssql_tls.private_key is defined
 
     - name: Verify that the tlskey setting is unset
       assert:
         that: "'No setting for the given' in __mssql_conf_get_tlskey.stdout"
-      when: mssql_tls_encryption.certificate is not defined
+      when: mssql_tls.cert is not defined
 
     - name: Get the value of the tlsprotocols setting
       command: /opt/mssql/bin/mssql-conf get network tlsprotocols
@@ -253,16 +253,16 @@
     - name: Verify the tlsprotocols setting
       assert:
         that: >-
-          (mssql_tls_encryption.tls_version | string in
+          (mssql_tls.tls_version | string in
           __mssql_conf_get_tlsprotocols.stdout) ==
           __verify_mssql_is_tsl_encrypted
-      when: mssql_tls_encryption.tls_version is defined
+      when: mssql_tls.tls_version is defined
 
     - name: Verify if the tlsprotocols setting is unset
       assert:
         that: >-
           'No setting for the given' in __mssql_conf_get_tlsprotocols.stdout
-      when: mssql_tls_encryption.tls_version is not defined
+      when: mssql_tls.tls_version is not defined
 
     - name: Get the value of the forceencryption setting
       command: >-
