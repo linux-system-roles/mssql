@@ -290,17 +290,17 @@
     __mssql_conf_setting_value: "{{ mssql_enable_sql_agent }}"
   when: mssql_enable_sql_agent is not none
 
-- name: Install the {{ __mssql_server_fts_packages }} package
+- name: Ensure the {{ __mssql_server_fts_packages }} package
   package:
     name: "{{ __mssql_server_fts_packages }}"
     state: "{{ 'present' if mssql_install_fts else 'absent' }}"
   when: mssql_install_fts | bool
   notify: Restart the mssql-server service
 
-- name: Install and enable HA
+- name: Configure HA
   when: mssql_enable_ha is not none
   block:
-    - name: Install the {{ __mssql_server_ha_packages }} package
+    - name: Ensure the {{ __mssql_server_ha_packages }} package
       package:
         name: "{{ __mssql_server_ha_packages }}"
         state: "{{ 'present' if mssql_enable_ha else 'absent' }}"
