@@ -158,7 +158,7 @@
 
     - name: Print vars to debug weird test failures in the CI
       debug:
-        var: '"3979" in __mssql_conf_get_traceflag.stdout'
+        var: "'3979' in __mssql_conf_get_traceflag.stdout"
 
     - name: Print vars to debug weird test failures in the CI
       debug:
@@ -166,21 +166,15 @@
 
     - name: Print vars to debug weird test failures in the CI
       debug:
-        var: >
+        var: >-
           ('3979' in __mssql_conf_get_traceflag.stdout) ==
-          __verify_mssql_is_tuned_for_fua
-
-    - name: Print vars to debug weird test failures in the CI
-      debug:
-        var: >
-          ("3979" in __mssql_conf_get_traceflag.stdout) ==
-          __verify_mssql_is_tuned_for_fua
+          (__verify_mssql_is_tuned_for_fua)
 
     - name: Verify the traceflag setting
       assert:
         that: >-
           ('3979' in __mssql_conf_get_traceflag.stdout) ==
-          __verify_mssql_is_tuned_for_fua
+          (__verify_mssql_is_tuned_for_fua)
 
     - name: Get the value of the alternatewritethrough setting
       command: /opt/mssql/bin/mssql-conf get control alternatewritethrough
