@@ -8,7 +8,7 @@
 - name: Configure the {{ __mssql_conf_setting }} setting
   command: >-
     /opt/mssql/bin/mssql-conf set {{ __mssql_conf_setting }}
-    {{ __mssql_conf_setting_value }}
+    {{ __mssql_conf_setting_value | quote }}
   vars:
     __mssql_conf_get_value: >-
       {{ __mssql_conf_get_setting.stdout |
