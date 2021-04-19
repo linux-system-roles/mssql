@@ -59,6 +59,9 @@
         mssql_tls:
           enable: false
 
+    - name: Flush handlers
+      meta: flush_handlers
+
     - name: Verify connectivity and settings
       include_tasks: tasks/verify_settings.yml
       vars:
