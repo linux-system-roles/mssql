@@ -340,7 +340,7 @@
         __mssql_conf_setting_value: "{{ mssql_tune_for_fua_storage }}"
 
 - name: Configure MSSQL to encrypt connections
-  when: mssql_tls.enable
+  when: mssql_tls.enable | bool
   block:
     - name: Copy cert and private key to the host
       include_tasks: copy_certs.yml
@@ -375,7 +375,7 @@
         __mssql_conf_setting_value: '1'
 
 - name: Configure MSSQL to not encrypt connections
-  when: not mssql_tls.enable
+  when: not mssql_tls.enable | bool
   block:
     - name: Unset the tlscert setting
       include_tasks: mssql_conf_setting.yml

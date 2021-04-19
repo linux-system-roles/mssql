@@ -155,12 +155,12 @@
     - name: Verify the traceflag setting
       assert:
         that: "'3979' in __mssql_conf_get_traceflag.stdout"
-      when: __verify_mssql_is_tuned_for_fua
+      when: __verify_mssql_is_tuned_for_fua | bool
 
     - name: Verify the traceflag setting
       assert:
         that: "'3979' not in __mssql_conf_get_traceflag.stdout"
-      when: not __verify_mssql_is_tuned_for_fua
+      when: not __verify_mssql_is_tuned_for_fua | bool
 
     - name: Get the value of the alternatewritethrough setting
       command: /opt/mssql/bin/mssql-conf get control alternatewritethrough
