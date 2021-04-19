@@ -293,7 +293,7 @@
 - name: Ensure the {{ __mssql_server_fts_packages }} package
   package:
     name: "{{ __mssql_server_fts_packages }}"
-    state: "{{ 'present' if mssql_install_fts else 'absent' }}"
+    state: "{{ 'present' if mssql_install_fts | bool else 'absent' }}"
   when: mssql_install_fts is not none
   notify: Restart the mssql-server service
 
@@ -303,7 +303,7 @@
     - name: Ensure the {{ __mssql_server_ha_packages }} package
       package:
         name: "{{ __mssql_server_ha_packages }}"
-        state: "{{ 'present' if mssql_enable_ha else 'absent' }}"
+        state: "{{ 'present' if mssql_enable_ha | bool else 'absent' }}"
       notify: Restart the mssql-server service
 
     - name: Configure the hadrenabled setting
@@ -321,11 +321,19 @@
       changed_when: false
       register: __mssql_get_traceflag
 
-    - name: Configure the 3979 traceflag
+    - name: Set the 3979 traceflag
       command: >-
-        /opt/mssql/bin/mssql-conf traceflag 3979
-        {{ "on" if mssql_tune_for_fua_storage else "off" }}
-      when: '"3979" not in __mssql_get_traceflag.stdout'
+        /opt/mssql/bin/mssql-conf traceflag 3979 "on"
+      when:
+        - mssql_tune_for_fua_storage | bool
+        - "'3979' not in __mssql_get_traceflag.stdout"
+
+    - name: Unset the 3979 traceflag
+      command: >-
+        /opt/mssql/bin/mssql-conf traceflag 3979 "off"
+      when:
+        - not mssql_tune_for_fua_storage | bool
+        - "'3979' in __mssql_get_traceflag.stdout"
 
     - name: Configure the alternatewritethrough setting
       include_tasks: mssql_conf_setting.yml

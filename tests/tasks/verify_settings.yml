@@ -108,28 +108,39 @@
           __verify_mssql_agent_is_enabled | string | lower in
           __mssql_conf_get_sqlagent.stdout | lower
 
-
-- name: Verify that the mssql-server-fts package is installed
+- name: Verify the mssql-server-fts package
   when: __verify_mssql_fts_is_installed is defined
   block:
     - name: Gather package facts
       package_facts:
         manager: auto
 
-    - name: Verify that the mssql-server-fts package is installed
+    - name: Verify if the mssql-server-fts package is installed
       assert:
-        that: '"mssql-server-fts" in ansible_facts.packages'
+        that: "'mssql-server-fts' in ansible_facts.packages"
+      when: __verify_mssql_fts_is_installed | bool
 
-- name: Verify that ha is installed and enabled
+    - name: Verify if the mssql-server-fts package is not installed
+      assert:
+        that: "'mssql-server-fts' not in ansible_facts.packages"
+      when: not __verify_mssql_fts_is_installed | bool
+
+- name: Verify the ha settings
   when: __verify_mssql_ha_is_installed is defined
   block:
     - name: Gather package facts
       package_facts:
         manager: auto
 
-    - name: Verify that the mssql-server-ha package is installed
+    - name: Verify if the mssql-server-ha package is installed
       assert:
-        that: '"mssql-server-ha" in ansible_facts.packages'
+        that: "'mssql-server-ha' in ansible_facts.packages"
+      when: __verify_mssql_ha_is_installed | bool
+
+    - name: Verify if the mssql-server-ha package is not installed
+      assert:
+        that: "'mssql-server-ha' not in ansible_facts.packages"
+      when: not __verify_mssql_ha_is_installed | bool
 
     - name: Get the value of the hadrenabled setting
       command: /opt/mssql/bin/mssql-conf get hadr hadrenabled
@@ -152,12 +163,12 @@
       changed_when: false
       register: __mssql_conf_get_traceflag
 
-    - name: Verify the traceflag setting
+    - name: Verify that the traceflag setting is set to 3979
       assert:
         that: "'3979' in __mssql_conf_get_traceflag.stdout"
       when: __verify_mssql_is_tuned_for_fua | bool
 
-    - name: Verify the traceflag setting
+    - name: Verify that the traceflag setting is not set to 3979
       assert:
         that: "'3979' not in __mssql_conf_get_traceflag.stdout"
       when: not __verify_mssql_is_tuned_for_fua | bool
@@ -168,9 +179,13 @@
       changed_when: false
       register: __mssql_conf_get_alternatewritethrough
 
-    - name: Verify the alternatewritethrough setting
+    - name: Verify that the alternatewritethrough setting is false
+      vars:
+        __mssql_conf_get_alternatewritethrough_value: >-
+          {{ __mssql_conf_get_alternatewritethrough.stdout |
+          regex_replace( '^.*\s:\s', '') }}
       assert:
-        that: '"false" in __mssql_conf_get_alternatewritethrough.stdout | lower'
+        that: not __mssql_conf_get_alternatewritethrough_value | bool
 
     - name: Get the value of the writethrough setting
       command: /opt/mssql/bin/mssql-conf get control writethrough
@@ -193,18 +208,19 @@
       changed_when: false
       register: __mssql_conf_get_tlscert
 
-    - name: Verify the tlscert setting
+    - name: Verify if the tlscert setting is set to mssql_tls.cert
       assert:
-        that: >-
-          (mssql_tls.cert | string in
-          __mssql_conf_get_tlscert.stdout)
-          == __verify_mssql_is_tsl_encrypted
-      when: mssql_tls.cert is defined
+        that: mssql_tls.cert | string in __mssql_conf_get_tlscert.stdout
+      when:
+        - __verify_mssql_is_tsl_encrypted | bool
+        - mssql_tls.cert is defined
 
     - name: Verify if the tlscert setting is unset
       assert:
         that: "'No setting for the given' in __mssql_conf_get_tlscert.stdout"
-      when: mssql_tls.cert is not defined
+      when:
+        - not __verify_mssql_is_tsl_encrypted | bool
+        - mssql_tls.cert is not defined
 
     - name: Get the value of the tlskey setting
       command: /opt/mssql/bin/mssql-conf get network tlskey
@@ -212,17 +228,19 @@
       changed_when: false
       register: __mssql_conf_get_tlskey
 
-    - name: Verify the tlskey setting
+    - name: Verify if the tlskey setting is set to mssql_tls.private_key
       assert:
-        that: >-
-          (mssql_tls.private_key in __mssql_conf_get_tlskey.stdout)
-          == __verify_mssql_is_tsl_encrypted
-      when: mssql_tls.private_key is defined
+        that: mssql_tls.private_key in __mssql_conf_get_tlskey.stdout
+      when:
+        - __verify_mssql_is_tsl_encrypted | bool
+        - mssql_tls.private_key is defined
 
     - name: Verify that the tlskey setting is unset
       assert:
         that: "'No setting for the given' in __mssql_conf_get_tlskey.stdout"
-      when: mssql_tls.cert is not defined
+      when:
+        - not __verify_mssql_is_tsl_encrypted | bool
+        - mssql_tls.cert is not defined
 
     - name: Get the value of the tlsprotocols setting
       command: /opt/mssql/bin/mssql-conf get network tlsprotocols
@@ -230,33 +248,39 @@
       changed_when: false
       register: __mssql_conf_get_tlsprotocols
 
-    - name: Verify the tlsprotocols setting
+    - name: Verify if the tlsprotocols setting is set to mssql_tls.tls_version
       assert:
         that: >-
-          (mssql_tls.tls_version | string in
-          __mssql_conf_get_tlsprotocols.stdout) ==
-          __verify_mssql_is_tsl_encrypted
-      when: mssql_tls.tls_version is defined
+          mssql_tls.tls_version | string in __mssql_conf_get_tlsprotocols.stdout
+      when:
+        - __verify_mssql_is_tsl_encrypted | bool
+        - mssql_tls.tls_version is defined
 
     - name: Verify if the tlsprotocols setting is unset
       assert:
         that: >-
           'No setting for the given' in __mssql_conf_get_tlsprotocols.stdout
-      when: mssql_tls.tls_version is not defined
+      when:
+        - not __verify_mssql_is_tsl_encrypted | bool
+        - mssql_tls.tls_version is not defined
 
     - name: Get the value of the forceencryption setting
-      command: >-
-        /opt/mssql/bin/mssql-conf get network forceencryption |
-        cut -d ':' -f 2- | sed \'s/^ //\'
+      command: /opt/mssql/bin/mssql-conf get network forceencryption
       ignore_errors: true
       changed_when: false
       register: __mssql_conf_get_forceencryption
 
-    - name: Verify the forceencryption setting
+    - name: Verify if the forceencryption setting is true
+      vars:
+        __mssql_conf_get_forceencryption_value: >-
+          {{ __mssql_conf_get_forceencryption.stdout |
+          regex_replace( '^.*\s:\s', '') }}
+      assert:
+        that: __mssql_conf_get_forceencryption_value | bool
+      when: __verify_mssql_is_tsl_encrypted | bool
+
+    - name: Verify if the forceencryption setting is unset
       assert:
         that: >-
-          (__mssql_conf_get_forceencryption.stdout | bool ==
-          __verify_mssql_is_tsl_encrypted) or
-          ("No setting for the given" in
-          __mssql_conf_get_forceencryption.stdout ==
-          __verify_mssql_is_tsl_encrypted)
+          'No setting for the given' in __mssql_conf_get_forceencryption.stdout
+      when: not __verify_mssql_is_tsl_encrypted | bool
