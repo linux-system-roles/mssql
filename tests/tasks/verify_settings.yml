@@ -210,7 +210,7 @@
 
     - name: Verify if the tlscert setting is set to mssql_tls.cert
       assert:
-        that: mssql_tls.cert | string in __mssql_conf_get_tlscert.stdout
+        that: mssql_tls.cert | basename in __mssql_conf_get_tlscert.stdout
       when:
         - __verify_mssql_is_tls_encrypted | bool
         - mssql_tls.cert is defined
@@ -230,7 +230,7 @@
 
     - name: Verify if the tlskey setting is set to mssql_tls.private_key
       assert:
-        that: mssql_tls.private_key in __mssql_conf_get_tlskey.stdout
+        that: mssql_tls.private_key | basename in __mssql_conf_get_tlskey.stdout
       when:
         - __verify_mssql_is_tls_encrypted | bool
         - mssql_tls.private_key is defined

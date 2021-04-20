@@ -17,7 +17,9 @@
       changed_when: true
       delegate_to: localhost
 
-    - name: Set up MSSQL and remove the certificate and public key on localhost
+    - name: >-
+        Set up MSSQL and remove the certificate and public key on localhost.
+        Test relative and full path with cert and private_key vars.
       block:
         - name: Set up MSSQL
           include_role:
@@ -28,7 +30,7 @@
             mssql_edition: Evaluation
             mssql_tls:
               enable: true
-              cert: mssql.pem
+              cert: "{{ playbook_dir }}/mssql.pem"
               private_key: mssql.key
               tls_version: 1.2
 

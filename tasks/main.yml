@@ -348,7 +348,9 @@
         __mssql_conf_setting_value: "{{ mssql_tune_for_fua_storage }}"
 
 - name: Configure MSSQL to encrypt connections
-  when: mssql_tls.enable | bool
+  when:
+    - mssql_tls.enable is not none
+    - mssql_tls.enable | bool
   block:
     - name: Copy cert and private key to the host
       include_tasks: copy_certs.yml
@@ -361,14 +363,14 @@
       vars:
         __mssql_conf_setting: "network tlscert"
         __mssql_conf_setting_value: >-
-          /etc/pki/tls/certs/{{ mssql_tls.cert }}
+          /etc/pki/tls/certs/{{ mssql_tls.cert | basename }}
 
     - name: Configure the tlskey setting
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_conf_setting: "network tlskey"
         __mssql_conf_setting_value: >-
-          /etc/pki/tls/private/{{ mssql_tls.private_key }}
+          /etc/pki/tls/private/{{ mssql_tls.private_key | basename }}
 
     - name: Configure the tlsprotocols setting
       include_tasks: mssql_conf_setting.yml
@@ -383,7 +385,9 @@
         __mssql_conf_setting_value: '1'
 
 - name: Configure MSSQL to not encrypt connections
-  when: not mssql_tls.enable | bool
+  when:
+    - mssql_tls.enable is not none
+    - not mssql_tls.enable | bool
   block:
     - name: Unset the tlscert setting
       include_tasks: mssql_conf_setting.yml

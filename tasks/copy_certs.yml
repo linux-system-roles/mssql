@@ -17,7 +17,7 @@
       copy:
         remote_src: true
         src: "{{ __mssql_cert_tempfile.path }}"
-        dest: /etc/pki/tls/certs/{{ item }}
+        dest: /etc/pki/tls/certs/{{ item | basename }}
         owner: mssql
         group: mssql
         mode: 0600
@@ -28,7 +28,7 @@
       copy:
         remote_src: true
         src: "{{ __mssql_cert_tempfile.path }}"
-        dest: /etc/pki/tls/private/{{ item }}
+        dest: /etc/pki/tls/private/{{ item | basename }}
         owner: mssql
         group: mssql
         mode: 0600
