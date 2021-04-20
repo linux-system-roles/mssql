@@ -51,10 +51,14 @@
         __verify_mssql_ha_is_installed: true
         __verify_mssql_is_tuned_for_fua: true
 
-    - name: Run to disable settings
+    - name: Run to edit settings
       include_role:
         name: linux-system-roles.mssql
       vars:
+        mssql_password: "p@55w0rd"
+        mssql_edition: Standard
+        mssql_tcp_port: 1442
+        mssql_ip_address: 127.0.0.1
         mssql_enable_sql_agent: false
         mssql_install_fts: false
         mssql_enable_ha: false
@@ -63,10 +67,14 @@
     - name: Flush handlers
       meta: flush_handlers
 
-    - name: Run with disabled settings again - should report not changed
+    - name: Run with the edited settings again - should report not changed
       include_role:
         name: linux-system-roles.mssql
       vars:
+        mssql_password: "p@55w0rd"
+        mssql_edition: Standard
+        mssql_tcp_port: 1442
+        mssql_ip_address: 127.0.0.1
         mssql_enable_sql_agent: false
         mssql_install_fts: false
         mssql_enable_ha: false
@@ -75,10 +83,10 @@
     - name: Verify disabled settings
       include_tasks: tasks/verify_settings.yml
       vars:
-        __verify_mssql_password: "p@55w0rD"
-        __verify_mssql_edition: Evaluation
-        __verify_mssql_tcp_port: 1443
-        __verify_mssql_ip_address: 0.0.0.0
+        __verify_mssql_password: "p@55w0rd"
+        __verify_mssql_edition: Standard
+        __verify_mssql_tcp_port: 1442
+        __verify_mssql_ip_address: 127.0.0.1
         __verify_mssql_agent_is_enabled: false
         __verify_mssql_fts_is_installed: false
         __verify_mssql_ha_is_installed: false
