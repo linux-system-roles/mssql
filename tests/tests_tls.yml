@@ -49,7 +49,7 @@
       include_tasks: tasks/verify_settings.yml
       vars:
         __verify_mssql_password: "p@55w0rD"
-        __verify_mssql_is_tsl_encrypted: true
+        __verify_mssql_is_tls_encrypted: true
 
     - name: Disable TLS encryption
       include_role:
@@ -66,4 +66,4 @@
       include_tasks: tasks/verify_settings.yml
       vars:
         __verify_mssql_password: "p@55w0rD"
-        __verify_mssql_is_tsl_encrypted: false
+        __verify_mssql_is_tls_encrypted: false
