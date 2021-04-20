@@ -317,7 +317,6 @@
   block:
     - name: Check if the 3979 trace flag is enabled
       command: /opt/mssql/bin/mssql-conf get traceflag
-      ignore_errors: true
       changed_when: false
       register: __mssql_get_traceflag
 

@@ -1,7 +1,6 @@
 - name: Check if the {{ __mssql_conf_setting }} setting is enabled
   command: >-
     /opt/mssql/bin/mssql-conf get {{ __mssql_conf_setting }}
-  ignore_errors: true
   changed_when: false
   register: __mssql_conf_get_setting
 

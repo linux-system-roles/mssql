@@ -27,7 +27,6 @@
         fi
         echo "${edition_matches}"
       register: __mssql_edition_matches
-      ignore_errors: true
       changed_when: false
 
     - name: Verify if the edition matches
@@ -39,7 +38,6 @@
   block:
     - name: Get the value of the IP address setting
       command: /opt/mssql/bin/mssql-conf get network ipaddress
-      ignore_errors: true
       changed_when: false
       register: __mssql_conf_get_ip_address
 
@@ -54,7 +52,6 @@
   block:
     - name: Get the value of the TCP port setting
       command: /opt/mssql/bin/mssql-conf get network tcpport
-      ignore_errors: true
       changed_when: false
       register: __mssql_conf_get_tcp_port
 
@@ -98,7 +95,6 @@
   block:
     - name: Get the value of the sqlagent.enabled setting
       command: /opt/mssql/bin/mssql-conf get sqlagent enabled
-      ignore_errors: true
       changed_when: false
       register: __mssql_conf_get_sqlagent
 
@@ -144,7 +140,6 @@
 
     - name: Get the value of the hadrenabled setting
       command: /opt/mssql/bin/mssql-conf get hadr hadrenabled
-      ignore_errors: true
       changed_when: false
       register: __mssql_conf_get_hadrenabled
 
@@ -159,7 +154,6 @@
   block:
     - name: Get the value of the traceflag setting
       command: /opt/mssql/bin/mssql-conf get traceflag
-      ignore_errors: true
       changed_when: false
       register: __mssql_conf_get_traceflag
 
@@ -175,7 +169,6 @@
 
     - name: Get the value of the alternatewritethrough setting
       command: /opt/mssql/bin/mssql-conf get control alternatewritethrough
-      ignore_errors: true
       changed_when: false
       register: __mssql_conf_get_alternatewritethrough
 
@@ -189,7 +182,6 @@
 
     - name: Get the value of the writethrough setting
       command: /opt/mssql/bin/mssql-conf get control writethrough
-      ignore_errors: true
       changed_when: false
       register: __mssql_conf_get_writethrough
 
@@ -204,7 +196,6 @@
   block:
     - name: Get the value of the tlscert setting
       command: /opt/mssql/bin/mssql-conf get network tlscert
-      ignore_errors: true
       changed_when: false
       register: __mssql_conf_get_tlscert
 
@@ -224,7 +215,6 @@
 
     - name: Get the value of the tlskey setting
       command: /opt/mssql/bin/mssql-conf get network tlskey
-      ignore_errors: true
       changed_when: false
       register: __mssql_conf_get_tlskey
 
@@ -244,7 +234,6 @@
 
     - name: Get the value of the tlsprotocols setting
       command: /opt/mssql/bin/mssql-conf get network tlsprotocols
-      ignore_errors: true
       changed_when: false
       register: __mssql_conf_get_tlsprotocols
 
@@ -266,7 +255,6 @@
 
     - name: Get the value of the forceencryption setting
       command: /opt/mssql/bin/mssql-conf get network forceencryption
-      ignore_errors: true
       changed_when: false
       register: __mssql_conf_get_forceencryption
 
