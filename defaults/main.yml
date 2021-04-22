@@ -15,5 +15,5 @@ mssql_tune_for_fua_storage: null
 mssql_tls_enable: null
 mssql_tls_cert: null
 mssql_tls_private_key: null
-mssql_tls_force: true
+mssql_tls_force: false
 mssql_tls_version: 1.2
