@@ -22,15 +22,15 @@
     (__mssql_conf_setting_value != __mssql_conf_get_value | bool)))
   register: __mssql_conf_set
   failed_when: >
-    ("error" in __mssql_conf_set.stdout | lower) or (__mssql_conf_set.rc == 1)
+    ("error" in __mssql_conf_set.stdout | lower) or (__mssql_conf_set is failed)
   notify: Restart the mssql-server service
 
 - name: Unset the {{ __mssql_conf_setting }} setting
   command: /opt/mssql/bin/mssql-conf unset {{ __mssql_conf_setting }}
   when:
-    - '__mssql_conf_setting_value == "unset"'
+    - __mssql_conf_setting_value == "unset"
     - '"No setting for the given" not in __mssql_conf_get_setting.stdout'
   register: __mssql_conf_set
   failed_when: >-
-    ("error" in __mssql_conf_set.stdout | lower) or (__mssql_conf_set.rc == 1)
+    ("error" in __mssql_conf_set.stdout | lower) or (__mssql_conf_set is failed)
   notify: Restart the mssql-server service
