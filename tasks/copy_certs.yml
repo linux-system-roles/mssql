@@ -1,11 +1,11 @@
 - name: Copy cert and private key to the host
   block:
-    - name: Create a tempfile for the {{ item }} file on the host
+    - name: Create a tempfile for the {{ item | basename }} file on the host
       tempfile:
         state: file
       register: __mssql_cert_tempfile
 
-    - name: Copy the {{ item }} file to the host
+    - name: Copy the {{ item | basename }} file to the host
       copy:
         src: "{{ item }}"
         dest: "{{ __mssql_cert_tempfile.path }}"
@@ -13,7 +13,7 @@
         group: mssql
         mode: 0600
 
-    - name: Copy the {{ item }} file to the appropriate location
+    - name: Copy the {{ item | basename }} file to the appropriate location
       copy:
         remote_src: true
         src: "{{ __mssql_cert_tempfile.path }}"
