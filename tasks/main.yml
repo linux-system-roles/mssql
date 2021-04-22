@@ -322,7 +322,7 @@
 
     - name: Set the 3979 traceflag
       command: >-
-        /opt/mssql/bin/mssql-conf traceflag 3979 "on"
+        /opt/mssql/bin/mssql-conf traceflag 3979 'on'
       when:
         - mssql_tune_for_fua_storage | bool
         - "'3979' not in __mssql_get_traceflag.stdout"
@@ -334,6 +334,7 @@
         - not mssql_tune_for_fua_storage | bool
         - "'3979' in __mssql_get_traceflag.stdout"
 
+    # the alternatewritethrough must be set to `false` as per MS docs
     - name: Configure the alternatewritethrough setting
       include_tasks: mssql_conf_setting.yml
       vars:
@@ -346,68 +347,44 @@
         __mssql_conf_setting: "control writethrough"
         __mssql_conf_setting_value: "{{ mssql_tune_for_fua_storage }}"
 
-- name: Configure MSSQL to encrypt connections
+- name: Configure TLS encryption
   when:
     - mssql_tls_enable is not none
-    - mssql_tls_enable | bool
   block:
     - name: Copy cert and private key to the host
       include_tasks: copy_certs.yml
       with_items:
         - "{{ mssql_tls_cert }}"
         - "{{ mssql_tls_private_key }}"
+      when: mssql_tls_enable | bool
 
     - name: Configure the tlscert setting
       include_tasks: mssql_conf_setting.yml
       vars:
+        __mssql_tls_cert_dest: >-
+          /etc/pki/tls/certs/{{ mssql_tls_cert | basename }}
         __mssql_conf_setting: "network tlscert"
         __mssql_conf_setting_value: >-
-          /etc/pki/tls/certs/{{ mssql_tls_cert | basename }}
+          {{ __mssql_tls_cert_dest if mssql_tls_enable else 'unset' }}
 
     - name: Configure the tlskey setting
       include_tasks: mssql_conf_setting.yml
       vars:
+        __mssql_tls_private_key_dest: >-
+          /etc/pki/tls/private/{{ mssql_tls_private_key | basename }}
         __mssql_conf_setting: "network tlskey"
         __mssql_conf_setting_value: >-
-          /etc/pki/tls/private/{{ mssql_tls_private_key | basename }}
+          {{ __mssql_tls_private_key_dest if mssql_tls_enable else 'unset' }}
 
     - name: Configure the tlsprotocols setting
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_conf_setting: "network tlsprotocols"
-        __mssql_conf_setting_value: "{{ mssql_tls_version }}"
+        __mssql_conf_setting_value: >-
+          {{ mssql_tls_version if mssql_tls_enable else 'unset' }}
 
     - name: Configure the forceencryption setting
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_conf_setting: "network forceencryption"
-        __mssql_conf_setting_value: '1'
-
-- name: Configure MSSQL to not encrypt connections
-  when:
-    - mssql_tls_enable is not none
-    - not mssql_tls_enable | bool
-  block:
-    - name: Unset the tlscert setting
-      include_tasks: mssql_conf_setting.yml
-      vars:
-        __mssql_conf_setting: "network tlscert"
-        __mssql_conf_setting_value: "unset"
-
-    - name: Unset the tlskey setting
-      include_tasks: mssql_conf_setting.yml
-      vars:
-        __mssql_conf_setting: "network tlskey"
-        __mssql_conf_setting_value: "unset"
-
-    - name: Unset the tlsprotocols setting
-      include_tasks: mssql_conf_setting.yml
-      vars:
-        __mssql_conf_setting: "network tlsprotocols"
-        __mssql_conf_setting_value: "unset"
-
-    - name: Unset the forceencryption setting
-      include_tasks: mssql_conf_setting.yml
-      vars:
-        __mssql_conf_setting: "network forceencryption"
-        __mssql_conf_setting_value: "unset"
+        __mssql_conf_setting_value: "{{ '1' if mssql_tls_enable else 'unset' }}"
