@@ -210,33 +210,33 @@ Default: `null`
 
 Type: `bool`
 
-### `mssql_tls`
+### `mssql_tls_enable`
 
-Use this variable to configure MSSQL to encrypt connections using TLS
-certificates. You must have the TLS certificate and private key on the Ansible
-control node.
+Use the variables starting with `mssql_tls` to configure MSSQL to encrypt
+connections using TLS certificates. You must have the TLS certificate and
+private key on the Ansible control node.
 
 When you use this variable, the role copies TLS cert and private key files to
 MSSQL and configures MSSQL to use these files to encrypt connections.
 
-Default: `null`
+Set to `true` or `false` to enable or disable TLS encryption.
 
-Type: `dict`
+When set to `true`, the role performs the following tasks:
 
-#### `enable`
+1. Copies TLS certificate and private key files to MSSQL to the
+`/etc/pki/tls/certs/` and `/etc/pki/tls/private/` directories respectively
+2. Configures MSSQL to encrypt connections using the copied TLS certificate and
+private key
 
-Set to `true` or `false` to enable or disable TLS encryption. When set to
-`true`, the role uploads certificate and private key files to the host and
-configures mssql to encrypt connections using these files. When set to `false`,
-the role configures mssql to not use TLS encryption. The role does not remove
-the existing certificate and private key files if this variable is set to
-`false`.
+When set to `false`, the role configures MSSQL to not use TLS encryption.
+The role does not remove the existing certificate and private key files if this
+variable is set to `false`.
 
 Default: `null`
 
 Type: `bool`
 
-#### `cert`
+### `mssql_tls_cert`
 
 Path to the certificate file to copy to MSSQL.
 
@@ -244,20 +244,29 @@ Default: `null`
 
 Type: `str`
 
-#### `private_key`
+### `mssql_tls_private_key`
 
 Path to the private key file to copy to MSSQL.
 
 Default: `null`
 Type: `str`
 
-#### `tls_version`
+### `mssql_tls_version`
 
 TLS version to use.
 
 Default: `1.2`
 
 Type: `str`
+
+### `mssql_tls_force`
+
+Set to `true` to replace the existing certificate and private key files on host
+if they exist at `/etc/pki/tls/certs/` and `/etc/pki/tls/private/` respectively.
+
+Default: `false`
+
+Type: `bool`
 
 ## Example Playbook
 
@@ -275,11 +284,11 @@ Type: `str`
     mssql_enable_sql_agent: true
     mssql_install_fts: true
     mssql_tune_for_fua_storage: true
-    mssql_tls:
-      enable: true
-      cert: mycert.pem
-      private_key: mykey.key
-      tls_version: 1.2
+    mssql_tls_enable: true
+    mssql_tls_cert: mycert.pem
+    mssql_tls_private_key: mykey.key
+    mssql_tls_version: 1.2
+    mssql_tls_force: false
   roles:
     - linux-system-roles.mssql
 ```

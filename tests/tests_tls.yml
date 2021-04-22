@@ -28,11 +28,9 @@
           vars:
             mssql_password: "p@55w0rD"
             mssql_edition: Evaluation
-            mssql_tls:
-              enable: true
-              cert: "{{ playbook_dir }}/mssql.pem"
-              private_key: mssql.key
-              tls_version: 1.2
+            mssql_tls_enable: true
+            mssql_tls_cert: "{{ playbook_dir }}/mssql.pem"
+            mssql_tls_private_key: mssql.key
 
       always:
         - name: Remove the certificate and public key on localhost
@@ -58,8 +56,7 @@
         name: linux-system-roles.mssql
         public: true
       vars:
-        mssql_tls:
-          enable: false
+        mssql_tls_enable: false
 
     - name: Flush handlers
       meta: flush_handlers
