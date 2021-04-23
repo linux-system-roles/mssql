@@ -322,14 +322,14 @@
 
     - name: Set the 3979 traceflag
       command: >-
-        /opt/mssql/bin/mssql-conf traceflag 3979 'on'
+        /opt/mssql/bin/mssql-conf traceflag 3979 on
       when:
         - mssql_tune_for_fua_storage | bool
         - "'3979' not in __mssql_get_traceflag.stdout"
 
     - name: Unset the 3979 traceflag
       command: >-
-        /opt/mssql/bin/mssql-conf traceflag 3979 "off"
+        /opt/mssql/bin/mssql-conf traceflag 3979 off
       when:
         - not mssql_tune_for_fua_storage | bool
         - "'3979' in __mssql_get_traceflag.stdout"
@@ -351,8 +351,16 @@
   when:
     - mssql_tls_enable is not none
   block:
-    - name: Copy cert and private key to the host
-      include_tasks: copy_certs.yml
+    - name: Copy certificate and private_key files to the host
+      copy:
+        src: "{{ item }}"
+        dest: >-
+          /etc/pki/tls/{{ 'certs' if item == mssql_tls_cert
+          else 'private' }}/{{ item | basename }}
+        owner: mssql
+        group: mssql
+        mode: 0600
+        force: "{{ mssql_tls_force }}"
       with_items:
         - "{{ mssql_tls_cert }}"
         - "{{ mssql_tls_private_key }}"
