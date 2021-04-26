@@ -22,7 +22,6 @@
             name: linux-system-roles.mssql
           vars:
             mssql_input_sql_file: sql_script.sql
-            mssql_edition: Evaluation
 
         - name: Unreachable task
           fail:

@@ -1,0 +1,36 @@
+- name: Check if the {{ __mssql_conf_setting }} setting is enabled
+  command: >-
+    /opt/mssql/bin/mssql-conf get {{ __mssql_conf_setting }}
+  changed_when: false
+  register: __mssql_conf_get_setting
+
+- name: Configure the {{ __mssql_conf_setting }} setting
+  command: >-
+    /opt/mssql/bin/mssql-conf set {{ __mssql_conf_setting }}
+    {{ __mssql_conf_setting_value | quote }}
+  vars:
+    __mssql_conf_get_value: >-
+      {{ __mssql_conf_get_setting.stdout |
+      regex_replace('^.*\s:\s', '') }}
+  when: >-
+    (__mssql_conf_setting_value != 'unset') and
+    (("No setting for the given" in __mssql_conf_get_setting.stdout) or
+    ((__mssql_conf_setting_value | type_debug != "bool") and
+    (__mssql_conf_setting_value | string | lower not in
+    __mssql_conf_get_value | lower)) or
+    ((__mssql_conf_setting_value | type_debug == "bool") and
+    (__mssql_conf_setting_value != __mssql_conf_get_value | bool)))
+  register: __mssql_conf_set
+  failed_when: >
+    ("error" in __mssql_conf_set.stdout | lower) or (__mssql_conf_set is failed)
+  notify: Restart the mssql-server service
+
+- name: Unset the {{ __mssql_conf_setting }} setting
+  command: /opt/mssql/bin/mssql-conf unset {{ __mssql_conf_setting }}
+  when:
+    - __mssql_conf_setting_value == "unset"
+    - '"No setting for the given" not in __mssql_conf_get_setting.stdout'
+  register: __mssql_conf_set
+  failed_when: >-
+    ("error" in __mssql_conf_set.stdout | lower) or (__mssql_conf_set is failed)
+  notify: Restart the mssql-server service

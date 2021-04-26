@@ -30,6 +30,8 @@ from <https://aka.ms/odbc17eula> and found in `/usr/share/doc/msodbcsql17/LICENS
 
 Default: `false`
 
+Type: `bool`
+
 ### `mssql_accept_microsoft_cli_utilities_for_sql_server_eula`
 
 Set this variable to `true` to indicate that you accept EULA for installing the
@@ -40,6 +42,8 @@ from <http://go.microsoft.com/fwlink/?LinkId=746949> and found in
 `/usr/share/doc/mssql-tools/LICENSE.txt`.
 
 Default: `false`
+
+Type: `bool`
 
 ### `mssql_accept_microsoft_sql_server_2019_standard_eula`
 
@@ -52,6 +56,8 @@ The privacy statement can be viewed at
 <https://go.microsoft.com/fwlink/?LinkId=853010&clcid=0x409>.
 
 Default: `false`
+
+Type: `bool`
 
 ### `mssql_password`
 
@@ -67,6 +73,8 @@ When running this role on a host that has MSSQL installed, the `mssql_password`
 variable overwrites the existing sa user password to the one that you specified.
 
 Default: `null`
+
+Type: `str`
 
 ### `mssql_edition`
 
@@ -89,6 +97,8 @@ Use one of the following values:
 
 Default: `null`
 
+Type: `str`
+
 ### `mssql_tcp_port`
 
 The port that MSSQL listens on.
@@ -103,6 +113,8 @@ If you do not define this variable when configuring running MSSQL, the role does
 not change the TCP port setting on MSSQL.
 
 Default: `null`
+
+Type: `str`
 
 ### `mssql_ip_address`
 
@@ -119,6 +131,8 @@ If you do not define this variable when configuring running MSSQL, the role does
 not change the IP address setting on MSSQL.
 
 Default: `null`
+
+Type: `str`
 
 ### `mssql_input_sql_file`
 
@@ -139,6 +153,121 @@ You can find an example of the SQL file at `tests/sql_script.sql`.
 
 Default: `null`
 
+Type: `str`
+
+### `mssql_enable_sql_agent`
+
+Set this variable to `true` or `false` to enable or disable the SQL agent.
+
+Default: `null`
+
+Type: `bool`
+
+### `mssql_install_fts`
+
+Set this variable to `true` or `false` to install or remove the
+`mssql-server-fts` package that provides full-text search.
+
+Default: `null`
+
+Type: `bool`
+
+### `mssql_enable_ha`
+
+Set this variable to `true` or `false` to install or remove the
+`mssql-server-ha` package and enable or disable the `hadrenabled` setting.
+
+Default: `null`
+
+Type: `bool`
+
+### `mssql_tune_for_fua_storage`
+
+Set this variable to `true` or `false` to enable or disable settings that
+improve performance on hosts that support Forced Unit Access (FUA) capability.
+
+Only set this variable to `true` if your hosts are configured for FUA
+capability.
+
+When set to `true`, the role applies the following settings:
+
+* Set the `traceflag 3979 on` setting to enable trace flag 3979 as a startup
+parameter
+* Set the `control.alternatewritethrough` setting to `0`
+* Set the `control.writethrough` setting to `1`
+
+When set to `false`, the role applies the following settings:
+
+* Set the `traceflag 3982 off` parameter to disable trace flag 3979 as a
+startup parameter
+* Set the `control.alternatewritethrough` setting to its default value `0`
+* Set the `control.writethrough` setting to its default value `0`
+
+For more details, see SQL Server and Forced Unit Access (FUA) I/O subsystem
+capability at <https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-performance-best-practices?view=sql-server-ver15>.
+
+Default: `null`
+
+Type: `bool`
+
+### `mssql_tls_enable`
+
+Use the variables starting with `mssql_tls` to configure MSSQL to encrypt
+connections using TLS certificates. You must have the TLS certificate and
+private key on the Ansible control node.
+
+When you use this variable, the role copies TLS cert and private key files to
+MSSQL and configures MSSQL to use these files to encrypt connections.
+
+Set to `true` or `false` to enable or disable TLS encryption.
+
+When set to `true`, the role performs the following tasks:
+
+1. Copies TLS certificate and private key files to MSSQL to the
+`/etc/pki/tls/certs/` and `/etc/pki/tls/private/` directories respectively
+2. Configures MSSQL to encrypt connections using the copied TLS certificate and
+private key
+
+When set to `false`, the role configures MSSQL to not use TLS encryption.
+The role does not remove the existing certificate and private key files if this
+variable is set to `false`.
+
+Default: `null`
+
+Type: `bool`
+
+### `mssql_tls_cert`
+
+Path to the certificate file to copy to MSSQL.
+
+Default: `null`
+
+Type: `str`
+
+### `mssql_tls_private_key`
+
+Path to the private key file to copy to MSSQL.
+
+Default: `null`
+Type: `str`
+
+### `mssql_tls_version`
+
+TLS version to use.
+
+Default: `1.2`
+
+Type: `str`
+
+### `mssql_tls_force`
+
+Set to `true` to replace the existing certificate and private key files on host
+if they exist at `/etc/pki/tls/certs/` and `/etc/pki/tls/private/` respectively.
+
+Default: `false`
+
+Type: `bool`
+
 ## Example Playbook
 
 ```yaml
@@ -152,6 +281,14 @@ Default: `null`
     mssql_tcp_port: 1433
     mssql_ip_address: 0.0.0.0
     mssql_input_sql_file: mydatabase.sql
+    mssql_enable_sql_agent: true
+    mssql_install_fts: true
+    mssql_tune_for_fua_storage: true
+    mssql_tls_enable: true
+    mssql_tls_cert: mycert.pem
+    mssql_tls_private_key: mykey.key
+    mssql_tls_version: 1.2
+    mssql_tls_force: false
   roles:
     - linux-system-roles.mssql
 ```
