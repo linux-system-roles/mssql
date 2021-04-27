@@ -1,0 +1,45 @@
+- name: Test with proxy
+  hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_2019_standard_eula: true
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
+  tasks:
+    - name: check if proxy is available
+      set_fact:
+        proxy_url: "{{ lookup('env', 'LSR_PROXY') }}"
+
+    - name: configure proxy
+      when: proxy_url | length > 0
+      block:
+        - name: see if /etc/dnf/dnf.conf exists
+          stat:
+            path: /etc/dnf/dnf.conf
+          register: __mssql_dnf_conf
+
+        - name: see if /etc/yum.conf exists
+          stat:
+            path: /etc/yum.conf
+          register: __mssql_yum_conf
+
+        - name: configure dnf proxy
+          ini_file:
+            path: /etc/dnf/dnf.conf
+            section: main
+            option: proxy
+            value: "{{ proxy_url }}"
+          when: __mssql_dnf_conf.stat.exists
+
+        - name: configure yum proxy
+          ini_file:
+            path: /etc/yum.conf
+            section: main
+            option: proxy
+            value: "{{ proxy_url }}"
+          when: __mssql_yum_conf.stat.exists
+
+    - name: Manage mssql
+      include_role:
+        name: linux-system-roles.mssql
