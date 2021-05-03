@@ -2,19 +2,19 @@
 
 ![CI Testing](https://github.com/linux-system-roles/template/workflows/tox/badge.svg)
 
-This role installs, configures, and starts Microsoft SQL Server (MSSQL).
+This role installs, configures, and starts Microsoft SQL Server.
 
 The role also optimizes the operating system to improve performance and
-throughput for MSSQL by applying the `mssql` Tuned profile.
+throughput for SQL Server by applying the `mssql` Tuned profile.
 
-The role currently uses MSSQL version 2019 only.
+The role currently only works with SQL Server2019.
 
 ## Requirements
 
-* MSSQL requires a machine with at least 2000 megabytes of memory.
-* You must configure the firewall to enable connections on the MSSQL TCP port that
+* SQL Server requires a machine with at least 2000 megabytes of memory.
+* You must configure the firewall to enable connections on the SQL Server TCP port that
   you set with the `mssql_tcp_port` variable. The default port is 1443.
-* Optional: If you want to input SQL statements and stored procedures to MSSQL,
+* Optional: If you want to input T-SQL statements and stored procedures to SQL Server,
   you must create a file with the `.sql` extension containing these SQL
   statements and procedures.
 
@@ -47,8 +47,8 @@ Type: `bool`
 
 ### `mssql_accept_microsoft_sql_server_2019_standard_eula`
 
-Set this variable to `true` to indicate that you accept EULA for using the
-`mssql-conf` utility.
+Set this variable to `true` to indicate that you accept EULA for using
+Microsoft SQL Server.
 
 The license terms for this product can be found in `/usr/share/doc/mssql-server`
 or downloaded from <https://go.microsoft.com/fwlink/?LinkId=2104078&clcid=0x409>.
@@ -67,9 +67,9 @@ non-alphanumeric symbols. Do not use single quotes ('), double quotes ("), and
 spaces in the password because `sqlcmd` cannot authorize when the password
 includes those symbols.
 
-This variable is required when you run the role to install MSSQL.
+This variable is required when you run the role to install SQL Server.
 
-When running this role on a host that has MSSQL installed, the `mssql_password`
+When running this role on a host that has SQL Server installed, the `mssql_password`
 variable overwrites the existing sa user password to the one that you specified.
 
 Default: `null`
@@ -78,9 +78,9 @@ Type: `str`
 
 ### `mssql_edition`
 
-The edition of MSSQL to install.
+The edition of SQL Server to install.
 
-This variable is required when you run the role to install MSSQL.
+This variable is required when you run the role to install SQL Server.
 
 Use one of the following values:
 
@@ -101,16 +101,16 @@ Type: `str`
 
 ### `mssql_tcp_port`
 
-The port that MSSQL listens on.
+The port that SQL Server listens on.
 
-If you define this variable, the role configures MSSQL with the defined TCP
+If you define this variable, the role configures SQL Server with the defined TCP
 port.
 
-If you do not define this variable when installing MSSQL, the role configures
-MSSQL to listen on the MSSQL default TCP port `1443`.
+If you do not define this variable when installing SQL Server, the role configures
+SQL Server to listen on the SQL Server default TCP port `1443`.
 
-If you do not define this variable when configuring running MSSQL, the role does
-not change the TCP port setting on MSSQL.
+If you do not define this variable when configuring running SQL Server, the role does
+not change the TCP port setting on SQL Server.
 
 Default: `null`
 
@@ -118,17 +118,17 @@ Type: `str`
 
 ### `mssql_ip_address`
 
-The IP address that MSSQL listens on.
+The IP address that SQL Server listens on.
 
-If you define this variable, the role configures MSSQL with the defined IP
+If you define this variable, the role configures SQL Server with the defined IP
 address.
 
-If you do not define this variable when installing MSSQL, the role configures
-MSSQL to listen on the MSSQL default IP address `0.0.0.0`, that is, to listen on
+If you do not define this variable when installing SQL Server, the role configures
+SQL Server to listen on the SQL Server default IP address `0.0.0.0`, that is, to listen on
 every available network interface.
 
-If you do not define this variable when configuring running MSSQL, the role does
-not change the IP address setting on MSSQL.
+If you do not define this variable when configuring running SQL Server, the role does
+not change the IP address setting on SQL Server.
 
 Default: `null`
 
@@ -137,13 +137,13 @@ Type: `str`
 ### `mssql_input_sql_file`
 
 You can use the role to input a file containing SQL statements or procedures into
-MSSQL. With this variable, enter the path to the SQL file containing the
+SQL Server. With this variable, enter the path to the SQL file containing the
 database configuration.
 
 When specifying this variable, you must also specify the `mssql_password`
-variable because authentication is required to input an SQL file to MSSQL.
+variable because authentication is required to input an SQL file to SQL Server.
 
-If you do not pass this variable, the role only configures the MSSQL Server
+If you do not pass this variable, the role only configures the SQL Server
 and does not input any SQL file.
 
 Note that this task is not idempotent, the role always inputs an SQL file if
@@ -212,23 +212,23 @@ Type: `bool`
 
 ### `mssql_tls_enable`
 
-Use the variables starting with `mssql_tls` to configure MSSQL to encrypt
+Use the variables starting with `mssql_tls` to configure SQL Server to encrypt
 connections using TLS certificates. You must have the TLS certificate and
 private key on the Ansible control node.
 
 When you use this variable, the role copies TLS cert and private key files to
-MSSQL and configures MSSQL to use these files to encrypt connections.
+SQL Server and configures SQL Server to use these files to encrypt connections.
 
 Set to `true` or `false` to enable or disable TLS encryption.
 
 When set to `true`, the role performs the following tasks:
 
-1. Copies TLS certificate and private key files to MSSQL to the
+1. Copies TLS certificate and private key files to SQL Server to the
 `/etc/pki/tls/certs/` and `/etc/pki/tls/private/` directories respectively
-2. Configures MSSQL to encrypt connections using the copied TLS certificate and
+2. Configures SQL Server to encrypt connections using the copied TLS certificate and
 private key
 
-When set to `false`, the role configures MSSQL to not use TLS encryption.
+When set to `false`, the role configures SQL Server to not use TLS encryption.
 The role does not remove the existing certificate and private key files if this
 variable is set to `false`.
 
@@ -238,7 +238,7 @@ Type: `bool`
 
 ### `mssql_tls_cert`
 
-Path to the certificate file to copy to MSSQL.
+Path to the certificate file to copy to SQL Server.
 
 Default: `null`
 
@@ -246,7 +246,7 @@ Type: `str`
 
 ### `mssql_tls_private_key`
 
-Path to the private key file to copy to MSSQL.
+Path to the private key file to copy to SQL Server.
 
 Default: `null`
 Type: `str`
