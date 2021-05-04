@@ -7,7 +7,7 @@ This role installs, configures, and starts Microsoft SQL Server.
 The role also optimizes the operating system to improve performance and
 throughput for SQL Server by applying the `mssql` Tuned profile.
 
-The role currently only works with SQL Server2019.
+The role currently only works with SQL Server 2019.
 
 ## Requirements
 
