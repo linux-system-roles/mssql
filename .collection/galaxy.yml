@@ -1,0 +1,25 @@
+namespace: "microsoft"
+name: "sql"
+version: "1.0.11"
+description: "The Ansible role that manages Microsoft SQL Server"
+
+authors:
+  - "Sergei Petrosian <spetrosi@redhat.com>"
+
+repository: "https://github.com/linux-system-roles/mssql"
+# yamllint disable-line rule:line-length
+documentation: "https://github.com/linux-system-roles/mssql/blob/master/README.md"
+issues: "https://github.com/linux-system-roles/mssql/issues"
+
+readme: "README.md"
+
+license:
+  - MIT
+
+dependencies: {}
+
+tags:
+  - "mssql"
+  - "microsoft"
+  - "sql"
+  - "database"
