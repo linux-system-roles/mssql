@@ -297,6 +297,13 @@
   when: mssql_install_fts is not none
   notify: Restart the mssql-server service
 
+- name: Ensure the {{ __mssql_powershell_packages }} package
+  package:
+    name: "{{ __mssql_powershell_packages }}"
+    state: "{{ 'present' if mssql_install_powershell | bool else 'absent' }}"
+  when: mssql_install_powershell is not none
+  notify: Restart the mssql-server service
+
 - name: Configure HA
   when: mssql_enable_ha is not none
   block:
