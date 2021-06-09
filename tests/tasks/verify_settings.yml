@@ -104,21 +104,22 @@
           __verify_mssql_agent_is_enabled | string | lower in
           __mssql_conf_get_sqlagent.stdout | lower
 
-- name: Verify the mssql-server-fts package
+- name: Verify the {{ __mssql_server_fts_packages }} package
   when: __verify_mssql_fts_is_installed is defined
   block:
     - name: Gather package facts
       package_facts:
         manager: auto
 
-    - name: Verify if the mssql-server-fts package is installed
+    - name: Verify if the {{ __mssql_server_fts_packages }} package is installed
       assert:
-        that: "'mssql-server-fts' in ansible_facts.packages"
+        that: __mssql_server_fts_packages in ansible_facts.packages
       when: __verify_mssql_fts_is_installed | bool
 
-    - name: Verify if the mssql-server-fts package is not installed
+    - name: >
+        Verify if the {{ __mssql_server_fts_packages }} package is not installed
       assert:
-        that: "'mssql-server-fts' not in ansible_facts.packages"
+        that: __mssql_server_fts_packages not in ansible_facts.packages
       when: not __verify_mssql_fts_is_installed | bool
 
 - name: Verify the ha settings
@@ -128,14 +129,15 @@
       package_facts:
         manager: auto
 
-    - name: Verify if the mssql-server-ha package is installed
+    - name: Verify if the {{ __mssql_server_ha_packages }} package is installed
       assert:
-        that: "'mssql-server-ha' in ansible_facts.packages"
+        that: __mssql_server_ha_packages in ansible_facts.packages
       when: __verify_mssql_ha_is_installed | bool
 
-    - name: Verify if the mssql-server-ha package is not installed
+    - name: >
+        Verify if the {{ __mssql_server_ha_packages }} package is not installed
       assert:
-        that: "'mssql-server-ha' not in ansible_facts.packages"
+        that: __mssql_server_ha_packages not in ansible_facts.packages
       when: not __verify_mssql_ha_is_installed | bool
 
     - name: Get the value of the hadrenabled setting
