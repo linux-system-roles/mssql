@@ -122,6 +122,24 @@
         that: __mssql_server_fts_packages not in ansible_facts.packages
       when: not __verify_mssql_fts_is_installed | bool
 
+- name: Verify the {{ __mssql_powershell_packages }} package
+  when: __verify_mssql_powershell_is_installed is defined
+  block:
+    - name: Gather package facts
+      package_facts:
+        manager: auto
+
+    - name: Verify if the {{ __mssql_powershell_packages }} package is installed
+      assert:
+        that: __mssql_powershell_packages in ansible_facts.packages
+      when: __verify_mssql_powershell_is_installed | bool
+
+    - name: >
+        Verify if the {{ __mssql_powershell_packages }} package is not installed
+      assert:
+        that: __mssql_powershell_packages not in ansible_facts.packages
+      when: not __verify_mssql_powershell_is_installed | bool
+
 - name: Verify the ha settings
   when: __verify_mssql_ha_is_installed is defined
   block:

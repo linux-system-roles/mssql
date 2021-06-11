@@ -172,6 +172,14 @@ Default: `null`
 
 Type: `bool`
 
+### `mssql_install_powershell`
+
+Set this variable to `true` or `false` to install or remove the `powershell` package that provides PowerShell.
+
+Default: `null`
+
+Type: `bool`
+
 ### `mssql_enable_ha`
 
 Set this variable to `true` or `false` to install or remove the
@@ -283,6 +291,7 @@ Type: `bool`
     mssql_input_sql_file: mydatabase.sql
     mssql_enable_sql_agent: true
     mssql_install_fts: true
+    mssql_install_powershell: true
     mssql_tune_for_fua_storage: true
     mssql_tls_enable: true
     mssql_tls_cert: mycert.pem

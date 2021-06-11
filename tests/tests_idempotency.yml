@@ -17,6 +17,7 @@
         mssql_ip_address: 0.0.0.0
         mssql_enable_sql_agent: true
         mssql_install_fts: true
+        mssql_install_powershell: true
         mssql_enable_ha: true
         mssql_tune_for_fua_storage: true
 
@@ -36,6 +37,7 @@
         mssql_ip_address: 0.0.0.0
         mssql_enable_sql_agent: true
         mssql_install_fts: true
+        mssql_install_powershell: true
         mssql_enable_ha: true
         mssql_tune_for_fua_storage: true
 
@@ -48,6 +50,7 @@
         __verify_mssql_ip_address: 0.0.0.0
         __verify_mssql_agent_is_enabled: true
         __verify_mssql_fts_is_installed: true
+        __verify_mssql_powershell_is_installed: true
         __verify_mssql_ha_is_installed: true
         __verify_mssql_is_tuned_for_fua: true
 
@@ -61,6 +64,7 @@
         mssql_ip_address: 127.0.0.1
         mssql_enable_sql_agent: false
         mssql_install_fts: false
+        mssql_install_powershell: false
         mssql_enable_ha: false
         mssql_tune_for_fua_storage: false
 
@@ -77,6 +81,7 @@
         mssql_ip_address: 127.0.0.1
         mssql_enable_sql_agent: false
         mssql_install_fts: false
+        mssql_install_powershell: false
         mssql_enable_ha: false
         mssql_tune_for_fua_storage: false
 
@@ -89,5 +94,6 @@
         __verify_mssql_ip_address: 127.0.0.1
         __verify_mssql_agent_is_enabled: false
         __verify_mssql_fts_is_installed: false
+        __verify_mssql_powershell_is_installed: false
         __verify_mssql_ha_is_installed: false
         __verify_mssql_is_tuned_for_fua: false
