@@ -138,7 +138,7 @@
         Verify if the {{ __mssql_powershell_packages }} package is not installed
       assert:
         that: __mssql_powershell_packages not in ansible_facts.packages
-      when: not __verify_mssql_fts_is_installed | bool
+      when: not __verify_mssql_powershell_is_installed | bool
 
 - name: Verify the ha settings
   when: __verify_mssql_ha_is_installed is defined
