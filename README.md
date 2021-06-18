@@ -59,6 +59,24 @@ Default: `false`
 
 Type: `bool`
 
+### `mssql_version`
+
+The version of the SQL Server to configure. The role currently supports versions
+2019 and 2017.
+
+Default: `2019`
+
+Type: `int`
+
+### `mssql_upgrade`
+
+If you want to upgrade your SQL Server 2017 to 2019, set the `mssql_version`
+variable to `2019` and this variable to `true`.
+
+Default: `false`
+
+Type: `bool`
+
 ### `mssql_password`
 
 The password for the database sa user. The password must have a minimum length
