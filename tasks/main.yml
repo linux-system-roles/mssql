@@ -20,12 +20,12 @@
     that:
       - mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula | bool
       - mssql_accept_microsoft_cli_utilities_for_sql_server_eula | bool
-      - mssql_accept_microsoft_sql_server_2019_standard_eula | bool
+      - mssql_accept_microsoft_sql_server_standard_eula | bool
     fail_msg:
       - "You must accept EULA by setting the following variables to true:"
       - "mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula"
       - "mssql_accept_microsoft_cli_utilities_for_sql_server_eula"
-      - "mssql_accept_microsoft_sql_server_2019_standard_eula"
+      - "mssql_accept_microsoft_sql_server_standard_eula"
 
 - name: Deploy the GPG key for Microsoft repositories
   rpm_key:

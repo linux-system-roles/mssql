@@ -7,7 +7,7 @@ This role installs, configures, and starts Microsoft SQL Server.
 The role also optimizes the operating system to improve performance and
 throughput for SQL Server by applying the `mssql` Tuned profile.
 
-The role currently only works with SQL Server 2019.
+The role currently works with SQL Server 2017 and 2019.
 
 ## Requirements
 
@@ -45,7 +45,7 @@ Default: `false`
 
 Type: `bool`
 
-### `mssql_accept_microsoft_sql_server_2019_standard_eula`
+### `mssql_accept_microsoft_sql_server_standard_eula`
 
 Set this variable to `true` to indicate that you accept EULA for using
 Microsoft SQL Server.
@@ -313,7 +313,7 @@ required variables.
   vars:
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
-    mssql_accept_microsoft_sql_server_2019_standard_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
   roles:
@@ -330,7 +330,7 @@ use custom IP address and TCP port.
   vars:
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
-    mssql_accept_microsoft_sql_server_2019_standard_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_tcp_port: 1433
@@ -355,7 +355,7 @@ following additional functionality:
   vars:
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
-    mssql_accept_microsoft_sql_server_2019_standard_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_enable_sql_agent: true
@@ -377,7 +377,7 @@ use TLS encryption.
   vars:
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
-    mssql_accept_microsoft_sql_server_2019_standard_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_tls_enable: true
