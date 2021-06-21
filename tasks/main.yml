@@ -27,15 +27,21 @@
       - "mssql_accept_microsoft_cli_utilities_for_sql_server_eula"
       - "mssql_accept_microsoft_sql_server_standard_eula"
 
+- name: Verify that the version is provided correctly
+  assert:
+    that: mssql_version | int == 2017 or mssql_version | int == 2019
+    fail_msg: >-
+      "The mssql_version variable must be set to either 2017 or 2019."
+
 - name: Deploy the GPG key for Microsoft repositories
   rpm_key:
     key: https://packages.microsoft.com/keys/microsoft.asc
     state: present
 
-- name: Configure the Microsoft SQL Server 2019 repository
+- name: Configure the Microsoft SQL Server {{ mssql_version }} repository
   yum_repository:
-    name: packages-microsoft-com-mssql-server-2019-gdr
-    description: Microsoft SQL Server 2019
+    name: packages-microsoft-com-mssql-server-{{ mssql_version }}-gdr
+    description: Microsoft SQL Server {{ mssql_version }}
     baseurl: "{{ __mssql_server_repository }}"
     gpgcheck: true
 
