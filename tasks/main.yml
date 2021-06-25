@@ -64,7 +64,7 @@
 - name: Check if the errorlog file exists and its location
   shell: |
     set -euo pipefail
-    errorlog="$(/opt/mssql/bin/mssql-conf get filelocation errorlogfile 2>&1 \
+    errorlog="$(grep '^errorlogfile' /var/opt/mssql/mssql.conf \
     | sed 's/errorlogfile : //')" || :
     if [ -s "${errorlog}" ]; then
       echo "${errorlog}"
@@ -335,13 +335,13 @@
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_conf_setting: "hadr hadrenabled"
-        __mssql_conf_setting_value: "{{ mssql_enable_ha }}"
+        __mssql_conf_setting_value: "{{ 1 if mssql_enable_ha else 0 }}"
 
 - name: Tune MSSQL for FUA-capable storage
   when: mssql_tune_for_fua_storage is not none
   block:
     - name: Check if the 3979 trace flag is enabled
-      command: /opt/mssql/bin/mssql-conf get traceflag
+      shell: grep '^traceflag' /var/opt/mssql/mssql.conf || true
       changed_when: false
       register: __mssql_get_traceflag
 
@@ -364,13 +364,13 @@
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_conf_setting: "control alternatewritethrough"
-        __mssql_conf_setting_value: "false"
+        __mssql_conf_setting_value: "0"
 
     - name: Configure the writethrough setting
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_conf_setting: "control writethrough"
-        __mssql_conf_setting_value: "{{ mssql_tune_for_fua_storage }}"
+        __mssql_conf_setting_value: "{{ 1 if mssql_tune_for_fua_storage else 0 }}"
 
 - name: Configure TLS encryption
   when:
