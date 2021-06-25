@@ -2,7 +2,6 @@
 # It takes two variables:
 # __mssql_conf_setting - the setting name
 # __mssql_conf_value - the setting value
- 
 - name: Get the value of the {{ __mssql_conf_setting }} setting
   shell: grep '^{{ __mssql_conf_setting }}' /var/opt/mssql/mssql.conf || true
   changed_when: false

@@ -27,16 +27,49 @@
       - "mssql_accept_microsoft_cli_utilities_for_sql_server_eula"
       - "mssql_accept_microsoft_sql_server_standard_eula"
 
-- name: Verify that the version is provided correctly
+- name: Verify if the mssql_version variable is provided correctly
   assert:
-    that: mssql_version | int == 2017 or mssql_version | int == 2019
+    that: mssql_version == 2017 or mssql_version == 2019
     fail_msg: >-
-      "The mssql_version variable must be set to either 2017 or 2019."
+      "The mssql_version variable must be set to either 2017 or 2019 and be of
+      type int."
+
+- name: Verify if the mssql_upgrade variable is provided correctly
+  fail:
+    msg:
+      - "You set mssql_upgrade to true and mssql_version to 2017."
+      - "If you want to upgrade, set the variables as such:"
+      - "mssql_version: 2019"
+      - "mssql_upgrade: true"
+  when:
+    - mssql_upgrade | bool
+    - mssql_version == 2017
+
+- name: Gather package facts
+  package_facts:
+    manager: auto
+
+- name: Verify if upgrade is needed
+  fail:
+    msg: >-
+      "You set mssql_upgrade to true, but your SQL Server is version 2019
+      already."
+  when:
+    - mssql_upgrade | bool
+    - ansible_facts.packages["mssql-server"][0]["version"] is search("^15.*")
 
 - name: Deploy the GPG key for Microsoft repositories
   rpm_key:
     key: https://packages.microsoft.com/keys/microsoft.asc
     state: present
+
+- name: Remove the Microsoft SQL Server 2017 repository to upgrade to 2019
+  yum_repository:
+    name: packages-microsoft-com-mssql-server-2017-gdr
+    state: absent
+  when:
+    - mssql_version == 2019
+    - mssql_upgrade | bool
 
 - name: Configure the Microsoft SQL Server {{ mssql_version }} repository
   yum_repository:
@@ -44,11 +77,14 @@
     description: Microsoft SQL Server {{ mssql_version }}
     baseurl: "{{ __mssql_server_repository }}"
     gpgcheck: true
+  when: >-
+    (__mssql_server_packages not in ansible_facts.packages) or
+    (mssql_upgrade | bool)
 
-- name: Ensure that the Microsoft SQL Server package is installed
+- name: Ensure the {{ __mssql_server_packages }} package
   package:
-    name: "{{ __mssql_server_packages }}"
-    state: present
+    name: "{{ __mssql_server_packages }}-1*"
+    state: "{{ 'latest' if mssql_upgrade else 'present' }}"
 
 # /opt/mssql/bin/sqlservr requires libldap-2.4.so.2. Latest Fedora use newer
 # libldap by default, therefore, it is required to install openldap-compat
@@ -370,7 +406,8 @@
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_conf_setting: "control writethrough"
-        __mssql_conf_setting_value: "{{ 1 if mssql_tune_for_fua_storage else 0 }}"
+        __mssql_conf_setting_value: >-
+          {{ 1 if mssql_tune_for_fua_storage else 0 }}
 
 - name: Configure TLS encryption
   when:
