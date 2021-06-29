@@ -1,3 +1,16 @@
+- name: Install the bind-utils package that provides nslookup
+  package:
+    name: bind-utils
+    state: present
+
+- name: Check Microsoft mirrors from where packages are downloaded
+  command: nslookup packages.microsoft.com
+  register: __mssql_nslookup
+
+- name: Print nslookup output
+  debug:
+      var: __mssql_nslookup
+
 - name: Verify edition
   when: __verify_mssql_edition is defined
   block:
