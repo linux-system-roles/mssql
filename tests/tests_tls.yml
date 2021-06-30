@@ -31,6 +31,7 @@
             mssql_tls_enable: true
             mssql_tls_cert: "{{ playbook_dir }}/mssql.pem"
             mssql_tls_private_key: mssql.key
+            mssql_tcp_port: 1433
 
       always:
         - name: Remove the certificate and public key on localhost
