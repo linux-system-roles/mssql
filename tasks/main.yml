@@ -112,18 +112,18 @@
 - name: Add mssql to the list of Tuned profiles
   when: '"mssql" not in __mssql_tuned_active_profiles.stdout'
   block:
-    - name: Add mssql to the list of Tuned profiles
-      command: >-
+    - name: Attempt to add mssql to the list of Tuned profiles
+      shell: >-
         tuned-adm profile {{ __mssql_tuned_active_profiles.stdout |
-        regex_replace( '^Current active profile: ', '' ) }} mssql
+        regex_replace( '^Current active profile: ', '' ) }} mssql || true
       register: __mssql_tuned_adm_profile
+      changed_when: __mssql_tuned_adm_profile.stderr | length == 0
 
-  # Rescue is needed because there is a bug in tuned that causes issues when
-  # adding multiple profiles with common ancestors. Fail happens for example,
-  # when running `tuned-adm profile virtual-guest mssql` because both profiles
-  # include `throughput-performance`
-  # https://bugzilla.redhat.com/show_bug.cgi?id=1825882
-  rescue:
+    # It is needed because there is a bug in tuned that causes issues when
+    # adding multiple profiles with common ancestors. Fail happens for example,
+    # when running `tuned-adm profile virtual-guest mssql` because both profiles
+    # include `throughput-performance`
+    # https://bugzilla.redhat.com/show_bug.cgi?id=1825882
     - name: Remove troublemaking include from the mssql profile
       lineinfile:
         path: /usr/lib/tuned/mssql/tuned.conf
@@ -133,14 +133,15 @@
         "Cannot find profile 'throughput-performance'" in
         __mssql_tuned_adm_profile.stderr
 
-    - name: Add mssql to the list of Tuned profiles
+    - name: Add the fixed mssql profile to the list of Tuned profiles
       command: >-
         tuned-adm profile {{ __mssql_tuned_active_profiles.stdout |
         regex_replace( '^Current active profile: ', '' ) }} mssql
       when: >-
         "Cannot find profile 'throughput-performance'" in
         __mssql_tuned_adm_profile.stderr
-
+      register: __mssql_tuned_adm_profile
+      changed_when: __mssql_tuned_adm_profile.stderr | length == 0
 
 - name: Configure the Microsoft SQL Server Tools repository
   yum_repository:
