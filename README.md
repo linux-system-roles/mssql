@@ -276,7 +276,31 @@ Default: `false`
 
 Type: `bool`
 
-## Example Playbook
+## Example Playbooks
+
+This section outlines example playbooks that you can use as a reference.
+
+### Setting up SQL Server
+
+This example shows how to use the role to set up SQL Server with the minimum
+required variables.
+
+```yaml
+- hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_2019_standard_eula: true
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
+  roles:
+    - microsoft.sql.server
+```
+
+### Setting up SQL Server with Custom Network Parameters
+
+This example shows how to use the role to set up SQL Server and configure it to
+use custom IP address and TCP port.
 
 ```yaml
 - hosts: all
@@ -288,18 +312,58 @@ Type: `bool`
     mssql_edition: Evaluation
     mssql_tcp_port: 1433
     mssql_ip_address: 0.0.0.0
-    mssql_input_sql_file: mydatabase.sql
+  roles:
+    - microsoft.sql.server
+```
+
+### Setting Up SQL Server and Enabling Additional Functionality
+
+This example shows how to use the role to set up SQL Server and enable the
+following additional functionality:
+
+* Enable the SQL Agent
+* Install FTS
+* Install PowerShell
+* Configure SQL Server for FUA capability
+* After SQL Server is set up, input an SQL file to SQL Server
+
+```yaml
+- hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_2019_standard_eula: true
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
     mssql_enable_sql_agent: true
     mssql_install_fts: true
     mssql_install_powershell: true
     mssql_tune_for_fua_storage: true
+    mssql_input_sql_file: mydatabase.sql
+  roles:
+    - microsoft.sql.server
+```
+
+### Setting Up SQL Server with TLS Encryption
+
+This example shows how to use the role to set up SQL Server and configure it to
+use TLS encryption.
+
+```yaml
+- hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_2019_standard_eula: true
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
     mssql_tls_enable: true
     mssql_tls_cert: mycert.pem
     mssql_tls_private_key: mykey.key
     mssql_tls_version: 1.2
     mssql_tls_force: false
   roles:
-    - linux-system-roles.mssql
+    - microsoft.sql.server
 ```
 
 ## License
