@@ -113,11 +113,12 @@
   when: '"mssql" not in __mssql_tuned_active_profiles.stdout'
   block:
     - name: Attempt to add mssql to the list of Tuned profiles
-      shell: >-
+      command: >-
         tuned-adm profile {{ __mssql_tuned_active_profiles.stdout |
-        regex_replace( '^Current active profile: ', '' ) }} mssql || true
+        regex_replace( '^Current active profile: ', '' ) }} mssql
       register: __mssql_tuned_adm_profile
       changed_when: __mssql_tuned_adm_profile.stderr | length == 0
+      failed_when: false
 
     # It is needed because there is a bug in tuned that causes issues when
     # adding multiple profiles with common ancestors. Fail happens for example,
