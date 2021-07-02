@@ -51,7 +51,9 @@
   package:
     name: openldap-compat
     state: present
-  when: ansible_distribution == "Fedora"
+  when:
+    - ansible_distribution == "Fedora"
+    - ansible_distribution_version | int >= 34
 
 - name: Check if the errorlog file exists and its location
   shell: |
