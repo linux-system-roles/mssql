@@ -221,8 +221,13 @@ Type: `bool`
 ### `mssql_tls_enable`
 
 Use the variables starting with `mssql_tls` to configure SQL Server to encrypt
-connections using TLS certificates. You must have the TLS certificate and
-private key on the Ansible control node.
+connections using TLS certificates.
+
+You are responsible for creating and securing TLS certificate and private
+key files. It is assumed you have a CA that can issue these files. If not, you
+can use the `openssl` command to create these files.
+
+You must have TLS certificate and private key files on the Ansible control node.
 
 When you use this variable, the role copies TLS cert and private key files to
 SQL Server and configures SQL Server to use these files to encrypt connections.
