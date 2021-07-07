@@ -44,6 +44,17 @@
     name: "{{ __mssql_server_packages }}"
     state: present
 
+# /opt/mssql/bin/sqlservr requires libldap-2.4.so.2. Latest Fedora use newer
+# libldap by default, therefore, it is required to install openldap-compat
+# because it provides libldap-2.4.so.2.
+- name: Ensure that the openldap-compat package is installed
+  package:
+    name: openldap-compat
+    state: present
+  when:
+    - ansible_distribution == "Fedora"
+    - ansible_distribution_version | int >= 34
+
 - name: Check if the errorlog file exists and its location
   shell: |
     set -euo pipefail
