@@ -83,7 +83,9 @@
 
 - name: Ensure the {{ __mssql_server_packages }} package
   package:
-    name: "{{ __mssql_server_packages }}-1*"
+    name: >-
+      {{ __mssql_server_packages + '-15*' if mssql_upgrade
+      else __mssql_server_packages }}
     state: "{{ 'latest' if mssql_upgrade else 'present' }}"
 
 # /opt/mssql/bin/sqlservr requires libldap-2.4.so.2. Latest Fedora use newer
