@@ -46,7 +46,7 @@
               'You set mssql_upgrade to true and mssql_version to 2017.' in
               ansible_failed_result.msg.0
 
-    - name: Set up MSSQL
+    - name: Set up MSSQL 2017
       include_role:
         name: linux-system-roles.mssql
       vars:
@@ -81,3 +81,24 @@
             that: >-
               'your SQL Server is version 2019 already.' in
               ansible_failed_result.msg
+
+    - name: >-
+        Verify the failure when mssql_version is set to 2017 when SQL Server has
+        version 2019
+      block:
+        - name: Run the role with mssql_version 2017 on SQL Server 2019
+          include_role:
+            name: linux-system-roles.mssql
+          vars:
+            mssql_version: 2017
+
+        - name: Unreachable task
+          fail:
+            msg: The above task must fail
+
+      rescue:
+        - name: Assert that the role failed with the correct message
+          assert:
+            that: >-
+              'set mssql_version to 2017, but your SQL Server is version 2019.'
+              in ansible_failed_result.msg
