@@ -74,15 +74,24 @@
     key: https://packages.microsoft.com/keys/microsoft.asc
     state: present
 
+# This works only on systems that use yum or dnf
+- name: Update all packages from SQL Server 2017 repo
+  package:
+    name: "*"
+    disablerepo: "*"
+    enablerepo: packages-microsoft-com-mssql-server-2017
+    state: latest  # noqa 403
+  when: mssql_upgrade | bool
+
 - name: Remove the Microsoft SQL Server 2017 repository to upgrade to 2019
   yum_repository:
-    name: packages-microsoft-com-mssql-server-2017-gdr
+    name: packages-microsoft-com-mssql-server-2017
     state: absent
   when: mssql_upgrade | bool
 
 - name: Configure the Microsoft SQL Server {{ mssql_version }} repository
   yum_repository:
-    name: packages-microsoft-com-mssql-server-{{ mssql_version }}-gdr
+    name: packages-microsoft-com-mssql-server-{{ mssql_version }}
     description: Microsoft SQL Server {{ mssql_version }}
     baseurl: "{{ __mssql_server_repository }}"
     gpgcheck: true
