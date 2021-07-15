@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+---
 - name: Get the {{ __mssql_conf_setting }} setting
   shell: >-
     grep ^{{ __mssql_conf_setting | regex_replace( '^.*\s' ,'') | quote }}

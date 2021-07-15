@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+---
 # This tasks file verifies if the provided package is installed or not.
 # It takes to variables:
 # __mssql_verify_package - the package to verify

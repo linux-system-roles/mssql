@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+---
 # This tasks file verifies the value of a mssql-conf setting.
 # It takes two variables:
 # __mssql_conf_setting - the setting name

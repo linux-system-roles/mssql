@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+---
 - name: Modify the mssql-server service start limit interval
   replace:
     path: /etc/systemd/system/multi-user.target.wants/mssql-server.service
