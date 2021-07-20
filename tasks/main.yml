@@ -49,16 +49,6 @@
   package_facts:
     manager: auto
 
-- name: Verify if upgrade is needed
-  fail:
-    msg: >-
-      "You set mssql_upgrade to true, but your SQL Server is version 2019
-      already."
-  when:
-    - mssql_upgrade | bool
-    - ansible_facts.packages["mssql-server"][0]["version"] is defined
-    - ansible_facts.packages["mssql-server"][0]["version"] is search("^15.*")
-
 - name: >-
     Verify if mssql_version is not smaller then the existing SQL Server version
   fail:

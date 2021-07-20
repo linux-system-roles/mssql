@@ -61,26 +61,12 @@
         mssql_version: 2019
         mssql_upgrade: yes
 
-    - name: >-
-        Verify the failure when mssql_upgrade is provided when SQL Server has
-        version 2019 already
-      block:
-        - name: Run the role with mssql_version 2019 and mssql_upgrade true
-          include_role:
-            name: linux-system-roles.mssql
-          vars:
-            mssql_upgrade: true
-
-        - name: Unreachable task
-          fail:
-            msg: The above task must fail
-
-      rescue:
-        - name: Assert that the role failed with the correct message
-          assert:
-            that: >-
-              'your SQL Server is version 2019 already.' in
-              ansible_failed_result.msg
+    - name: Upgrade again to test idempotency - should report not changed
+      include_role:
+        name: linux-system-roles.mssql
+      vars:
+        mssql_upgrade: true
+        mssql_version: 2019
 
     - name: >-
         Verify the failure when mssql_version is set to 2017 when SQL Server has
