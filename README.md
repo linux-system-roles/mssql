@@ -73,6 +73,8 @@ Type: `int`
 If you want to upgrade your SQL Server 2017 to 2019, set the `mssql_version`
 variable to `2019` and this variable to `true`.
 
+Note that the role does not support downgrading SQL Server.
+
 Default: `false`
 
 Type: `bool`

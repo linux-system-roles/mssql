@@ -50,8 +50,9 @@
 - name: >-
     Verify if mssql_version is not smaller then the existing SQL Server version
   fail:
-    msg: >-
-      "You set mssql_version to 2017, but your SQL Server is version 2019."
+    msg:
+      - "You set mssql_version to 2017, but your SQL Server is version 2019."
+      - "The role does not support downgrading SQL Server."
   when:
     - mssql_version | int == 2017
     - ansible_facts.packages["mssql-server"][0]["version"] is defined
