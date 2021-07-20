@@ -76,7 +76,11 @@
     disablerepo: "*"
     enablerepo: packages-microsoft-com-mssql-server-2017
     state: latest  # noqa 403
-  when: mssql_upgrade | bool
+  when:
+    - mssql_upgrade | bool
+    - ansible_facts.packages["mssql-server"][0]["version"] is defined
+    - ansible_facts.packages["mssql-server"][0]["version"] is search("^14.*")
+
 
 - name: Remove the Microsoft SQL Server 2017 repository to upgrade to 2019
   yum_repository:
