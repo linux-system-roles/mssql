@@ -15,6 +15,12 @@
     __mssql_vars_file: "{{ role_path }}/vars/{{ item }}"
   when: __mssql_vars_file is file
 
+- name: Link the deprecated accept_microsoft_sql_server_2019_standard_eula fact
+  set_fact:
+    mssql_accept_microsoft_sql_server_standard_eula: >-
+      {{ mssql_accept_microsoft_sql_server_2019_standard_eula }}
+  when: mssql_accept_microsoft_sql_server_2019_standard_eula is defined
+
 - name: Verify that the user accepts EULA variables
   assert:
     that:
