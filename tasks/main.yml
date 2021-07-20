@@ -29,10 +29,8 @@
 
 - name: Verify if the mssql_version variable is provided correctly
   assert:
-    that: mssql_version == 2017 or mssql_version == 2019
-    fail_msg: >-
-      "The mssql_version variable must be set to either 2017 or 2019 and be of
-      type int."
+    that: mssql_version | int == 2017 or mssql_version | int == 2019
+    fail_msg: "The mssql_version variable must be set to either 2017 or 2019."
 
 - name: Verify if the mssql_upgrade variable is provided correctly
   fail:
@@ -43,7 +41,7 @@
       - "mssql_upgrade: true"
   when:
     - mssql_upgrade | bool
-    - mssql_version == 2017
+    - mssql_version | int == 2017
 
 - name: Gather package facts
   package_facts:
@@ -55,7 +53,7 @@
     msg: >-
       "You set mssql_version to 2017, but your SQL Server is version 2019."
   when:
-    - mssql_version == 2017
+    - mssql_version | int == 2017
     - ansible_facts.packages["mssql-server"][0]["version"] is defined
     - ansible_facts.packages["mssql-server"][0]["version"] is search("^15.*")
 
@@ -81,7 +79,7 @@
 
 - name: Configure the Microsoft SQL Server {{ mssql_version }} repository
   yum_repository:
-    name: packages-microsoft-com-mssql-server-{{ mssql_version }}
+    name: packages-microsoft-com-mssql-server-{{ mssql_version | int }}
     description: Microsoft SQL Server {{ mssql_version }}
     baseurl: "{{ __mssql_server_repository }}"
     gpgcheck: true

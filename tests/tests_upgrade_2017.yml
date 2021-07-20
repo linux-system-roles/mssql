@@ -76,7 +76,7 @@
           include_role:
             name: linux-system-roles.mssql
           vars:
-            mssql_version: 2017
+            mssql_version: "2017"
 
         - name: Unreachable task
           fail:
