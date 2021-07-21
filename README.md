@@ -62,7 +62,7 @@ Type: `bool`
 ### `mssql_version`
 
 The version of the SQL Server to configure. The role currently supports versions
-2019 and 2017.
+2017 and 2019.
 
 Default: `2019`
 
