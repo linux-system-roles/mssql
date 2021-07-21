@@ -15,34 +15,92 @@
     __mssql_vars_file: "{{ role_path }}/vars/{{ item }}"
   when: __mssql_vars_file is file
 
+- name: Link the deprecated accept_microsoft_sql_server_2019_standard_eula fact
+  set_fact:
+    mssql_accept_microsoft_sql_server_standard_eula: >-
+      {{ mssql_accept_microsoft_sql_server_2019_standard_eula }}
+  when: mssql_accept_microsoft_sql_server_2019_standard_eula is defined
+
 - name: Verify that the user accepts EULA variables
   assert:
     that:
       - mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula | bool
       - mssql_accept_microsoft_cli_utilities_for_sql_server_eula | bool
-      - mssql_accept_microsoft_sql_server_2019_standard_eula | bool
+      - mssql_accept_microsoft_sql_server_standard_eula | bool
     fail_msg:
       - "You must accept EULA by setting the following variables to true:"
       - "mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula"
       - "mssql_accept_microsoft_cli_utilities_for_sql_server_eula"
-      - "mssql_accept_microsoft_sql_server_2019_standard_eula"
+      - "mssql_accept_microsoft_sql_server_standard_eula"
+
+- name: Verify if the mssql_version variable is provided correctly
+  assert:
+    that: mssql_version | int == 2017 or mssql_version | int == 2019
+    fail_msg: "The mssql_version variable must be set to either 2017 or 2019."
+
+- name: Verify if the mssql_upgrade variable is provided correctly
+  fail:
+    msg:
+      - "You set mssql_upgrade to true and mssql_version to 2017."
+      - "If you want to upgrade, set the variables as such:"
+      - "mssql_version: 2019"
+      - "mssql_upgrade: true"
+  when:
+    - mssql_upgrade | bool
+    - mssql_version | int == 2017
+
+- name: Gather package facts
+  package_facts:
+    manager: auto
+
+- name: >-
+    Verify if mssql_version is not smaller then the existing SQL Server version
+  fail:
+    msg:
+      - "You set mssql_version to 2017, but your SQL Server is version 2019."
+      - "The role does not support downgrading SQL Server."
+  when:
+    - mssql_version | int == 2017
+    - ansible_facts.packages["mssql-server"][0]["version"] is defined
+    - ansible_facts.packages["mssql-server"][0]["version"] is search("^15.*")
 
 - name: Deploy the GPG key for Microsoft repositories
   rpm_key:
     key: https://packages.microsoft.com/keys/microsoft.asc
     state: present
 
-- name: Configure the Microsoft SQL Server 2019 repository
+# This works only on systems that use yum or dnf
+- name: Update all packages from SQL Server 2017 repo
+  package:
+    name: "*"
+    disablerepo: "*"
+    enablerepo: packages-microsoft-com-mssql-server-2017
+    state: latest  # noqa 403
+  when:
+    - mssql_upgrade | bool
+    - ansible_facts.packages["mssql-server"][0]["version"] is defined
+    - ansible_facts.packages["mssql-server"][0]["version"] is search("^14.*")
+
+- name: Remove the Microsoft SQL Server 2017 repository to upgrade to 2019
   yum_repository:
-    name: packages-microsoft-com-mssql-server-2019-gdr
-    description: Microsoft SQL Server 2019
+    name: packages-microsoft-com-mssql-server-2017
+    state: absent
+  when: mssql_upgrade | bool
+
+- name: Configure the Microsoft SQL Server {{ mssql_version }} repository
+  yum_repository:
+    name: packages-microsoft-com-mssql-server-{{ mssql_version | int }}
+    description: Microsoft SQL Server {{ mssql_version }}
     baseurl: "{{ __mssql_server_repository }}"
     gpgcheck: true
+  when: >-
+    (__mssql_server_packages not in ansible_facts.packages) or
+    (mssql_upgrade | bool)
 
-- name: Ensure that the Microsoft SQL Server package is installed
+- name: Ensure the {{ __mssql_server_packages }} package
   package:
     name: "{{ __mssql_server_packages }}"
-    state: present
+    state: "{{ 'latest' if mssql_upgrade else 'present' }}"
 
 # /opt/mssql/bin/sqlservr requires libldap-2.4.so.2. Latest Fedora use newer
 # libldap by default, therefore, it is required to install openldap-compat
@@ -58,7 +116,7 @@
 - name: Check if the errorlog file exists and its location
   shell: |
     set -euo pipefail
-    errorlog="$(/opt/mssql/bin/mssql-conf get filelocation errorlogfile 2>&1 \
+    errorlog="$(grep '^errorlogfile' /var/opt/mssql/mssql.conf \
     | sed 's/errorlogfile : //')" || :
     if [ -s "${errorlog}" ]; then
       echo "${errorlog}"
@@ -329,13 +387,13 @@
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_conf_setting: "hadr hadrenabled"
-        __mssql_conf_setting_value: "{{ mssql_enable_ha }}"
+        __mssql_conf_setting_value: "{{ 1 if mssql_enable_ha else 0 }}"
 
 - name: Tune MSSQL for FUA-capable storage
   when: mssql_tune_for_fua_storage is not none
   block:
     - name: Check if the 3979 trace flag is enabled
-      command: /opt/mssql/bin/mssql-conf get traceflag
+      shell: grep '^traceflag' /var/opt/mssql/mssql.conf || true
       changed_when: false
       register: __mssql_get_traceflag
 
@@ -358,13 +416,14 @@
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_conf_setting: "control alternatewritethrough"
-        __mssql_conf_setting_value: "false"
+        __mssql_conf_setting_value: "0"
 
     - name: Configure the writethrough setting
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_conf_setting: "control writethrough"
-        __mssql_conf_setting_value: "{{ mssql_tune_for_fua_storage }}"
+        __mssql_conf_setting_value: >-
+          {{ 1 if mssql_tune_for_fua_storage else 0 }}
 
 - name: Configure TLS encryption
   when:

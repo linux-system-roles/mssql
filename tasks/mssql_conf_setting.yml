@@ -1,17 +1,20 @@
-- name: Check if the {{ __mssql_conf_setting }} setting is enabled
-  command: >-
-    /opt/mssql/bin/mssql-conf get {{ __mssql_conf_setting }}
+# SPDX-License-Identifier: MIT
+---
+- name: Get the {{ __mssql_conf_setting }} setting
+  shell: >-
+    grep ^{{ __mssql_conf_setting | regex_replace( '^.*\s' ,'') | quote }}
+    /var/opt/mssql/mssql.conf || true
   changed_when: false
   register: __mssql_conf_get_setting
 
 - name: Configure the {{ __mssql_conf_setting }} setting
   command: >-
-    /opt/mssql/bin/mssql-conf set {{ __mssql_conf_setting }}
-    {{ __mssql_conf_setting_value | quote }}
+    /opt/mssql/bin/mssql-conf set {{ __mssql_conf_setting |
+    regex_replace( ' ','.') }} {{ __mssql_conf_setting_value | quote }}
   vars:
     __mssql_conf_get_value: >-
       {{ __mssql_conf_get_setting.stdout |
-      regex_replace('^.*\s:\s', '') }}
+      regex_replace('^.*\s=\s', '') }}
   when: >-
     (__mssql_conf_setting_value != 'unset') and
     (("No setting for the given" in __mssql_conf_get_setting.stdout) or

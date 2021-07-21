@@ -2,7 +2,9 @@
 ---
 mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: false
 mssql_accept_microsoft_cli_utilities_for_sql_server_eula: false
-mssql_accept_microsoft_sql_server_2019_standard_eula: false
+mssql_accept_microsoft_sql_server_standard_eula: false
+mssql_version: 2019
+mssql_upgrade: false
 mssql_password: null
 mssql_edition: null
 mssql_tcp_port: null
