@@ -3,7 +3,6 @@
 ![CI Testing](https://github.com/linux-system-roles/template/workflows/tox/badge.svg)
 
 This role installs, configures, and starts Microsoft SQL Server.
-
 The role also optimizes the operating system to improve performance and
 throughput for SQL Server by applying the `mssql` Tuned profile.
 
