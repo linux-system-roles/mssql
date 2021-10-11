@@ -15,7 +15,7 @@
   register: __mssql_modify_limit_burst
 
 - name: Reload service daemon
-  systemd:
+  systemd:  # noqa no-handler
     name: mssql-server
     state: restarted
     daemon_reload: yes
