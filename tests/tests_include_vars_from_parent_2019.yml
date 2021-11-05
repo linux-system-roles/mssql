@@ -1,5 +1,10 @@
 - hosts: all
   tasks:
+    - name: Print time at the beginning of the test
+      command: date +"%Y-%m-%d %H:%M:%S"
+      register: __time1
+      changed_when: false
+
     - name: create var file in caller that can override the one in called role
       delegate_to: localhost
       copy:
@@ -45,3 +50,12 @@
         mssql_accept_microsoft_sql_server_standard_eula: true
         mssql_password: P@55w0rD
         mssql_edition: Evaluation
+
+    - name: Print time at the end of the test
+      command: date +"%Y-%m-%d %H:%M:%S"
+      register: __time2
+      changed_when: false
+
+    - name: Print resulting time
+      debug:
+        msg: The test took {{ __time2.stdout | to_datetime - __time1.stdout | to_datetime }}

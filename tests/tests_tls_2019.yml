@@ -7,6 +7,11 @@
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
   tasks:
+    - name: Print time at the beginning of the test
+      command: date +"%Y-%m-%d %H:%M:%S"
+      register: __time1
+      changed_when: false
+
     - name: List installed RPMs on localhost to see if openssl is present
       package_facts:
       changed_when: no
@@ -79,3 +84,12 @@
       vars:
         __verify_mssql_password: "p@55w0rD"
         __verify_mssql_is_tls_encrypted: false
+
+    - name: Print time at the end of the test
+      command: date +"%Y-%m-%d %H:%M:%S"
+      register: __time2
+      changed_when: false
+
+    - name: Print resulting time
+      debug:
+        msg: The test took {{ __time2.stdout | to_datetime - __time1.stdout | to_datetime }}
