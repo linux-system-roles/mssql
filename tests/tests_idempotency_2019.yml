@@ -17,11 +17,17 @@
         path: /etc/dnf/dnf.conf
       register: __dnf_conf
 
+    - name: Print yum.conf or dnf.conf
+      command: >-
+        cat {{ '/etc/dnf/dnf.conf' if __dnf_conf.stat.exists
+        else '/etc/yum.conf' }}
+      changed_when: false
+
     - name: Remove proxy from dnf.conf or yum.conf
       lineinfile:
         path: >-
-          {{ "/etc/dnf/dnf.conf" if __dnf_conf.stat.exists else
-          "/etc/yum.conf" }}
+          {{ '/etc/dnf/dnf.conf' if __dnf_conf.stat.exists else
+          '/etc/yum.conf' }}
         regexp: "{{ item }}"
         state: absent
       loop:
