@@ -12,23 +12,6 @@
       register: __time1
       changed_when: false
 
-    - name: Register dnf.conf
-      stat:
-        path: /etc/dnf/dnf.conf
-      register: __dnf_conf
-
-    - name: Remove proxy from dnf.conf or yum.conf
-      lineinfile:
-        path: >-
-          {{ "/etc/dnf/dnf.conf" if __dnf_conf.stat.exists else
-          "/etc/yum.conf" }}
-        regexp: "{{ item }}"
-        state: absent
-      loop:
-        - ^proxy
-        - ^sslverify
-
-
     - name: Run on a fresh host and set all parameters
       include_role:
         name: linux-system-roles.mssql
@@ -123,6 +106,4 @@
 
     - name: Print resulting time
       debug:
-        msg: >-
-          The test took {{ __time2.stdout | to_datetime -
-          __time1.stdout | to_datetime }}
+        msg: The test took {{ __time2.stdout | to_datetime - __time1.stdout | to_datetime }}
