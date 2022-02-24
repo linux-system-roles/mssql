@@ -160,6 +160,14 @@
       when: not __mssql_is_setup
       register: __mssql_conf_setup
 
+- name: Ensure ansible_managed header in configuration file
+  vars:
+    __lsr_ansible_managed: "{{ lookup('template', 'get_ansible_managed.j2') }}"
+  blockinfile:
+    path: /var/opt/mssql/mssql.conf
+    block: "{{ __lsr_ansible_managed }}"
+    insertbefore: BOF
+
 - name: Ensure that the tuned-profiles-mssql package is installed
   package:
     name: tuned-profiles-mssql
