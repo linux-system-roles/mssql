@@ -301,6 +301,32 @@ Default: `false`
 
 Type: `bool`
 
+### `mssql_rpm_key`
+
+The URL or path to the Microsoft rpm gpg keys.
+
+Default: `https://packages.microsoft.com/keys/microsoft.asc`
+
+Type: `string`
+
+### `mssql_server_repository`
+
+The URL to the Microsoft SQL Server repository. 
+See `vars/` for default values based on operating system.
+
+Default: `{{ __mssql_server_repository }}`
+
+Type: `string`
+
+### `mssql_client_repository`
+
+The URL to the Microsoft production repository.
+See `vars/` for default values based on operating system.
+
+Default: `{{ __mssql_client_repository }}`
+
+Type: `string`
+
 ## Example Playbooks
 
 This section outlines example playbooks that you can use as a reference.

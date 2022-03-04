@@ -5,4 +5,3 @@ __mssql_client_packages: [mssql-tools, unixODBC-devel]
 __mssql_server_fts_packages: mssql-server-fts
 __mssql_server_ha_packages: mssql-server-ha
 __mssql_powershell_packages: powershell
-__mssql_rpm_key: https://packages.microsoft.com/keys/microsoft.asc
