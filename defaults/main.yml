@@ -20,3 +20,6 @@ mssql_tls_cert: null
 mssql_tls_private_key: null
 mssql_tls_force: false
 mssql_tls_version: 1.2
+mssql_rpm_key: https://packages.microsoft.com/keys/microsoft.asc
+mssql_server_repository: "{{ __mssql_server_repository }}"
+mssql_client_repository: "{{ __mssql_client_repository }}"

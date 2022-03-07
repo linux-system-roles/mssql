@@ -66,7 +66,7 @@
 
 - name: Deploy the GPG key for Microsoft repositories
   rpm_key:
-    key: https://packages.microsoft.com/keys/microsoft.asc
+    key: "{{ mssql_rpm_key }}"
     state: present
 
 # This works only on systems that use yum or dnf
@@ -91,7 +91,7 @@
   yum_repository:
     name: packages-microsoft-com-mssql-server-{{ mssql_version | int }}
     description: Microsoft SQL Server {{ mssql_version }}
-    baseurl: "{{ __mssql_server_repository }}"
+    baseurl: "{{ mssql_server_repository }}"
     gpgcheck: true
   when: >-
     (__mssql_server_packages not in ansible_facts.packages) or
@@ -225,7 +225,7 @@
   yum_repository:
     name: packages-microsoft-com-prod
     description: Microsoft SQL Server Tools
-    baseurl: "{{ __mssql_client_repository }}"
+    baseurl: "{{ mssql_client_repository }}"
     gpgcheck: true
 
 - name: Ensure that SQL Server client tools are installed
