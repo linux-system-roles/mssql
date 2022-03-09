@@ -1,6 +1,4 @@
 # SPDX-License-Identifier: MIT
 ---
 - name: Restart the mssql-server service
-  service:
-    name: mssql-server
-    state: restarted
+  include_tasks: tasks/restart_server.yml

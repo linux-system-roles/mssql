@@ -1,0 +1,13 @@
+---
+- block:
+    - name: Get service status
+      service_facts:
+      register: _services_state
+
+    - name: Restart the mssql-server service if allowed
+      service:
+        name: mssql-server
+        state: restarted
+      when: >-
+        _services_state.ansible_facts.services['mssql-server.service']['state']
+        not in ['starting', 'stopping']
