@@ -79,3 +79,6 @@
       vars:
         __verify_mssql_password: "p@55w0rD"
         __verify_mssql_is_tls_encrypted: false
+
+    - name: Check the ansible_managed header in the configuration file
+      include_tasks: tasks/check_header.yml

@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: MIT
+---
+- name: Grep the ansible_managed header in /var/opt/mssql/mssql.conf
+  command: grep "^# Ansible managed" /var/opt/mssql/mssql.conf
+  changed_when: false

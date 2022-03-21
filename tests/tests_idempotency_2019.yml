@@ -91,3 +91,6 @@
         __verify_mssql_fts_is_installed: false
         __verify_mssql_ha_is_installed: false
         __verify_mssql_is_tuned_for_fua: false
+
+    - name: Check the ansible_managed header in the configuration file
+      include_tasks: tasks/check_header.yml

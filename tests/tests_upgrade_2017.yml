@@ -88,3 +88,6 @@
             that: >-
               'set mssql_version to 2017, but your SQL Server is version 2019.'
               in ansible_failed_result.msg.0
+
+    - name: Check the ansible_managed header in the configuration file
+      include_tasks: tasks/check_header.yml

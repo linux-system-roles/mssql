@@ -33,3 +33,6 @@
             that: >-
               'You must define the mssql_password variable' in
               ansible_failed_result.msg
+
+    - name: Check the ansible_managed header in the configuration file
+      include_tasks: tasks/check_header.yml
