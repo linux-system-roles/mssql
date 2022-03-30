@@ -1,0 +1,26 @@
+USE master;
+IF NOT EXISTS (
+  SELECT name FROM sys.server_principals
+  WHERE name = '{{ mssql_ha_login }}'
+)
+BEGIN
+  PRINT 'A {{ mssql_ha_login }} login does not exist, creating';
+  CREATE LOGIN {{ mssql_ha_login }}
+    WITH PASSWORD = N'{{ mssql_ha_login_password }}';
+  PRINT 'The {{ mssql_ha_login }} login created successfully';
+END
+ELSE
+BEGIN
+  PRINT 'A {{ mssql_ha_login }} login already exists, skipping'
+END
+
+IF IS_SRVROLEMEMBER ('sysadmin','{{ mssql_ha_login }}') = 1
+BEGIN
+  PRINT '{{ mssql_ha_login }} is a member of sysadmin role, skipping';
+END
+ELSE
+BEGIN
+  PRINT 'Adding {{ mssql_ha_login }} to the sysadmin server role';
+  ALTER SERVER ROLE sysadmin ADD MEMBER {{ mssql_ha_login }};
+  PRINT '{{ mssql_ha_login }} added to the sysadmin server role successfully';
+END

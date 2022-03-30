@@ -4,3 +4,5 @@
   service:
     name: mssql-server
     state: restarted
+  when: not (__mssql_primary_restarted is changed or
+    __mssql_replica_restarted is changed)

@@ -1,0 +1,108 @@
+IF NOT EXISTS (
+  SELECT name
+  FROM sys.database_mirroring_endpoints
+  WHERE name = '{{ mssql_ha_endpoint_name }}'
+)
+BEGIN
+  PRINT 'Endpoint {{ mssql_ha_endpoint_name }} does not exist, creating';
+  CREATE ENDPOINT {{ mssql_ha_endpoint_name }}
+    STATE = STARTED
+    AS TCP (LISTENER_PORT = {{ mssql_ha_listener_port }})
+    FOR DATABASE_MIRRORING (
+      ROLE = {{ __mssql_ha_endpoint_role }},
+      AUTHENTICATION = CERTIFICATE {{ mssql_ha_cert_name }},
+      ENCRYPTION = REQUIRED ALGORITHM AES
+    );
+  PRINT 'Endpoint {{ mssql_ha_endpoint_name }} created successfully'
+END
+ELSE
+BEGIN
+  PRINT 'Verifying the existing endpoint {{ mssql_ha_endpoint_name }}';
+  IF NOT EXISTS (
+    SELECT name, port FROM sys.tcp_endpoints
+    WHERE name = '{{ mssql_ha_endpoint_name }}' AND
+          port = {{ mssql_ha_listener_port }}
+  )
+  BEGIN
+    ALTER ENDPOINT {{ mssql_ha_endpoint_name }}
+      AS TCP (LISTENER_PORT = {{ mssql_ha_listener_port }});
+    PRINT 'The LISTENER_PORT setting for the {{ mssql_ha_endpoint_name }} \
+endpoint updated to {{ mssql_ha_listener_port }} successfully';
+  END
+  ELSE
+  BEGIN
+    PRINT 'The LISTENER_PORT setting for the {{ mssql_ha_endpoint_name }} \
+endpoint is already set to {{ mssql_ha_listener_port }}, skipping';
+  END
+  IF NOT EXISTS (
+    SELECT name, role_desc FROM sys.database_mirroring_endpoints
+    WHERE name = '{{ mssql_ha_endpoint_name }}' AND
+          role_desc = '{{ __mssql_ha_endpoint_role }}'
+  )
+  BEGIN
+    ALTER ENDPOINT {{ mssql_ha_endpoint_name }}
+      FOR DATABASE_MIRRORING (ROLE = {{ __mssql_ha_endpoint_role }});
+    PRINT 'The ROLE setting for the {{ mssql_ha_endpoint_name }} \
+endpoint updated to {{ __mssql_ha_endpoint_role }} successfully';
+  END
+  ELSE
+  BEGIN
+    PRINT 'The ROLE setting for the {{ mssql_ha_endpoint_name }} \
+endpoint is already set to {{ __mssql_ha_endpoint_role }}, skipping';
+  END
+  IF NOT EXISTS (
+    SELECT endp.name as endpoint_name,
+          cert.name as cert_name,
+          cert.certificate_id cert_id
+    FROM sys.certificates cert
+    JOIN sys.database_mirroring_endpoints endp
+    ON cert.certificate_id = endp.certificate_id
+    WHERE endp.name = '{{ mssql_ha_endpoint_name }}' AND
+          cert.name = '{{ mssql_ha_cert_name }}'
+  )
+  BEGIN
+    ALTER ENDPOINT {{ mssql_ha_endpoint_name }}
+      FOR DATABASE_MIRRORING (
+        AUTHENTICATION = CERTIFICATE {{ mssql_ha_cert_name }}
+      );
+    PRINT 'The certificate for the {{ mssql_ha_endpoint_name }} \
+endpoint updated to {{ mssql_ha_cert_name }} successfully';
+  END
+  ELSE
+  BEGIN
+    PRINT 'The certificate for the {{ mssql_ha_endpoint_name }} \
+endpoint is already set to {{ mssql_ha_cert_name }}, skipping';
+  END
+  IF NOT EXISTS (
+    SELECT name, encryption_algorithm_desc
+    FROM sys.database_mirroring_endpoints
+    WHERE name = '{{ mssql_ha_endpoint_name }}' AND
+          encryption_algorithm_desc = 'AES'
+  )
+  BEGIN
+    ALTER ENDPOINT {{ mssql_ha_endpoint_name }}
+      FOR DATABASE_MIRRORING (ENCRYPTION = REQUIRED ALGORITHM AES);
+    PRINT 'The ENCRYPTION setting for the {{ mssql_ha_endpoint_name }} \
+endpoint updated to AES successfully';
+  END
+  ELSE
+  BEGIN
+    PRINT 'The ENCRYPTION setting for the {{ mssql_ha_endpoint_name }} \
+endpoint is already set to AES, skipping';
+  END
+  IF NOT EXISTS (
+    SELECT name, state
+    FROM sys.tcp_endpoints
+    WHERE name = '{{ mssql_ha_endpoint_name }}' AND
+          state = 0
+  )
+  BEGIN
+    PRINT 'Endpoint {{ mssql_ha_endpoint_name }} is not started, starting';
+    ALTER ENDPOINT {{ mssql_ha_endpoint_name }} STATE = STARTED;
+    PRINT 'Endpoint {{ mssql_ha_endpoint_name }} started successfully';
+  END
+  ELSE
+  BEGIN
+    PRINT 'Endpoint {{ mssql_ha_endpoint_name }} is already started, skipping';
+  END
+END

@@ -1,0 +1,19 @@
+IF NOT EXISTS(
+  SELECT name
+  FROM sys.certificates
+  WHERE name = '{{ mssql_ha_cert_name }}'
+)
+BEGIN
+  PRINT 'Certificate {{ mssql_ha_cert_name }} does not exist, creating';
+  CREATE CERTIFICATE {{ mssql_ha_cert_name }}
+    FROM FILE = '{{ __mssql_ha_cert_dest }}'
+    WITH PRIVATE KEY (
+      FILE = '{{ __mssql_ha_private_key_dest }}',
+      DECRYPTION BY PASSWORD = '{{ mssql_ha_private_key_password }}'
+    );
+  PRINT 'Certificate {{ mssql_ha_cert_name }} created successfully';
+END
+ELSE
+BEGIN
+  PRINT 'Certificate {{ mssql_ha_cert_name }} already exists, skipping';
+END

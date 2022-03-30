@@ -1,0 +1,14 @@
+PRINT 'Dropping the {{ mssql_ha_endpoint_name }} endpoint'
+IF NOT EXISTS (
+  SELECT name
+  FROM sys.database_mirroring_endpoints
+  WHERE name = '{{ mssql_ha_endpoint_name }}'
+)
+BEGIN
+  PRINT 'Endpoint {{ mssql_ha_endpoint_name }} does not exist, skipping'
+END
+ELSE
+BEGIN
+  DROP ENDPOINT {{ mssql_ha_endpoint_name }};
+  PRINT 'Endpoint {{ mssql_ha_endpoint_name }} dropped successfully'
+END

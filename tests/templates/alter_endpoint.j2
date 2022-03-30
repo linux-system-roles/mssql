@@ -1,0 +1,24 @@
+IF NOT EXISTS(
+  SELECT name
+  FROM sys.certificates
+  WHERE name = 'test_cert'
+)
+BEGIN
+  PRINT 'Certificate test_cert does not exist, creating';
+  CREATE CERTIFICATE test_cert
+    WITH SUBJECT = 'Test certificate';
+    PRINT 'Certificate test_cert created successfully';
+END
+ELSE
+BEGIN
+  PRINT 'Certificate test_cert already exists, skipping';
+END
+
+ALTER ENDPOINT {{ mssql_ha_endpoint_name }}
+  STATE = STOPPED
+  AS TCP (LISTENER_PORT = 1234)
+  FOR DATABASE_MIRRORING (
+      ROLE = PARTNER,
+      AUTHENTICATION = CERTIFICATE test_cert,
+      ENCRYPTION = REQUIRED ALGORITHM RC4
+  );

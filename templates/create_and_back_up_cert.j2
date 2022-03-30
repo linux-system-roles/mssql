@@ -1,0 +1,73 @@
+-- Enabling NOCOUNT to suppress (1 rows affected) messages from DECLARE
+-- keywords on the output
+SET NOCOUNT ON;
+
+DECLARE @cerExists INT;
+EXEC master.dbo.xp_fileexist '{{ __mssql_ha_cert_dest }}', @cerExists OUTPUT;
+DECLARE @pvkExists INT;
+EXEC master.dbo.xp_fileexist '{{ __mssql_ha_private_key_dest }}',
+  @pvkExists OUTPUT;
+
+IF NOT EXISTS(
+  SELECT name
+  FROM sys.certificates
+  WHERE name = '{{ mssql_ha_cert_name }}'
+)
+BEGIN
+  PRINT 'Certificate {{ mssql_ha_cert_name }} does not exist, creating';
+  IF (@cerExists = 1 AND @pvkExists = 1) OR (@cerExists != @pvkExists)
+  BEGIN
+    THROW 51000, 'Certificate {{ mssql_ha_cert_name }} does not exist in \
+SQL Server, however, {{ __mssql_ha_cert_dest }} \
+and/or {{ __mssql_ha_private_key_dest }} files do exist. \
+You must either remove the files, or run the role with \
+`mssql_ha_reset_cert: true` to regenerate certificates. Ensure to read \
+carefully what `mssql_ha_reset_cert: true` does in the README.md file of the \
+role beforehand', 1;
+  END
+  ELSE
+  BEGIN
+    CREATE CERTIFICATE {{ mssql_ha_cert_name }}
+      WITH SUBJECT = 'Managed by microsoft.sql.server';
+    PRINT 'Certificate {{ mssql_ha_cert_name }} created successfully';
+  END
+END
+ELSE
+BEGIN
+  PRINT 'Certificate {{ mssql_ha_cert_name }} already exists, skipping';
+END
+
+IF @cerExists = 1 AND @pvkExists = 1
+BEGIN
+  PRINT '{{ __mssql_ha_cert_dest }} and \
+{{ __mssql_ha_private_key_dest }} already exist, skipping';
+END
+ELSE IF @cerExists = 0 AND @pvkExists = 0
+BEGIN
+  PRINT 'Exporting a certificate and private key to \
+{{ __mssql_ha_cert_dest }} and \
+{{ __mssql_ha_private_key_dest }}';
+  BACKUP CERTIFICATE {{ mssql_ha_cert_name }}
+   TO FILE = '{{ __mssql_ha_cert_dest }}'
+   WITH PRIVATE KEY (
+     FILE = '{{ __mssql_ha_private_key_dest }}',
+     ENCRYPTION BY PASSWORD = '{{ mssql_ha_private_key_password }}'
+   );
+  PRINT 'Certificate and private key files \
+{{ __mssql_ha_cert_dest }} and \
+{{ __mssql_ha_private_key_dest }} exported successfully';
+END
+ELSE IF @cerExists = 1 AND @pvkExists = 0
+BEGIN
+  PRINT '{{ __mssql_ha_private_key_dest }} does not exist \
+while {{ __mssql_ha_cert_dest }} exists. You must \
+either remove the files, or run the role with `mssql_ha_reset_cert: true` to \
+regenerate certificates.';
+END
+ELSE IF @cerExists = 0 AND @pvkExists = 1
+BEGIN
+  PRINT '{{ __mssql_ha_cert_dest }} does not exist \
+while {{ __mssql_ha_private_key_dest }} exists. You must \
+either remove the files, or run the role with `mssql_ha_reset_cert: true` to \
+regenerate certificates.';
+END

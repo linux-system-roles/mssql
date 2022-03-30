@@ -1,0 +1,58 @@
+IF EXISTS (
+  SELECT name
+  FROM sys.availability_groups
+  WHERE name = '{{ mssql_ha_ag_name }}'
+)
+AND NOT EXISTS (
+  SELECT ag.name, replica.replica_server_name, replica.availability_mode_desc
+  FROM sys.availability_groups ag
+  JOIN sys.availability_replicas replica
+  ON ag.group_id = replica.group_id
+  WHERE ag.name = '{{ mssql_ha_ag_name }}' AND
+        replica.replica_server_name = '{{ ansible_hostname }}' AND
+        replica.availability_mode_desc = '{{ __mssql_ha_availability_mode }}'
+)
+BEGIN
+  PRINT 'The existing availability group {{ mssql_ha_ag_name }} has \
+incorrect availability mode set for the {{ ansible_hostname }} replica, \
+removing this availability group to re-create it'
+  DROP AVAILABILITY GROUP {{ mssql_ha_ag_name }};
+  PRINT 'The availability group {{ mssql_ha_ag_name }} removed successfully'
+END
+ELSE IF EXISTS (
+  SELECT name
+  FROM sys.availability_groups
+  WHERE name = '{{ mssql_ha_ag_name }}'
+)
+AND EXISTS (
+  SELECT ag.name, replica.replica_server_name, replica.availability_mode_desc
+  FROM sys.availability_groups ag
+  JOIN sys.availability_replicas replica
+  ON ag.group_id = replica.group_id
+  WHERE ag.name = '{{ mssql_ha_ag_name }}' AND
+        replica.replica_server_name = '{{ ansible_hostname }}' AND
+        replica.availability_mode_desc = '{{ __mssql_ha_availability_mode }}'
+)
+BEGIN
+  PRINT 'Already joined to the {{ mssql_ha_ag_name }} availability group, \
+skipping'
+END
+
+IF NOT EXISTS(
+  SELECT name
+  FROM sys.availability_groups
+  WHERE name = '{{ mssql_ha_ag_name }}'
+)
+BEGIN
+  PRINT 'Joining to the {{ mssql_ha_ag_name }} availability group';
+  ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }}
+    JOIN WITH (CLUSTER_TYPE = EXTERNAL);
+  PRINT 'Joined to the {{ mssql_ha_ag_name }} availability group successfully';
+END
+
+{% if mssql_ha_replica_type == 'synchronous' %}
+-- It is not possible to grant permissions fully idempotently
+ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} GRANT CREATE ANY DATABASE;
+PRINT 'Granted the CREATE ANY DATABASE permission to the \
+{{ mssql_ha_ag_name }} availability group';
+{% endif %}

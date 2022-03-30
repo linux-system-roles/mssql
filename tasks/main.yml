@@ -9,6 +9,10 @@
   set_fact:
     __mssql_sqlcmd_login_cmd: null
 
+- name: Unset the __mssql_sqlcmd_login_cmd fact
+  set_fact:
+    __mssql_sqlcmd_login_cmd: null
+
 - name: Link the deprecated accept_microsoft_sql_server_2019_standard_eula fact
   set_fact:
     mssql_accept_microsoft_sql_server_standard_eula: >-
@@ -42,6 +46,36 @@
   when:
     - mssql_upgrade | bool
     - mssql_version | int == 2017
+
+- name: Verify that EL < 8 is not used with mssql_ha_configure=true
+  fail:
+    msg: mssql_ha_configure=true does not support running against EL 7 hosts
+  when:
+    - mssql_ha_configure | bool
+    - ansible_distribution in ['CentOS', 'RedHat']
+    - ansible_distribution_version is version('8', '<')
+
+- name: Verify if the mssql_ha_replica_type variable is provided correctly
+  assert:
+    that: mssql_ha_replica_type in
+      ['primary', 'synchronous', 'witness', 'absent']
+    fail_msg: >-
+      You must set the mssql_ha_replica_type variable to one of 'primary',
+      'synchronous', 'witness', 'absent'
+  when: mssql_ha_configure | bool
+
+- name: Verify that 'mssql_ha_replica_type = primary' is provided once
+  assert:
+    that: ansible_play_hosts_all |
+        map('extract', hostvars, 'mssql_ha_replica_type') |
+        select('match', '^primary$') |
+        list |
+        length == 1
+    fail_msg: >-
+      You must set the mssql_ha_replica_type variable to 'primary' for one of
+      your managed nodes
+  run_once: true
+  when: mssql_ha_configure | bool
 
 - name: Gather package facts
   package_facts:
@@ -422,6 +456,290 @@
       vars:
         __mssql_conf_setting: "network forceencryption"
         __mssql_conf_setting_value: "{{ '1' if mssql_tls_enable else 'unset' }}"
+
+- name: Open required firewall ports and set required facts
+  when:
+    - mssql_ha_configure | bool
+  block:
+    - name: >-
+        Open the {{ mssql_ha_listener_port }}/tcp port and
+        enable the high-availability service in firewall
+      when: mssql_ha_firewall_configure | bool
+      include_role:
+        name: fedora.linux_system_roles.firewall
+      vars:
+        firewall:
+          - port: "{{ mssql_ha_listener_port }}/tcp"
+            zone: public
+            state: enabled
+            permanent: true
+            runtime: true
+          - service: high-availability
+            state: enabled
+            permanent: true
+            runtime: true
+
+    # This is required because by default variables in vars/main.yml are
+    # mapped into global variables and the role needs them in host variables
+    - name: Set host variables
+      set_fact:
+        __mssql_ha_availability_mode: "{{ __mssql_ha_availability_mode }}"
+        __mssql_ha_failover_mode: "{{ __mssql_ha_failover_mode }}"
+        __mssql_ha_seeding_mode: "{{ __mssql_ha_seeding_mode }}"
+
+- name: Configure availability group on the primary node
+  when:
+    - mssql_ha_configure | bool
+    - mssql_ha_replica_type == 'primary'
+  block:
+    - name: Ensure the {{ __mssql_server_ha_packages }} package
+      package:
+        name: "{{ __mssql_server_ha_packages }}"
+        state: "{{ 'present' if mssql_ha_configure | bool else 'absent' }}"
+      register: __mssql_server_ha_packages_install
+
+    - name: Enable the hadrenabled setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: "hadr hadrenabled"
+        __mssql_conf_setting_value: 1
+
+    # meta: flush_handlers does not support when conditional
+    - name: Restart the mssql-server service if hadrenabled task was changed
+      service:
+        name: mssql-server
+        state: restarted
+      when: (__mssql_conf_set is changed) or
+        (__mssql_server_ha_packages_install is changed)
+      register: __mssql_primary_restarted
+
+    - name: Enable AlwaysOn Health events
+      vars:
+        __mssql_input_sql_file: enable_alwayson.j2
+      include_tasks: input_sql_file.yml
+
+    - name: Remove certificate from SQL Server
+      vars:
+        __mssql_input_sql_file: drop_cert.j2
+      include_tasks: input_sql_file.yml
+      when: mssql_ha_reset_cert | bool
+
+    - name: Remove certificate and private key files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ __mssql_ha_cert_dest }}"
+        - "{{ __mssql_ha_private_key_dest }}"
+      when: mssql_ha_reset_cert | bool
+
+    - name: Create master key encryption
+      vars:
+        __mssql_input_sql_file: create_master_key_encryption.j2
+      include_tasks: input_sql_file.yml
+
+    - name: Create and back up certificate
+      vars:
+        __mssql_input_sql_file: create_and_back_up_cert.j2
+      include_tasks: input_sql_file.yml
+
+    # changed_when: false because the role removes cert files after using them
+    - name: >-
+        Fetch certificate and private key from the primary node to the control
+        node
+      fetch:
+        src: "{{ item.value }}"
+        dest: "{{ item.key }}"
+        flat: true
+      with_dict:
+        cert: "{{ __mssql_ha_cert_dest }}"
+        key: "{{ __mssql_ha_private_key_dest }}"
+      changed_when: false
+
+    - name: Create database mirroring endpoints
+      vars:
+        __mssql_input_sql_file: configure_endpoint.j2
+      include_tasks: input_sql_file.yml
+
+    - name: Create the {{ mssql_ha_login }}
+      vars:
+        __mssql_input_sql_file: create_ha_login.j2
+      include_tasks: input_sql_file.yml
+
+    # Required for configure_ag.j2 to set WRITE_LEASE_VALIDITY based on RHEL ver
+    - name: Get mssql-server version to see if WRITE_LEASE_VALIDITY is available
+      package_facts:
+        manager: auto
+      no_log: true
+
+    - name: Create the {{ mssql_ha_ag_name }} availability group
+      vars:
+        __mssql_input_sql_file: configure_ag.j2
+      include_tasks: input_sql_file.yml
+
+    - name: Grant permissions to the {{ mssql_ha_login }} login
+      vars:
+        __mssql_input_sql_file: grant_permissions_to_ha_login.j2
+      include_tasks: input_sql_file.yml
+
+    - name: Back up and replicate the {{ mssql_ha_db_name }} database
+      vars:
+        __mssql_input_sql_file: replicate_db.j2
+      include_tasks: input_sql_file.yml
+
+    # This is required because `any_errors_fatal: true` does not work within
+    # blocks that have rescue or always sections
+    - name: Set a fact to indicate successful set up on the primary replica
+      delegate_to: localhost
+      set_fact:
+        __mssql_primary_successful: true
+      run_once: true
+  rescue:
+    # changed_when: false because this task removes unused remnant of cert files
+    - name: Remove certificate and private key from the control node
+      delegate_to: localhost
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - cert
+        - key
+      changed_when: false
+
+    - name: Fail because this rescue block does not actually rescue failed tasks
+      fail:
+        msg: Configuration tasks failed
+
+- name: Configure availability group on replicas
+  when:
+    - mssql_ha_configure | bool
+    - mssql_ha_replica_type in ['synchronous', 'witness']
+  any_errors_fatal: true
+  block:
+    - name: Fail if the primary node failed
+      delegate_to: localhost
+      fail:
+        msg: "Halting playbook execution due to error on the primary node"
+      when: not __mssql_primary_successful | d(false)
+      run_once: true
+
+    - name: Ensure the {{ __mssql_server_ha_packages }} package
+      package:
+        name: "{{ __mssql_server_ha_packages }}"
+        state: "{{ 'present' if mssql_ha_configure | bool else 'absent' }}"
+      register: __mssql_server_ha_packages_install
+
+    - name: Enable the hadrenabled setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: "hadr hadrenabled"
+        __mssql_conf_setting_value: 1
+
+    # flush_handlers task does not support when conditional
+    - name: Restart the mssql-server service if hadrenabled task was changed
+      service:
+        name: mssql-server
+        state: restarted
+      when: (__mssql_conf_set is changed) or
+        (__mssql_server_ha_packages_install is changed)
+      register: __mssql_replica_restarted
+
+    - name: Enable AlwaysOn Health events
+      vars:
+        __mssql_input_sql_file: enable_alwayson.j2
+      include_tasks: input_sql_file.yml
+
+    - name: Create master key encryption
+      vars:
+        __mssql_input_sql_file: create_master_key_encryption.j2
+      include_tasks: input_sql_file.yml
+
+    - name: Distribute certificate and private key to managed nodes
+      copy:
+        src: "{{ item.key }}"
+        dest: "{{ item.value }}"
+        owner: mssql
+        group: mssql
+        mode: 0660
+        force: true
+      with_dict:
+        cert: "{{ __mssql_ha_cert_dest }}"
+        key: "{{ __mssql_ha_private_key_dest }}"
+
+    - name: Remove certificate from SQL Server
+      vars:
+        __mssql_input_sql_file: drop_cert.j2
+      include_tasks: input_sql_file.yml
+      when: mssql_ha_reset_cert | bool
+
+    - name: Restore certificate
+      vars:
+        __mssql_input_sql_file: restore_cert.j2
+      include_tasks: input_sql_file.yml
+
+    - name: Create database mirroring endpoints
+      vars:
+        __mssql_input_sql_file: configure_endpoint.j2
+      include_tasks: input_sql_file.yml
+
+    - name: Create the {{ mssql_ha_login }} login
+      vars:
+        __mssql_input_sql_file: create_ha_login.j2
+      include_tasks: input_sql_file.yml
+
+    - name: Join synchronous and witness servers to the availability group
+      vars:
+        __mssql_input_sql_file: join_to_ag.j2
+      include_tasks: input_sql_file.yml
+
+    - name: Grant permissions to the {{ mssql_ha_login }} login
+      vars:
+        __mssql_input_sql_file: grant_permissions_to_ha_login.j2
+      include_tasks: input_sql_file.yml
+
+    - name: Verify if the {{ mssql_ha_db_name }} database exists on secondaries
+      vars:
+        __mssql_input_sql_file: verify_sql_cluster.j2
+      include_tasks: input_sql_file.yml
+      when: mssql_ha_replica_type not in ['primary', 'witness']
+  always:
+    # changed_when: false because this task removes unused remnant of cert files
+    - name: Remove certificate and private key from the control node
+      delegate_to: localhost
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - cert
+        - key
+      changed_when: false
+
+- name: Configure pacemaker
+  when: mssql_ha_configure | bool
+  block:
+    - name: Save credentials for the {{ mssql_ha_login }} SQL Server login
+      copy:
+        content: |-
+          {{ mssql_ha_login }}
+          {{ mssql_ha_login_password }}
+        dest: /var/opt/mssql/secrets/passwd
+        owner: root
+        group: root
+        mode: 0400
+        force: true
+
+    - name: Run ha_cluster to configure pacemaker
+      include_role:
+        name: fedora.linux_system_roles.ha_cluster
+      when: mssql_ha_cluster_run_role | bool
+
+- name: Verify if the {{ mssql_ha_db_name }} database exists
+  vars:
+    __mssql_input_sql_file: verify_sql_cluster.j2
+  include_tasks: input_sql_file.yml
+  when:
+    - mssql_ha_configure | bool
+    - mssql_ha_replica_type != 'witness'
 
 - name: Ensure the ansible_managed header in /var/opt/mssql/mssql.conf
   vars:
