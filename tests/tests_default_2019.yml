@@ -18,6 +18,3 @@
           assert:
             that: >-
               'You must accept EULA' in ansible_failed_result.msg.0
-
-    - name: Check the ansible_managed header in the configuration file
-      include_tasks: tasks/check_header.yml
