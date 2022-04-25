@@ -14,10 +14,10 @@
     - name: Install test packages for version 2017 to cache then remove
       vars:
         __mssql_packages: "{{
-          __mssql_server_packages +
-          __mssql_client_packages +
-          __mssql_server_fts_packages +
-          __mssql_server_ha_packages +
+          __mssql_server_packages ~ ', ' ~
+          __mssql_client_packages | join(', ') ~ ', ' ~
+          __mssql_server_fts_packages ~ ', ' ~
+          __mssql_server_ha_packages ~ ', ' ~
           __mssql_powershell_packages
         }}"
         mssql_version: "{{ item }}"
