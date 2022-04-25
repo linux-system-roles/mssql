@@ -1,19 +1,7 @@
 # SPDX-License-Identifier: MIT
 ---
-- name: Set platform/version specific variables
-  include_vars: "{{ __mssql_vars_file }}"
-  loop:
-    - "{{ ansible_facts['os_family'] }}.yml"
-    - "{{ ansible_facts['distribution'] }}.yml"
-    - >-
-      {{ ansible_facts['distribution'] ~ '_' ~
-      ansible_facts['distribution_major_version'] }}.yml
-    - >-
-      {{ ansible_facts['distribution'] ~ '_' ~
-      ansible_facts['distribution_version'] }}.yml
-  vars:
-    __mssql_vars_file: "{{ role_path }}/vars/{{ item }}"
-  when: __mssql_vars_file is file
+- name: Ensure ansible_facts and variables used by role
+  include_tasks: tasks/set_vars.yml
 
 - name: Link the deprecated accept_microsoft_sql_server_2019_standard_eula fact
   set_fact:

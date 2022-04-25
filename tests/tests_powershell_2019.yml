@@ -61,6 +61,3 @@
         __verify_mssql_password: "p@55w0rd"
         __verify_mssql_edition: Standard
         __verify_mssql_powershell_is_installed: false
-
-    - name: Check the ansible_managed header in the configuration file
-      include_tasks: tasks/check_header.yml
