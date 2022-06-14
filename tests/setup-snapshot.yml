@@ -19,11 +19,12 @@
         baseurl: "{{ mssql_client_repository }}"
         gpgcheck: true
 
+    # Not including __mssql_server_fts_packages because it exceeds storage and
+    # is only used once in tests
     - name: Cache packages required for tests
       vars:
         __mssql_packages:
           - "{{ __mssql_server_packages }}"
-          - "{{ __mssql_server_fts_packages }}"
           - "{{ __mssql_server_ha_packages }}"
           - "{{ __mssql_powershell_packages }}"
         mssql_version: "{{ item }}"
