@@ -284,6 +284,21 @@ Path to the private key file to copy to SQL Server.
 Default: `null`
 Type: `str`
 
+### 'mssql_tls_remote_src'
+
+Influence whether files provided with `mssql_tls_cert` and
+`mssql_tls_private_key` need to be transferred or already are present remotely.
+
+If `false`, the role searches for `mssql_tls_cert` and `mssql_tls_private_key`
+files on the controller node.
+
+If `true`, the role searches for `mssql_tls_cert` and `mssql_tls_private_key`
+on managed nodes.
+
+Default: `false`
+
+Type: `bool`
+
 ### `mssql_tls_version`
 
 TLS version to use.

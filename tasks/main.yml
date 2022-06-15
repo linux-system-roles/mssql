@@ -420,6 +420,7 @@
     - name: Copy certificate and private_key files to the host
       copy:
         src: "{{ item }}"
+        remote_src: "{{ mssql_tls_remote_src }}"
         dest: >-
           /etc/pki/tls/{{ 'certs' if item == mssql_tls_cert
           else 'private' }}/{{ item | basename }}
