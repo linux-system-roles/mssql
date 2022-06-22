@@ -281,7 +281,7 @@ Default: `null`
 
 Type: `bool`
 
-### `mssql_tls_cert`
+#### `mssql_tls_cert`
 
 Path to the certificate file to copy to SQL Server.
 
@@ -289,14 +289,14 @@ Default: `null`
 
 Type: `str`
 
-### `mssql_tls_private_key`
+#### `mssql_tls_private_key`
 
 Path to the private key file to copy to SQL Server.
 
 Default: `null`
 Type: `str`
 
-### 'mssql_tls_remote_src'
+#### `mssql_tls_remote_src`
 
 Influence whether files provided with `mssql_tls_cert` and
 `mssql_tls_private_key` need to be transferred or already are present remotely.
@@ -311,7 +311,7 @@ Default: `false`
 
 Type: `bool`
 
-### `mssql_tls_version`
+#### `mssql_tls_version`
 
 TLS version to use.
 
@@ -319,7 +319,7 @@ Default: `1.2`
 
 Type: `str`
 
-### `mssql_tls_force`
+#### `mssql_tls_force`
 
 Set to `true` to replace the existing certificate and private key files on host
 if they exist at `/etc/pki/tls/certs/` and `/etc/pki/tls/private/` respectively.
