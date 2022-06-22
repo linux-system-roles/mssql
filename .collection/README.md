@@ -28,4 +28,5 @@ You can find the documentation for the microsoft.sql.server role in its reposito
 
 ## Supported Ansible Versions
 
-The supported Ansible versions are aligned with currently maintained Ansible versions that support Collections - Ansible 2.9 and later. You can find the list of maintained Ansible versions [here](https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#release-status).
+The supported Ansible versions are aligned with currently maintained Ansible versions that support Collections - Ansible 2.9 and later.
+You can find the list of maintained Ansible versions [here](https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#release-status).
