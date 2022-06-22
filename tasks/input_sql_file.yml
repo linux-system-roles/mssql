@@ -1,0 +1,92 @@
+# SPDX-License-Identifier: MIT
+# This task files inputs sql file into MSSQL.
+# If you feed a file with .j2 extension, it generates a template from it.
+# If you feed a file with other extension, it just copies the file and runs it.
+---
+- name: Verify that the mssql_password variable is defined
+  assert:
+    that:
+      - mssql_password is not none
+    fail_msg: >-
+      You must define the mssql_password variable because MSSQL requires
+      the sa user to authenticate to input SQL files.
+
+- name: Input {{ __mssql_input_sql_file }} to MSSQL
+  block:
+    # changed_when: false for idempotency because the file is always removed
+    - name: Create a tempfile for the SQL file on the host
+      tempfile:
+        state: file
+      register: __mssql_sql_tempfile
+      changed_when: false
+
+    # changed_when: false for idempotency because the file is always removed
+    - name: Copy the {{ __mssql_input_sql_file }} file to the host
+      copy:
+        src: "{{ __mssql_input_sql_file }}"
+        dest: "{{ __mssql_sql_tempfile.path }}"
+        mode: preserve
+      when: __mssql_input_sql_file is not search(".*\.j2")
+      changed_when: false
+
+    # changed_when: false for idempotency because the file is always removed
+    - name: Generate the {{ __mssql_input_sql_file }} template on the host
+      template:
+        src: "{{ __mssql_input_sql_file }}"
+        dest: "{{ __mssql_sql_tempfile.path }}"
+        mode: 0664
+      when: __mssql_input_sql_file is search(".*\.j2")
+      changed_when: false
+
+    - name: Ensure that the mssql-server service is started
+      service:
+        name: mssql-server
+        state: started
+
+    - name: Wait for mssql-server to prepare for client connections
+      wait_for:
+        path: /var/opt/mssql/log/errorlog
+        search_regex: SQL Server is now ready for client connections
+        timeout: 10
+
+    - name: Prepare MSSQL and facts for logging in
+      include_tasks: verify_password.yml
+      vars:
+        __mssql_password: "{{ mssql_password }}"
+      when: >-
+        (__mssql_sqlcmd_login_cmd is none) or
+        (__mssql_sqlcmd_login_cmd is not defined)
+
+    - name: Input {{ __mssql_input_sql_file }} with the sqlcmd command
+      command: >-
+        {{ __mssql_sqlcmd_login_cmd }} -i {{ __mssql_sql_tempfile.path }} -b
+      register: __mssql_sqlcmd_input_file
+      changed_when: '"successfully" in __mssql_sqlcmd_input_file.stdout'
+  always:
+    - name: >-
+        Print the output of the sqlcmd command for {{ __mssql_input_sql_file }}
+        if not empty
+      debug:
+        var: __mssql_sqlcmd_input_file.stdout_lines
+      changed_when: false
+      when:
+        - __mssql_sqlcmd_input_file.stdout_lines | length > 0
+        - mssql_debug | bool
+
+    # Keep the file if the SQL command failed or when mssql_debug is true
+    # for debugging
+    - name: Remove the tempfile
+      file:
+        path: "{{ __mssql_sql_tempfile.path }}"
+        state: absent
+      when:
+        - __mssql_sqlcmd_input_file is succeeded
+        - not mssql_debug
+      changed_when: false
+
+    # This is required because in the case when a task that precedes the input
+    # task fails, the print task prints a previous result
+    - name: Unset the __mssql_sqlcmd_input_file variable
+      set_fact:
+        __mssql_sqlcmd_input_file: ""
+      when: not mssql_debug

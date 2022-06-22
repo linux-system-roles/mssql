@@ -169,11 +169,23 @@ and does not input any SQL file.
 Note that this task is not idempotent, the role always inputs an SQL file if
 this variable is defined.
 
+When this variable is defined, `mssql_debug` is set to true to print the output
+of the sqlcmd command.
+
 You can find an example of the SQL file at `tests/sql_script.sql`.
 
 Default: `null`
 
 Type: `str`
+
+### `mssql_debug`
+
+Whether or not to print the output of sqlcmd commands.
+The role inputs SQL scripts with the sqlcmd command to configure SQL Server for HA or to input users' SQL scripts when the `mssql_input_sql_file` variable is provided.
+
+Default: `true` if `mssql_input_sql_file` is defined else `false`
+
+Type: `bool`
 
 ### `mssql_enable_sql_agent`
 
