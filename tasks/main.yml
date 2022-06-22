@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 ---
 - name: Ensure ansible_facts and variables used by role
-  include_tasks: tasks/set_vars.yml
+  include_tasks: set_vars.yml
 
 - name: Link the deprecated accept_microsoft_sql_server_2019_standard_eula fact
   set_fact:
