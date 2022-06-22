@@ -40,6 +40,7 @@
 - name: Gather package facts
   package_facts:
     manager: auto
+  no_log: true
 
 - name: >-
     Verify if mssql_version is not smaller then the existing SQL Server version
@@ -118,6 +119,7 @@
 
 - name: Gather system services facts
   service_facts:
+  no_log: true
 
 - name: Set up MSSQL
   when: not __mssql_is_setup
