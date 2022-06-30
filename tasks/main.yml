@@ -3,6 +3,12 @@
 - name: Ensure ansible_facts and variables used by role
   include_tasks: set_vars.yml
 
+# This is required to prevent the role from using a __mssql_sqlcmd_login_cmd
+# variable value from a previous role invocation
+- name: Unset the __mssql_sqlcmd_login_cmd fact
+  set_fact:
+    __mssql_sqlcmd_login_cmd: null
+
 - name: Link the deprecated accept_microsoft_sql_server_2019_standard_eula fact
   set_fact:
     mssql_accept_microsoft_sql_server_standard_eula: >-
