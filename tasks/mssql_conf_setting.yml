@@ -41,7 +41,8 @@
   when:
     - __mssql_conf_setting_value == "unset"
     - '"No setting for the given" not in __mssql_conf_get_setting.stdout'
-  register: __mssql_conf_set
+  register: __mssql_conf_unset
   failed_when: >-
-    ("error" in __mssql_conf_set.stdout | lower) or (__mssql_conf_set is failed)
+    ("error" in __mssql_conf_unset.stdout | lower) or
+    (__mssql_conf_unset is failed)
   notify: Restart the mssql-server service

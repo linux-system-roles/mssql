@@ -1,7 +1,13 @@
 # SPDX-License-Identifier: MIT
 ---
 - name: Ensure ansible_facts and variables used by role
-  include_tasks: tasks/set_vars.yml
+  include_tasks: set_vars.yml
+
+# This is required to prevent the role from using a __mssql_sqlcmd_login_cmd
+# variable value from a previous role invocation
+- name: Unset the __mssql_sqlcmd_login_cmd fact
+  set_fact:
+    __mssql_sqlcmd_login_cmd: null
 
 - name: Link the deprecated accept_microsoft_sql_server_2019_standard_eula fact
   set_fact:
@@ -40,6 +46,7 @@
 - name: Gather package facts
   package_facts:
     manager: auto
+  no_log: true
 
 - name: >-
     Verify if mssql_version is not smaller then the existing SQL Server version
@@ -118,6 +125,7 @@
 
 - name: Gather system services facts
   service_facts:
+  no_log: true
 
 - name: Set up MSSQL
   when: not __mssql_is_setup
@@ -293,55 +301,6 @@
     __mssql_conf_setting_value: "{{ mssql_tcp_port }}"
   when: mssql_tcp_port is not none
 
-- name: Verify that the mssql_password variable is defined
-  assert:
-    that:
-      - mssql_password is not none
-    fail_msg: >-
-      You must define the mssql_password variable because MSSQL requires
-      the sa user to authenticate to input SQL files.
-  when: mssql_input_sql_file is not none
-
-- name: Input the {{ mssql_input_sql_file }} file to MSSQL
-  when: mssql_input_sql_file is not none
-  block:
-    - name: Create a tempfile for the SQL file on the host
-      tempfile:
-        state: file
-      register: __mssql_sql_tempfile
-
-    - name: Copy the {{ mssql_input_sql_file }} file to the host
-      copy:
-        src: "{{ mssql_input_sql_file }}"
-        dest: "{{ __mssql_sql_tempfile.path }}"
-        mode: preserve
-
-    - name: Ensure that the mssql-server service is started
-      service:
-        name: mssql-server
-        state: started
-
-    - name: Prepare MSSQL and facts for logging in
-      include_tasks: verify_password.yml
-      vars:
-        __mssql_password: "{{ mssql_password }}"
-
-    - name: Input the {{ mssql_input_sql_file }} file with the sqlcmd command
-      command: >-
-        {{ __mssql_sqlcmd_login_cmd }} -i {{ __mssql_sql_tempfile.path }} -b
-      register: __mssql_sqlcmd_input_file
-      ignore_errors: true
-
-  always:
-    - name: Print the output of the sqlcmd command
-      debug:
-        var: __mssql_sqlcmd_input_file.stdout_lines
-
-    - name: Remove the tempfile
-      file:
-        path: "{{ __mssql_sql_tempfile.path }}"
-        state: absent
-
 - name: Configure the sqlagent setting
   include_tasks: mssql_conf_setting.yml
   vars:
@@ -471,3 +430,12 @@
     path: /var/opt/mssql/mssql.conf
     block: "{{ __lsr_ansible_managed }}"
     insertbefore: BOF
+
+# Keep this task at the bottom, it must be run at the end of the role
+- name: Input the {{ mssql_input_sql_file }} sql file to SQL Server
+  vars:
+    __mssql_input_sql_file: "{{ mssql_input_sql_file }}"
+  include_tasks: input_sql_file.yml
+  when:
+    - mssql_input_sql_file is defined
+    - mssql_input_sql_file is not none
