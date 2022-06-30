@@ -10,6 +10,7 @@ mssql_edition: null
 mssql_tcp_port: null
 mssql_ip_address: null
 mssql_input_sql_file: null
+mssql_debug: "{{ true if mssql_input_sql_file is not none else false }}"
 mssql_enable_sql_agent: null
 mssql_install_fts: null
 mssql_install_powershell: null
