@@ -1,5 +1,8 @@
 # SPDX-License-Identifier: MIT
 ---
+- name: Ensure ansible_facts and variables used by role
+  include_vars: main.yml
+
 # Find two words in ansible_managed and grep for them in the config file
 - name: Grep the ansible_managed header in {{ __mssql_conf_path }}
   command: >-

@@ -1,5 +1,8 @@
 # SPDX-License-Identifier: MIT
 ---
+- name: Ensure ansible_facts and variables used by role
+  include_vars: main.yml
+
 - name: Verify edition
   when: __verify_mssql_edition is defined
   block:
