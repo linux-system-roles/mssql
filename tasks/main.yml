@@ -145,7 +145,7 @@
 - name: Check if the errorlog file exists and its location
   shell: |
     set -euo pipefail
-    errorlog="$(grep '^errorlogfile' /var/opt/mssql/mssql.conf \
+    errorlog="$(grep '^errorlogfile' {{ __mssql_conf_path }} \
     | sed 's/errorlogfile : //')" || :
     if [ -s "${errorlog}" ]; then
       echo "${errorlog}"
@@ -374,7 +374,7 @@
   when: mssql_tune_for_fua_storage is not none
   block:
     - name: Check if the 3979 trace flag is enabled
-      shell: grep '^traceflag' /var/opt/mssql/mssql.conf || true
+      shell: grep '^traceflag' {{ __mssql_conf_path }} || true
       changed_when: false
       register: __mssql_get_traceflag
 
@@ -741,11 +741,11 @@
     - mssql_ha_configure | bool
     - mssql_ha_replica_type != 'witness'
 
-- name: Ensure the ansible_managed header in /var/opt/mssql/mssql.conf
+- name: Ensure the ansible_managed header in {{ __mssql_conf_path }}
   vars:
     __lsr_ansible_managed: "{{ lookup('template', 'get_ansible_managed.j2') }}"
   blockinfile:
-    path: /var/opt/mssql/mssql.conf
+    path: "{{ __mssql_conf_path }}"
     block: "{{ __lsr_ansible_managed }}"
     insertbefore: BOF
 
