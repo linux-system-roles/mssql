@@ -1,0 +1,13 @@
+IF EXISTS (
+  SELECT name
+  FROM sys.availability_groups
+  WHERE name = '{{ mssql_ha_ag_name }}'
+)
+BEGIN
+  DROP AVAILABILITY GROUP ag1;
+  PRINT 'The {{ mssql_ha_ag_name }} availability group dropped successfully';
+END
+ELSE
+BEGIN
+  PRINT 'The {{ mssql_ha_ag_name }} ag does not exist, skipping';
+END

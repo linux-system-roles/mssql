@@ -1,0 +1,103 @@
+IF EXISTS (
+  SELECT name, cluster_type_desc
+  FROM sys.availability_groups
+  WHERE name = '{{ mssql_ha_ag_name }}'
+)
+BEGIN
+  PRINT 'Altering the existing availability group {{ mssql_ha_ag_name }}'
+  IF NOT EXISTS (
+    SELECT name, db_failover
+    FROM sys.availability_groups
+    WHERE name = '{{ mssql_ha_ag_name }}' AND
+          db_failover = 0
+  )
+  BEGIN
+    ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} SET (DB_FAILOVER = ON)
+    PRINT 'Set DB_FAILOVER to ON succesfully'
+  END
+  ELSE
+  BEGIN
+    PRINT 'DB_FAILOVER = OFF is already set, skipping'
+  END
+  PRINT 'Altering replicas'
+{% for item in ansible_play_hosts %}
+{%   if hostvars[item]['mssql_ha_replica_type'] != 'absent' %}
+  IF EXISTS (
+    SELECT replica_server_name
+    FROM sys.availability_replicas
+    WHERE replica_server_name = '{{ hostvars[item]['ansible_hostname'] }}'
+  )
+  BEGIN
+    PRINT 'Verifying the existing replica {{ item }}';
+{%     if (hostvars[item]['mssql_ha_replica_type'] == 'primary') or
+          (hostvars[item]['mssql_ha_replica_type'] == 'synchronous') %}
+{%       set ag_replica_settings = ({
+"endpoint_url":{
+  "sql_setting_name":"ENDPOINT_URL",
+  "sys_setting_name":"endpoint_url",
+  "setting_value":"N'tcp://" + hostvars[item]['ansible_fqdn'] + ":" +
+    "1234" + "'"
+},
+"failover_mode":{
+  "sql_setting_name":"FAILOVER_MODE",
+  "sys_setting_name":"failover_mode_desc",
+  "setting_value":"EXTERNAL"
+},
+"seeding_mode":{
+  "sql_setting_name":"SEEDING_MODE",
+  "sys_setting_name":"seeding_mode_desc",
+  "setting_value":"MANUAL"
+},
+"allow_connections":{
+  "sql_setting_name": "SECONDARY_ROLE (ALLOW_CONNECTIONS = NO)",
+  "sys_setting_name": "secondary_role_allow_connections_desc",
+  "setting_value": "NO"
+}
+}) %}
+{%     elif hostvars[item]['mssql_ha_replica_type'] == 'witness' %}
+{%       set ag_replica_settings = ({
+"endpoint_url":{
+  "sql_setting_name":"ENDPOINT_URL",
+  "sys_setting_name":"endpoint_url",
+  "setting_value":"N'tcp://" + hostvars[item]['ansible_fqdn'] + ":" +
+    "1234" + "'"
+}
+}) %}
+{%     endif %}
+{%     for key, value in ag_replica_settings.items() %}
+    IF NOT EXISTS (
+      SELECT replica_server_name, {{ value.sys_setting_name }}
+      FROM sys.availability_replicas
+      WHERE replica_server_name = N'{{ hostvars[item]['ansible_hostname'] }}'
+      AND
+{%       if key == 'endpoint_url' %}
+            {{ value.sys_setting_name }} = {{ value.setting_value }}
+{%       else %}
+            {{ value.sys_setting_name }} = '{{ value.setting_value }}'
+{%       endif %}
+    )
+    BEGIN
+      ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} MODIFY REPLICA ON
+        N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
+{%       if key == 'allow_connections' %}
+          {{ value.sql_setting_name }}
+{%       else %}
+          {{ value.sql_setting_name }} = {{ value.setting_value }}
+{%       endif %}
+        );
+      PRINT '{{ hostvars[item]['ansible_hostname'] }}: \
+The {{ value.sql_setting_name }} setting on this \
+{{ hostvars[item]['mssql_ha_replica_type'] }} replica configured successfully';
+    END
+    ELSE
+    BEGIN
+      PRINT '{{ hostvars[item]['ansible_hostname'] }}: \
+The {{ value.sql_setting_name }} setting on this \
+{{ hostvars[item]['mssql_ha_replica_type'] }} replica is already set \
+correctly, skipping';
+    END
+{%     endfor %}
+  END
+{%   endif %}
+{% endfor %}
+END

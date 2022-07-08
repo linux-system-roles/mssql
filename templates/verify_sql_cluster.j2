@@ -1,0 +1,31 @@
+PRINT 'Checking if the {{ mssql_ha_db_name }} database exists on this replica';
+IF NOT EXISTS(
+  SELECT name
+  FROM sys.databases
+  WHERE name = '{{ mssql_ha_db_name }}'
+)
+BEGIN
+  THROW 51000, 'The databse {{ mssql_ha_db_name }} does not exist in \
+sys.databases', 1;
+END
+ELSE
+BEGIN
+  PRINT 'Verified that the {{ mssql_ha_db_name }} database exists in \
+sys.databases';
+END
+
+
+IF NOT EXISTS(
+  SELECT DB_NAME(database_id) AS 'database',
+         synchronization_state_desc
+  FROM sys.dm_hadr_database_replica_states
+)
+BEGIN
+  THROW 51000, 'The databse {{ mssql_ha_db_name }} does not exist in \
+sys.dm_hadr_database_replica_states', 1;
+END
+ELSE
+BEGIN
+  PRINT 'Verified that the {{ mssql_ha_db_name }} database exists in \
+sys.dm_hadr_database_replica_states';
+END

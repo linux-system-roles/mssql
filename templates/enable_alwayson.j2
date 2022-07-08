@@ -1,0 +1,15 @@
+IF NOT EXISTS (
+  SELECT name, startup_state
+  FROM sys.server_event_sessions WHERE
+  name = 'AlwaysOn_health' and
+  startup_state = 1
+)
+BEGIN
+  PRINT 'AlwaysOn Health events are not enabled, enabling';
+  ALTER EVENT SESSION AlwaysOn_health ON SERVER WITH (STARTUP_STATE=ON);
+  PRINT 'AlwaysOn Health events enabled successfully';
+END
+ELSE
+BEGIN
+  PRINT 'AlwaysOn Health events already enabled, skipping';
+END

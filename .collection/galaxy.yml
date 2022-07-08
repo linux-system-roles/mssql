@@ -16,7 +16,8 @@ readme: "README.md"
 license:
   - MIT
 
-dependencies: {}
+dependencies:
+  - "fedora.linux-system-roles": "*"
 
 tags:
   - "mssql"

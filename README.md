@@ -217,7 +217,7 @@ Type: `bool`
 
 ### `mssql_tls_enable`
 
-Use the variables starting with `mssql_tls` to configure SQL Server to encrypt connections using TLS certificates.
+Use the variables starting with the `mssql_tls_` prefix to configure SQL Server to encrypt connections using TLS certificates.
 
 You are responsible for creating and securing TLS certificate and private key files.
 It is assumed you have a CA that can issue these files.
@@ -294,7 +294,7 @@ Type: `string`
 
 ### `mssql_server_repository`
 
-The URL to the Microsoft SQL Server repository. 
+The URL to the Microsoft SQL Server repository.
 See `vars/` for default values based on operating system.
 
 Default: `{{ __mssql_server_repository }}`
@@ -307,6 +307,173 @@ The URL to the Microsoft production repository.
 See `vars/` for default values based on operating system.
 
 Default: `{{ __mssql_client_repository }}`
+
+Type: `string`
+
+### `mssql_ha_configure`
+
+Use the variables starting with the `mssql_ha_` prefix to configure an SQL Server Always On availability group to provide high availability.
+
+Configuring for high availability is not supported on RHEL 7 because the System Roles ha_cluster role does not support RHEL 7.
+
+Set to `true` to configure for high availability.
+Setting to `false` does not remove configuration for high availability.
+
+When set to `true`, the role performs the following tasks:
+
+1. Include the System Roles firewall role to configure firewall:
+1.1. Open the firewall port set with the `mssql_ha_listener_port` variable.
+1.2. Enable the `high-availability` service in firewall.
+2. Configure SQL Server for high availability:
+2.1. Enable AlwaysOn Health events.
+2.2. Create certificate on the primary replica and distribute to other replicas.
+2.3. Configure endpoint and availability group.
+2.4. Configure the user provided with the `mssql_ha_login` variable for
+Pacemaker.
+1. Optional: Include the System Roles `ha_cluster` role to configure Pacemaker.
+You must set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true` and provide all variables required by the `ha_cluster` role for a proper Pacemaker cluster configuration based on example playbooks in [Setting Up SQL Server and Configuring for High Availability](#Setting_Up_SQL_Server_and_Configuring_for_High_Availability).
+
+Default: `false`
+
+Type: `bool`
+
+#### `mssql_ha_replica_type`
+
+A host variable that specifies the type of the replica to be configured on this host.
+
+See [`Setting Up SQL Server and Configuring for High Availability`](#Setting-Up-SQL-Server-and-Configuring-for-High-Availability) for an example inventory.
+
+You must set the `mssql_ha_replica_type` variable to `primary` for exactly one host.
+
+The available values are: `primary`, `synchronous`, `witness`.
+
+Default: no default
+
+Type: `str`
+
+#### `mssql_ha_firewall_configure`
+
+Whether to open ports in the Linux firewall for an Always On availability group.
+
+The role uses the System Roles firewall role to manage the firewall, hence, only firewall implementations supported by the firewall role work.
+
+If you set this variable to `false`, you must open the port defined with the `mssql_ha_listener_port` variable prior to running this role.
+
+Default: `true`
+
+Type: `bool`
+
+#### `mssql_ha_listener_port`
+
+The TCP port used to replicate data for an Always On availability group.
+
+Default: `5022`
+
+Type: `int`
+
+#### `mssql_ha_cert_name`
+
+The name of the certificate used to secure transactions between members of an Always On availability group.
+
+Default: `null`
+
+Type: `str`
+
+#### `mssql_ha_master_key_password`
+
+The password to set for the master key used with the certificate.
+
+Default: `null`
+
+Type: `str`
+
+#### `mssql_ha_private_key_password`
+
+The password to set for the private key used with the certificate.
+
+Default: `null`
+
+Type: `str`
+
+#### `mssql_ha_reset_cert`
+
+Whether to reset certificates used by an Always On availability group or not.
+
+Default: `false`
+
+Type: `bool`
+
+#### `mssql_ha_endpoint_name`
+
+The name of the endpoint to be configured.
+
+Default: `null`
+
+Type: `string`
+
+#### `mssql_ha_ag_name`
+
+The name of the availability group to be configured.
+
+Default: `null`
+
+Type: `string`
+
+#### `mssql_ha_db_name`
+
+The name of the database to be replicated.
+This database must exist in SQL Server.
+
+Default: `null`
+
+Type: `string`
+
+#### `mssql_ha_db_backup_path`
+
+For SQL Server, any database participating in an Availability Group must be in a full recovery mode and have a valid log backup.
+The role uses this path to backup the database provided with `mssql_ha_db_name` prior to initiating replication within an Always On availability group.
+
+The role backs up the database provided with `mssql_ha_db_backup_path` if no back up newer than 3 hours exists.
+
+Default: `/var/opt/mssql/data/{{ mssql_ha_db_name }}.bak`
+
+Type: `string`
+
+#### `mssql_ha_login`
+
+The user created for Pacemaker in SQL Server.
+This user is used by the SQL Server Pacemaker resource agent to connect to SQL Server to perform regular database health checks and manage state transitions from replica to primary when needed.
+
+Default: `null`
+
+Type: `string`
+
+#### `mssql_ha_login_password`
+
+The password for the mssql_ha_login user in SQL Server.
+
+Default: `null`
+
+Type: `string`
+
+#### `mssql_ha_cluster_run_role`
+
+Whether to run the `ha_cluster` role from this role.
+
+Note that the `ha_cluster` role has the following limitation:
+
+**The role replaces the configuration of HA Cluster on specified nodes.
+Any settings not specified in the role variables will be lost.**
+
+It means that the `microsoft.sql.server` role cannot run the `ha_cluster` role to avoid overwriting any existing Pacemaker configuration.
+
+To work around this limitation, the `microsoft.sql.server` role does not set any variables for the `ha_cluster` role to ensure that any existing Pacemaker configuration is not re-written.
+
+If you want the `microsoft.sql.server` to run the `ha_cluster` role, set `mssql_ha_cluster_run_role: true` and provide variables for the `ha_cluster` role with the `microsoft.sql.server` role invocation based on example playbooks in [Setting Up SQL Server and Configuring for High Availability](#Setting_Up_SQL_Server_and_Configuring_for_High_Availability).
+
+If you do not want the `microsoft.sql.server` to run the `ha_cluster` role and instead want to run the `ha_cluster` role independently of the `microsoft.sql.server` role, set `mssql_ha_cluster_run_role: false`.
+
+Default: `false`
 
 Type: `string`
 
@@ -394,6 +561,387 @@ This example shows how to use the role to set up SQL Server and configure it to 
     mssql_tls_force: false
   roles:
     - microsoft.sql.server
+```
+
+### Setting Up SQL Server and Configuring for High Availability
+
+Examples in this section shows how to use the role to set up SQL Server and configure it for high availability in different environments.
+
+#### Configuring the Ansible Inventory
+
+You must set the `mssql_ha_replica_type` variable for each host that you want to configure.
+
+If you set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true`, you can optionally provide variables required by the `ha_cluster` role.
+If you do not provide names or addresses, the `ha_cluster` uses play's targets.
+See the `ha_cluster` role's documentation for more information.
+
+Example inventory:
+
+```yaml
+all:
+  hosts:
+    host1:
+      mssql_ha_replica_type: primary
+    host2:
+      mssql_ha_replica_type: synchronous
+    host3:
+      mssql_ha_replica_type: witness
+```
+
+#### Configuring SQL Server HA without Pacemaker
+
+If you want to configure Pacemaker independently, you can set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `false` to not include the `ha_cluster` role.
+
+Note that production environments require Pacemaker configured with fencing agents.
+
+```yaml
+- hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
+    mssql_ha_configure: true
+    mssql_ha_firewall_configure: true
+    mssql_ha_listener_port: 5022
+    mssql_ha_cert_name: ExampleCert
+    mssql_ha_master_key_password: "p@55w0rD1"
+    mssql_ha_private_key_password: "p@55w0rD2"
+    mssql_ha_reset_cert: false
+    mssql_ha_endpoint_name: Example_Endpoint
+    mssql_ha_ag_name: ExampleAG
+    mssql_ha_db_name: ExampleDB
+    mssql_ha_login: ExamleLogin
+    mssql_ha_login_password: "p@55w0rD3"
+    mssql_ha_cluster_run_role: false
+  roles:
+    - microsoft.sql.server
+```
+
+#### Configuring SQL Server with HA and Pacemaker on Bare Metal
+
+If you want to configure Pacemaker from this role, you can set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true` and provide variables required by the `ha_cluster` role to configure Pacemaker for your environment properly.
+See the `ha_cluster` role's documentation for more information.
+
+Note that production environments require Pacemaker configured with fencing agents, this example playbook configures the `stonith:fence_apc_snmp` agent.
+
+```yaml
+- hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
+    mssql_ha_configure: true
+    mssql_ha_firewall_configure: true
+    mssql_ha_listener_port: 5022
+    mssql_ha_cert_name: ExampleCert
+    mssql_ha_master_key_password: "p@55w0rD1"
+    mssql_ha_private_key_password: "p@55w0rD2"
+    mssql_ha_reset_cert: false
+    mssql_ha_endpoint_name: Example_Endpoint
+    mssql_ha_ag_name: ExampleAG
+    mssql_ha_db_name: ExampleDB
+    mssql_ha_login: ExamleLogin
+    mssql_ha_login_password: "p@55w0rD3"
+    mssql_ha_cluster_run_role: true
+    ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
+    ha_cluster_hacluster_password: "p@55w0rD4"
+    ha_cluster_cluster_properties:
+      - attrs:
+        - name: cluster-recheck-interval
+          value: 2min
+        - name: start-failure-is-fatal
+          value: true
+        - name: stonith-enabled
+          value: true
+    ha_cluster_resource_primitives:
+      - id: Example_apc
+        agent: stonith:fence_apc_snmp
+        instance_attrs:
+          - attrs:
+            - name: login
+              value: apc_login
+            - name: passwd
+              value: apc_pass
+            - name: ipaddr
+              value: apc-switch.example.com
+            - name: pcmk_host_map
+              value: rhel8-node1.example.com:1;rhel8-node2.example.com:2
+      - id: ag_cluster
+        agent: ocf:mssql:ag
+        instance_attrs:
+          - attrs:
+            - name: ag_name
+              value: "{{ mssql_ha_ag_name }}"
+        meta_attrs:
+          - attrs:
+            - name: failure-timeout
+              value: 60s
+      - id: virtualip
+        agent: ocf:heartbeat:IPaddr2
+        instance_attrs:
+          - attrs:
+            - name: ip
+              value: 192.XXX.XXX.XXX
+        operations:
+          - action: monitor
+            attrs:
+              - name: interval
+                value: 30s
+    ha_cluster_resource_clones:
+      - resource_id: ag_cluster
+        promotable: yes
+        meta_attrs:
+          - attrs:
+            - name: notify
+              value: true
+    ha_cluster_constraints_colocation:
+      - resource_leader:
+          id: ag_cluster-clone
+          role: Promoted
+        resource_follower:
+          id: virtualip
+        options:
+          - name: score
+            value: INFINITY
+    ha_cluster_constraints_order:
+      - resource_first:
+          id: ag_cluster-clone
+          action: promote
+        resource_then:
+          id: virtualip
+          action: start
+  roles:
+    - microsoft.sql.server
+```
+
+#### Configuring SQL Server with HA and Pacemaker on VMWare
+
+If you want to configure Pacemaker from this role, you can set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true` and provide variables required by the `ha_cluster` role to configure Pacemaker for your environment properly.
+See the `ha_cluster` role's documentation for more information.
+
+Note that production environments require Pacemaker configured with fencing agents, this example playbook configures the `stonith:fence_vmware_soap` agent.
+
+```yaml
+- hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
+    mssql_ha_configure: true
+    mssql_ha_firewall_configure: true
+    mssql_ha_listener_port: 5022
+    mssql_ha_cert_name: ExampleCert
+    mssql_ha_master_key_password: "p@55w0rD1"
+    mssql_ha_private_key_password: "p@55w0rD2"
+    mssql_ha_reset_cert: false
+    mssql_ha_endpoint_name: Example_Endpoint
+    mssql_ha_ag_name: ExampleAG
+    mssql_ha_db_name: ExampleDB
+    mssql_ha_login: ExamleLogin
+    mssql_ha_login_password: "p@55w0rD3"
+    mssql_ha_cluster_run_role: true
+    ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
+    ha_cluster_hacluster_password: "p@55w0rD4"
+    ha_cluster_cluster_properties:
+      - attrs:
+        - name: cluster-recheck-interval
+          value: 2min
+        - name: start-failure-is-fatal
+          value: true
+        - name: stonith-enabled
+          value: true
+    ha_cluster_resource_primitives:
+      - id: vmfence
+        agent: stonith:fence_vmware_soap
+        instance_attrs:
+          - attrs:
+            - name: username
+              value: vmware_Login
+            - name: passwd
+              value: vmware_password
+            - name: ip
+              value: vmware_ip
+            - name: ssl_insecure
+              value: 1
+      - id: ag_cluster
+        agent: ocf:mssql:ag
+        instance_attrs:
+          - attrs:
+            - name: ag_name
+              value: "{{ mssql_ha_ag_name }}"
+        meta_attrs:
+          - attrs:
+            - name: failure-timeout
+              value: 60s
+      - id: virtualip
+        agent: ocf:heartbeat:IPaddr2
+        instance_attrs:
+          - attrs:
+            - name: ip
+              value: 192.XXX.XXX.XXX
+        operations:
+          - action: monitor
+            attrs:
+              - name: interval
+                value: 30s
+    ha_cluster_resource_clones:
+      - resource_id: ag_cluster
+        promotable: yes
+        meta_attrs:
+          - attrs:
+            - name: notify
+              value: true
+    ha_cluster_constraints_colocation:
+      - resource_leader:
+          id: ag_cluster-clone
+          role: Promoted
+        resource_follower:
+          id: virtualip
+        options:
+          - name: score
+            value: INFINITY
+    ha_cluster_constraints_order:
+      - resource_first:
+          id: ag_cluster-clone
+          action: promote
+        resource_then:
+          id: virtualip
+          action: start
+  roles:
+    - microsoft.sql.server
+```
+
+#### Configuring SQL Server with HA and Pacemaker on Azure
+
+If you want to configure Pacemaker from this role, you can set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true` and provide variables required by the `ha_cluster` role to configure Pacemaker for your environment properly.
+See the `ha_cluster` role's documentation for more information.
+
+Note that production environments require Pacemaker configured with fencing agents, this example playbook configures the `stonith:fence_azure_arm` agent.
+
+```yaml
+- hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
+    mssql_ha_configure: true
+    mssql_ha_firewall_configure: true
+    mssql_ha_listener_port: 5022
+    mssql_ha_cert_name: ExampleCert
+    mssql_ha_master_key_password: "p@55w0rD1"
+    mssql_ha_private_key_password: "p@55w0rD2"
+    mssql_ha_reset_cert: false
+    mssql_ha_endpoint_name: Example_Endpoint
+    mssql_ha_ag_name: ExampleAG
+    mssql_ha_db_name: ExampleDB
+    mssql_ha_login: ExamleLogin
+    mssql_ha_login_password: "p@55w0rD3"
+    mssql_ha_cluster_run_role: true
+    ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
+    ha_cluster_hacluster_password: "p@55w0rD4"
+    ha_cluster_cluster_properties:
+      - attrs:
+        - name: cluster-recheck-interval
+          value: 2min
+        - name: start-failure-is-fatal
+          value: true
+        - name: stonith-enabled
+          value: true
+        - name: stonith-timeout
+          value: 900
+    ha_cluster_resource_primitives:
+        - id: rsc_st_azure
+          agent: stonith:fence_azure_arm
+          instance_attrs:
+            - attrs:
+              - name: login
+                value: azure_login
+              - name: passwd
+                value: azure_password
+              - name: resourceGroup
+                value: azure_resourceGroup_name
+              - name: tenantId
+                value: azure_tenant_ID
+              - name: subscriptionId
+                value: azure_subscription_ID
+              - name: power_timeout
+                value: 240
+              - name: pcmk_reboot_timeout
+                value: 900
+        - id: azure_load_balancer
+          agent: azure-lb
+          instance_attrs:
+            - attrs:
+              - name: port
+                value: 1234
+      - id: ag_cluster
+        agent: ocf:mssql:ag
+        instance_attrs:
+          - attrs:
+            - name: ag_name
+              value: "{{ mssql_ha_ag_name }}"
+        meta_attrs:
+          - attrs:
+            - name: failure-timeout
+              value: 60s
+      - id: virtualip
+        agent: ocf:heartbeat:IPaddr2
+        instance_attrs:
+          - attrs:
+            - name: ip
+              value: 192.XXX.XXX.XXX
+        operations:
+          - action: monitor
+            attrs:
+              - name: interval
+                value: 30s
+    ha_cluster_resource_groups:
+      - id: virtualip_group
+        resource_ids:
+          - azure_load_balancer
+          - virtualip
+    ha_cluster_resource_clones:
+      - resource_id: ag_cluster
+        promotable: yes
+        meta_attrs:
+          - attrs:
+            - name: notify
+              value: true
+    ha_cluster_constraints_colocation:
+      - resource_leader:
+          id: ag_cluster-clone
+          role: Promoted
+        resource_follower:
+          id: azure_load_balancer
+        options:
+          - name: score
+            value: INFINITY
+    ha_cluster_constraints_order:
+      - resource_first:
+          id: ag_cluster-master
+          action: promote
+        resource_then:
+          id: azure_load_balancer
+          action: start
+  roles:
+    - microsoft.sql.server
+```
+
+After running the following example playbook, you must also add a listener pointing to Azure using the following SQL statement:
+
+```sql
+ALTER AVAILABILITY GROUP ExampleAG ADD LISTENER 'ExampleAG-listener' (
+  WITH IP ( (azure_lb_ip),('255.255.255.0') ),
+       PORT = 1433
+);
 ```
 
 ## License

@@ -1,0 +1,37 @@
+IF NOT EXISTS (
+  SELECT name
+  FROM sys.symmetric_keys
+  WHERE name LIKE '%databaseMasterkey%'
+)
+BEGIN
+  PRINT 'Master key does not exist, creating';
+  CREATE MASTER KEY ENCRYPTION BY PASSWORD =
+    '{{ mssql_ha_master_key_password }}';
+  PRINT 'Master key created successfully';
+END
+ELSE
+BEGIN
+  PRINT 'Master key already exists, verifying the provided password against \
+the existing master key';
+  BEGIN TRY
+    OPEN MASTER KEY DECRYPTION BY PASSWORD =
+      '{{ mssql_ha_master_key_password }}';
+    PRINT 'The provided master key password is correct';
+  END TRY
+  BEGIN CATCH
+{% if not mssql_ha_reset_cert %}
+    PRINT 'You provided an incorrect master key password with the \
+mssql_ha_master_key_password variable';
+    THROW;
+{% elif mssql_ha_reset_cert %}
+    PRINT 'Master key password provided with the \
+mssql_ha_master_key_password variable does not match the existing password, \
+dropping master key to re-create it';
+    DROP MASTER KEY;
+    PRINT 'Master key dropped successfully';
+    CREATE MASTER KEY ENCRYPTION BY PASSWORD =
+      '{{ mssql_ha_master_key_password }}';
+    PRINT 'Master key created successfully';
+{% endif %}
+  END CATCH
+END

@@ -1,0 +1,235 @@
+IF EXISTS (
+  SELECT name, cluster_type_desc
+  FROM sys.availability_groups
+  WHERE name = '{{ mssql_ha_ag_name }}' AND
+        cluster_type_desc != 'external'
+)
+BEGIN
+  PRINT 'The existing {{ mssql_ha_ag_name }} availability group has \
+incorrect cluster type set, dropping the group to re-create it';
+  DROP AVAILABILITY GROUP {{ mssql_ha_ag_name }};
+  PRINT 'The {{ mssql_ha_ag_name }} availability group dropped successfully';
+END
+
+IF EXISTS (
+  SELECT name, cluster_type_desc
+  FROM sys.availability_groups
+  WHERE name = '{{ mssql_ha_ag_name }}'
+)
+BEGIN
+  PRINT 'Verifying the existing availability group {{ mssql_ha_ag_name }}'
+  IF NOT EXISTS (
+    SELECT name, db_failover
+    FROM sys.availability_groups
+    WHERE name = '{{ mssql_ha_ag_name }}' AND
+          db_failover = 1
+  )
+  BEGIN
+    ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} SET (DB_FAILOVER = ON)
+    PRINT 'Set DB_FAILOVER to ON succesfully'
+  END
+  ELSE
+  BEGIN
+    PRINT 'DB_FAILOVER = ON is already set, skipping'
+  END
+  PRINT 'Verifying replicas'
+{% for item in ansible_play_hosts %}
+{%   if hostvars[item]['mssql_ha_replica_type'] != 'absent' %}
+  IF EXISTS (
+    SELECT replica_server_name, availability_mode_desc
+    FROM sys.availability_replicas replicas
+    JOIN sys.availability_groups groups
+    ON replicas.group_id = groups.group_id
+    WHERE groups.name = '{{ mssql_ha_ag_name }}' AND
+          replicas.replica_server_name =
+            '{{ hostvars[item]['ansible_hostname'] }}' AND
+          replicas.availability_mode_desc !=
+            '{{ hostvars[item]['__mssql_ha_availability_mode'] }}'
+  )
+  BEGIN
+    PRINT '{{ hostvars[item]['ansible_hostname'] }}: The availability mode \
+of this availability replica does not match the required availability mode, \
+removing this replica re-create it';
+    ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} REMOVE REPLICA ON
+      N'{{ hostvars[item]['ansible_hostname'] }}'
+    PRINT '{{ hostvars[item]['ansible_hostname'] }}: Removed successfully'
+  END
+  IF NOT EXISTS (
+    SELECT replica_server_name
+    FROM sys.availability_replicas replicas
+    JOIN sys.availability_groups groups
+    ON replicas.group_id = groups.group_id
+    WHERE groups.name = '{{ mssql_ha_ag_name }}' AND
+          replicas.replica_server_name =
+            '{{ hostvars[item]['ansible_hostname'] }}'
+  )
+  BEGIN
+    PRINT 'Adding the {{ hostvars[item]['ansible_hostname'] }} \
+{{ hostvars[item]['mssql_ha_replica_type'] }} replica';
+{%     if hostvars[item]['mssql_ha_replica_type'] == 'synchronous' %}
+    ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} ADD REPLICA ON
+      N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
+        ENDPOINT_URL = N'tcp://{{
+          hostvars[item]['ansible_fqdn'] }}:{{ mssql_ha_listener_port }}',
+        AVAILABILITY_MODE = {{ hostvars[item]['__mssql_ha_availability_mode'] }},
+        FAILOVER_MODE = {{ hostvars[item]['__mssql_ha_failover_mode'] }},
+        SEEDING_MODE = {{ hostvars[item]['__mssql_ha_seeding_mode'] }}
+      );
+{%     elif hostvars[item]['mssql_ha_replica_type'] == 'witness' %}
+    ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} ADD REPLICA ON
+      N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
+        ENDPOINT_URL = N'tcp://{{ hostvars[item]['ansible_fqdn'] }}:{{ mssql_ha_listener_port }}',
+        AVAILABILITY_MODE = {{ hostvars[item]['__mssql_ha_availability_mode'] }}
+      );
+{%     endif %}
+    PRINT 'The {{ hostvars[item]['ansible_hostname'] }} \
+{{ hostvars[item]['mssql_ha_replica_type'] }} replica added successfully';
+  END
+  ELSE
+  BEGIN
+    PRINT 'Verifying the existing replica {{ hostvars[item]['ansible_hostname'] }}';
+{%     if (hostvars[item]['mssql_ha_replica_type'] == 'primary') or
+          (hostvars[item]['mssql_ha_replica_type'] == 'synchronous') %}
+{%       set ag_replica_settings = ({
+"endpoint_url":{
+  "sql_setting_name":"ENDPOINT_URL",
+  "sys_setting_name":"endpoint_url",
+  "setting_value":"N'tcp://" + hostvars[item]['ansible_fqdn'] + ":" +
+    mssql_ha_listener_port | string + "'"
+},
+"failover_mode":{
+  "sql_setting_name":"FAILOVER_MODE",
+  "sys_setting_name":"failover_mode_desc",
+  "setting_value":hostvars[item]['__mssql_ha_failover_mode']
+},
+"seeding_mode":{
+  "sql_setting_name":"SEEDING_MODE",
+  "sys_setting_name":"seeding_mode_desc",
+  "setting_value":hostvars[item]['__mssql_ha_seeding_mode']
+},
+"allow_connections":{
+  "sql_setting_name": "SECONDARY_ROLE (ALLOW_CONNECTIONS = ALL)",
+  "sys_setting_name": "secondary_role_allow_connections_desc",
+  "setting_value": "ALL"
+}
+}) %}
+{%     elif hostvars[item]['mssql_ha_replica_type'] == 'witness' %}
+{%       set ag_replica_settings = ({
+"endpoint_url":{
+  "sql_setting_name":"ENDPOINT_URL",
+  "sys_setting_name":"endpoint_url",
+  "setting_value":"N'tcp://" + hostvars[item]['ansible_fqdn'] + ":" +
+    mssql_ha_listener_port | string + "'"
+}
+}) %}
+{%     endif %}
+{%     for key, value in ag_replica_settings.items() %}
+    IF NOT EXISTS (
+      SELECT replica_server_name, {{ value.sys_setting_name }}
+      FROM sys.availability_replicas replicas
+      JOIN sys.availability_groups groups
+      ON replicas.group_id = groups.group_id
+      WHERE groups.name = '{{ mssql_ha_ag_name }}' AND
+            replicas.replica_server_name =
+              '{{ hostvars[item]['ansible_hostname'] }}' AND
+{%       if key == 'endpoint_url' %}
+            {{ value.sys_setting_name }} = {{ value.setting_value }}
+{%       else %}
+            {{ value.sys_setting_name }} = '{{ value.setting_value }}'
+{%       endif %}
+    )
+    BEGIN
+      ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} MODIFY REPLICA ON
+        N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
+{%       if key == 'allow_connections' %}
+          {{ value.sql_setting_name }}
+{%       else %}
+          {{ value.sql_setting_name }} = {{ value.setting_value }}
+{%       endif %}
+        );
+      PRINT '{{ hostvars[item]['ansible_hostname'] }}: \
+The {{ value.sql_setting_name }} setting on this \
+{{ hostvars[item]['mssql_ha_replica_type'] }} replica configured successfully';
+    END
+    ELSE
+    BEGIN
+      PRINT '{{ hostvars[item]['ansible_hostname'] }}: \
+The {{ value.sql_setting_name }} setting on this \
+{{ hostvars[item]['mssql_ha_replica_type'] }} replica is already set \
+correctly, skipping';
+    END
+{%     endfor %}
+  END
+{%   elif hostvars[item]['mssql_ha_replica_type'] == 'absent' %}
+  IF NOT EXISTS (
+    SELECT replica_server_name
+    FROM sys.availability_replicas replicas
+    JOIN sys.availability_groups groups
+    ON replicas.group_id = groups.group_id
+    WHERE groups.name = '{{ mssql_ha_ag_name }}' AND
+          replicas.replica_server_name =
+            '{{ hostvars[item]['ansible_hostname'] }}'
+  )
+  BEGIN
+    PRINT '{{ hostvars[item]['ansible_hostname'] }}: this replica is already \
+removed, skipping';
+  END
+  ELSE
+  BEGIN
+    PRINT '{{ hostvars[item]['ansible_hostname'] }}: Removing this replica';
+    ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }}
+      REMOVE REPLICA ON N'{{ hostvars[item]['ansible_hostname'] }}';
+    PRINT '{{ hostvars[item]['ansible_hostname'] }}: This replica is removed \
+successfully';
+  END
+{%   endif %}
+{% endfor %}
+END
+
+IF NOT EXISTS (
+  SELECT name, cluster_type_desc
+  FROM sys.availability_groups
+  WHERE name = '{{ mssql_ha_ag_name }}'
+)
+BEGIN
+  PRINT 'Creating the {{ mssql_ha_ag_name }} availability group';
+  CREATE AVAILABILITY GROUP {{ mssql_ha_ag_name }}
+{% if ansible_os_family == 'RedHat' and
+  ansible_distribution_version is version('8.3', '<') %}
+    WITH (DB_FAILOVER = ON, CLUSTER_TYPE = EXTERNAL)
+{% else %}
+    WITH (DB_FAILOVER = ON, CLUSTER_TYPE = EXTERNAL)
+{% endif %}
+    FOR REPLICA ON
+      N'{{ ansible_hostname }}' WITH (
+        ENDPOINT_URL = N'tcp://{{ ansible_fqdn }}:{{ mssql_ha_listener_port }}',
+        AVAILABILITY_MODE = {{ __mssql_ha_availability_mode }},
+        FAILOVER_MODE = {{ __mssql_ha_failover_mode }},
+        SEEDING_MODE = {{ __mssql_ha_seeding_mode }},
+        SECONDARY_ROLE (ALLOW_CONNECTIONS = ALL)
+{% for item in ansible_play_hosts %}
+{%   if hostvars[item]['mssql_ha_replica_type'] == 'synchronous' %}
+      ),
+      N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
+        ENDPOINT_URL = N'tcp://{{
+          hostvars[item]['ansible_fqdn'] }}:{{ mssql_ha_listener_port }}',
+        AVAILABILITY_MODE = {{ hostvars[item]['__mssql_ha_availability_mode'] }},
+        FAILOVER_MODE = {{ hostvars[item]['__mssql_ha_failover_mode'] }},
+        SEEDING_MODE = {{ hostvars[item]['__mssql_ha_seeding_mode'] }},
+        SECONDARY_ROLE (ALLOW_CONNECTIONS = ALL)
+{%   elif hostvars[item]['mssql_ha_replica_type'] == 'witness' %}
+      ),
+      N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
+        ENDPOINT_URL = N'tcp://{{
+          hostvars[item]['ansible_fqdn'] }}:{{ mssql_ha_listener_port }}',
+        AVAILABILITY_MODE = {{ hostvars[item]['__mssql_ha_availability_mode'] }}
+{%   endif %}
+{% endfor %}
+      );
+  PRINT 'The {{ mssql_ha_ag_name }} availability group created successfully';
+END
+
+-- It is not possible to grant permissions fully idempotently
+ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} GRANT CREATE ANY DATABASE;
+PRINT 'Granted the CREATE ANY DATABASE permission to the \
+{{ mssql_ha_ag_name }} availability group';

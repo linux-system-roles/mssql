@@ -1,0 +1,69 @@
+IF NOT EXISTS (
+  SELECT name, recovery_model_desc
+  FROM sys.databases
+  WHERE name = '{{ mssql_ha_db_name }}' AND
+        recovery_model_desc = 'FULL'
+)
+BEGIN
+  PRINT 'Setting RECOVERY FULL on the {{ mssql_ha_db_name }} database';
+  ALTER DATABASE {{ mssql_ha_db_name }} SET RECOVERY FULL;
+  PRINT 'RECOVERY FULL on the {{ mssql_ha_db_name }} database set successfully';
+END
+ELSE
+BEGIN
+  PRINT 'RECOVERY FULL on the {{ mssql_ha_db_name }} database is set, skipping';
+END
+
+IF NOT EXISTS (
+  SELECT [database_name], backup_start_date, backup_finish_date, [type]
+  FROM msdb.dbo.backupset
+  WHERE [type]='D' AND
+        [database_name]='{{ mssql_ha_db_name }}' AND
+        backup_finish_date >= DATEADD(hh, -3, GETDATE())
+)
+BEGIN
+  PRINT 'Backing up the {{ mssql_ha_db_name }} database to \
+{{ mssql_ha_db_backup_path }}';
+  BACKUP DATABASE {{ mssql_ha_db_name }}
+    TO DISK = N'{{ mssql_ha_db_backup_path }}';
+  PRINT 'The {{ mssql_ha_db_name }} database backed up successfully';
+END
+ELSE
+BEGIN
+  PRINT 'The {{ mssql_ha_db_name }} database is already backed up, skipping';
+END
+
+IF NOT EXISTS (
+  SELECT
+  AG.name AS [AvailabilityGroupName],
+  ISNULL(agstates.primary_replica, '') AS [PrimaryReplicaServerName],
+  dbcs.database_name AS [DatabaseName],
+  ISNULL(dbrs.synchronization_state, 0) AS [SynchronizationState],
+  ISNULL(dbrs.is_suspended, 0) AS [IsSuspended],
+  ISNULL(dbcs.is_database_joined, 0) AS [IsJoined]
+  FROM master.sys.availability_groups AS AG
+  LEFT OUTER JOIN master.sys.dm_hadr_availability_group_states as agstates
+    ON AG.group_id = agstates.group_id
+  INNER JOIN master.sys.availability_replicas AS AR
+    ON AG.group_id = AR.group_id
+  INNER JOIN master.sys.dm_hadr_availability_replica_states AS arstates
+    ON AR.replica_id = arstates.replica_id AND arstates.is_local = 1
+  INNER JOIN master.sys.dm_hadr_database_replica_cluster_states AS dbcs
+    ON arstates.replica_id = dbcs.replica_id
+  LEFT OUTER JOIN master.sys.dm_hadr_database_replica_states AS dbrs
+    ON dbcs.replica_id = dbrs.replica_id
+    AND dbcs.group_database_id = dbrs.group_database_id
+)
+BEGIN
+  PRINT 'Adding the {{ mssql_ha_db_name }} database to the \
+{{ mssql_ha_ag_name }} availability group';
+  ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }}
+    ADD DATABASE {{ mssql_ha_db_name }};
+  PRINT 'The {{ mssql_ha_db_name }} database added to the \
+{{ mssql_ha_ag_name }} availability group successfully';
+END
+ELSE
+BEGIN
+  PRINT 'The {{ mssql_ha_db_name }} database is already added to the \
+{{ mssql_ha_ag_name }} availability group, skipping';
+END

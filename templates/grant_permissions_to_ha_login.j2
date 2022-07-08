@@ -1,0 +1,7 @@
+-- Need to find how to add permissions idempotently
+PRINT 'Granting the required permissions to {{ mssql_ha_login }}';
+GRANT ALTER, CONTROL, VIEW DEFINITION ON
+    AVAILABILITY GROUP::{{ mssql_ha_ag_name }}
+    TO {{ mssql_ha_login }};
+GRANT VIEW SERVER STATE TO {{ mssql_ha_login }};
+PRINT 'Required permissions granted to {{ mssql_ha_login }}';

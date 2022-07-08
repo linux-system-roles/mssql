@@ -1,0 +1,30 @@
+IF EXISTS(
+  SELECT name
+  FROM sys.certificates
+  WHERE name = '{{ mssql_ha_cert_name }}'
+)
+BEGIN
+  PRINT 'Certificate {{ mssql_ha_cert_name }} already exists, checking if \
+there is an endopint associated with this certificate';
+  DECLARE @EndpointName VARCHAR(30) = (
+    SELECT endp.name as endpoint_name
+    FROM sys.certificates cert
+    JOIN sys.database_mirroring_endpoints endp
+    ON cert.certificate_id = endp.certificate_id
+    WHERE cert.name = '{{ mssql_ha_cert_name }}'
+  );
+  IF @EndpointName IS NOT NULL
+  BEGIN
+    PRINT 'Removing the endpoint ' + CAST(@EndpointName AS VARCHAR) +
+' to re-create it';
+    EXEC ('DROP ENDPOINT ' +@EndpointName);
+    PRINT 'The {{ mssql_ha_endpoint_name }} endpoint removed successfully';
+  END
+  ELSE
+  BEGIN
+    PRINT 'There is no endpoint associated with this certificate, skipping';
+  END
+  PRINT 'Removing the {{ mssql_ha_cert_name }} certificate to re-create it';
+  DROP CERTIFICATE {{ mssql_ha_cert_name }};
+  PRINT 'The {{ mssql_ha_cert_name }} certificate removed successfully'
+END

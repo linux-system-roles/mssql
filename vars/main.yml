@@ -10,3 +10,37 @@ __mssql_client_packages: [mssql-tools, unixODBC-devel]
 __mssql_server_fts_packages: mssql-server-fts
 __mssql_server_ha_packages: mssql-server-ha
 __mssql_powershell_packages: powershell
+__mssql_ha_endpoint_role: >-
+  {%- if mssql_ha_replica_type in ['primary', 'synchronous'] -%}
+  ALL
+  {%- elif mssql_ha_replica_type == 'witness' -%}
+  WITNESS
+  {%- else -%}
+  null
+  {%- endif -%}
+__mssql_ha_availability_mode: >-
+  {%- if mssql_ha_replica_type in ['primary', 'synchronous'] -%}
+  SYNCHRONOUS_COMMIT
+  {%- elif mssql_ha_replica_type == 'witness' -%}
+  CONFIGURATION_ONLY
+  {%- else -%}
+  null
+  {%- endif -%}
+__mssql_ha_failover_mode: >-
+  {%- if mssql_ha_replica_type in ['primary', 'synchronous'] -%}
+  EXTERNAL
+  {%- elif mssql_ha_replica_type == 'witness' -%}
+  MANUAL
+  {%- else -%}
+  null
+  {%- endif -%}
+__mssql_ha_seeding_mode: >-
+  {%- if mssql_ha_replica_type in ['primary', 'synchronous'] -%}
+  AUTOMATIC
+  {%- elif mssql_ha_replica_type == 'witness' -%}
+  MANUAL
+  {%- else -%}
+  null
+  {%- endif -%}
+__mssql_ha_cert_dest: /var/opt/mssql/data/{{ mssql_ha_cert_name }}.cer
+__mssql_ha_private_key_dest: /var/opt/mssql/data/{{ mssql_ha_cert_name }}.pvk
