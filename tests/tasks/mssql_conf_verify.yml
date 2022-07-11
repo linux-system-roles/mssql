@@ -4,8 +4,11 @@
 # It takes two variables:
 # __mssql_conf_setting - the setting name
 # __mssql_conf_value - the setting value
+- name: Ensure ansible_facts and variables used by role
+  include_vars: main.yml
+
 - name: Get the value of the {{ __mssql_conf_setting }} setting
-  shell: grep '^{{ __mssql_conf_setting }}' /var/opt/mssql/mssql.conf || true
+  shell: grep '^{{ __mssql_conf_setting }}' {{ __mssql_conf_path }} || true
   changed_when: false
   register: __mssql_conf_get_setting
 

@@ -178,12 +178,7 @@
         - mssql_ha_replica_type is not defined
 
     - name: Ensure ansible_facts and variables used by role
-      block:
-        - name: Include vars in a legacy role format
-          include_vars: ../vars/main.yml
-      rescue:
-        - name: Include vars in a collection format
-          include_vars: ../../roles/server/vars/main.yml
+      include_vars: main.yml
 
     # enable_alwayson.j2 template test
     - name: Enable AlwaysOn event session when it's enabled

@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: MIT
 ---
+- name: Ensure ansible_facts and variables used by role
+  include_vars: main.yml
+
 - name: Verify edition
   when: __verify_mssql_edition is defined
   block:
     - name: Check if the errorlog file exists and its location
       shell: |
         set -euo pipefail
-        errorlog="$(grep '^errorlogfile' /var/opt/mssql/mssql.conf \
+        errorlog="$(grep '^errorlogfile' {{ __mssql_conf_path }} \
         2>&1 | sed 's\errorlogfile : \\')" || :
         if [ -f "${errorlog}" ]; then
           echo "${errorlog}"
@@ -119,7 +122,7 @@
   when: __verify_mssql_is_tuned_for_fua is defined
   block:
     - name: Get the value of the traceflag setting
-      shell: grep '^traceflag' /var/opt/mssql/mssql.conf || true
+      shell: grep '^traceflag' {{ __mssql_conf_path }} || true
       changed_when: false
       register: __mssql_conf_get_traceflag
 
