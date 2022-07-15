@@ -11,8 +11,6 @@ The role currently works with SQL Server 2017 and 2019.
 ## Requirements
 
 * SQL Server requires a machine with at least 2000 megabytes of memory.
-* You must configure the firewall to enable connections on the SQL Server TCP port that you set with the `mssql_tcp_port` variable.
-  The default port is 1443.
 * Optional: If you want to input T-SQL statements and stored procedures to SQL Server, you must create a file with the `.sql` extension containing these SQL statements and procedures.
 
 ## Role Variables
@@ -115,6 +113,28 @@ If you do not define this variable when configuring running SQL Server, the role
 Default: `null`
 
 Type: `str`
+
+### `mssql_firewall_configure`
+
+Whether to open the `mssql_tcp_port` port in the Linux firewall.
+
+When this variable is set to `true`, the role enables firewall even if it was not enabled.
+
+The role uses the System Roles firewall role to manage the firewall, hence, only firewall implementations supported by the firewall role work.
+
+If you set this variable to `false`, you must open the port defined with the `mssql_tcp_port` variable prior to running this role.
+
+Default: `false`
+
+Type: `bool`
+
+#### `mssql_firewall_close_previous`
+
+Whether to close the firewall port that was previously configured in SQL Server in case you change from one port to another when providing the `mssql_firewall_configure` variable.
+
+Default: `false`
+
+Type: `bool`
 
 ### `mssql_ip_address`
 
@@ -355,11 +375,13 @@ Type: `str`
 
 Whether to open ports in the Linux firewall for an Always On availability group.
 
+When this variable is set to `true`, the role enables firewall even if it was not enabled.
+
 The role uses the System Roles firewall role to manage the firewall, hence, only firewall implementations supported by the firewall role work.
 
 If you set this variable to `false`, you must open the port defined with the `mssql_ha_listener_port` variable prior to running this role.
 
-Default: `true`
+Default: `false`
 
 Type: `bool`
 
@@ -475,7 +497,7 @@ If you do not want the `microsoft.sql.server` to run the `ha_cluster` role and i
 
 Default: `false`
 
-Type: `string`
+Type: `bool`
 
 ## Example Playbooks
 
@@ -499,7 +521,7 @@ This example shows how to use the role to set up SQL Server with the minimum req
 
 ### Setting up SQL Server with Custom Network Parameters
 
-This example shows how to use the role to set up SQL Server and configure it to use custom IP address and TCP port.
+This example shows how to use the role to set up SQL Server, configure it with a custom IP address and TCP port, and open the TCP port in firewall.
 
 ```yaml
 - hosts: all
@@ -511,6 +533,8 @@ This example shows how to use the role to set up SQL Server and configure it to 
     mssql_edition: Evaluation
     mssql_tcp_port: 1433
     mssql_ip_address: 0.0.0.0
+    mssql_firewall_configure: true
+    mssql_firewall_close_previous: true
   roles:
     - microsoft.sql.server
 ```
@@ -533,6 +557,8 @@ This example shows how to use the role to set up SQL Server and enable the follo
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
+    mssql_firewall_configure: true
+    mssql_firewall_close_previous: true
     mssql_enable_sql_agent: true
     mssql_install_fts: true
     mssql_install_powershell: true
@@ -554,6 +580,8 @@ This example shows how to use the role to set up SQL Server and configure it to 
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
+    mssql_firewall_configure: true
+    mssql_firewall_close_previous: true
     mssql_tls_enable: true
     mssql_tls_cert: mycert.pem
     mssql_tls_private_key: mykey.key
@@ -602,6 +630,8 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
+    mssql_firewall_configure: true
+    mssql_firewall_close_previous: true
     mssql_ha_configure: true
     mssql_ha_firewall_configure: true
     mssql_ha_listener_port: 5022
@@ -634,6 +664,8 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
+    mssql_firewall_configure: true
+    mssql_firewall_close_previous: true
     mssql_ha_configure: true
     mssql_ha_firewall_configure: true
     mssql_ha_listener_port: 5022
@@ -733,6 +765,8 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
+    mssql_firewall_configure: true
+    mssql_firewall_close_previous: true
     mssql_ha_configure: true
     mssql_ha_firewall_configure: true
     mssql_ha_listener_port: 5022
@@ -830,6 +864,8 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_firewall_configure: true
+    mssql_firewall_close_previous: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_ha_configure: true

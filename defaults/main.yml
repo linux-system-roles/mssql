@@ -8,6 +8,8 @@ mssql_upgrade: false
 mssql_password: null
 mssql_edition: null
 mssql_tcp_port: null
+mssql_firewall_configure: false
+mssql_firewall_close_previous: false
 mssql_ip_address: null
 mssql_input_sql_file: null
 mssql_debug: "{{ true if mssql_input_sql_file is not none else false }}"
@@ -26,7 +28,7 @@ mssql_rpm_key: https://packages.microsoft.com/keys/microsoft.asc
 mssql_server_repository: "{{ __mssql_server_repository }}"
 mssql_client_repository: "{{ __mssql_client_repository }}"
 mssql_ha_configure: false
-mssql_ha_firewall_configure: true
+mssql_ha_firewall_configure: false
 mssql_ha_listener_port: 5022
 mssql_ha_cert_name: null
 mssql_ha_private_key_password: null
