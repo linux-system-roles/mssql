@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: MIT
 ---
-- name: Ensure ansible_facts and variables used by role
-  include_vars: main.yml
-
 - name: Verify edition
+  vars:
+    __mssql_conf_path: /var/opt/mssql/mssql.conf
   when: __verify_mssql_edition is defined
   block:
     - name: Check if the errorlog file exists and its location

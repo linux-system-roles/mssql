@@ -177,9 +177,6 @@
         - ansible_play_hosts_all | length == 1
         - mssql_ha_replica_type is not defined
 
-    - name: Ensure ansible_facts and variables used by role
-      include_vars: main.yml
-
     # enable_alwayson.j2 template test
     - name: Enable AlwaysOn event session when it's enabled
       vars:
@@ -187,6 +184,7 @@
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_file.yml
+        public: true
 
     - name: Assert that enabling is skipped
       assert:
