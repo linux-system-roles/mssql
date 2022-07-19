@@ -7,7 +7,7 @@ mssql_version: 2019
 mssql_upgrade: false
 mssql_password: null
 mssql_edition: null
-mssql_tcp_port: null
+mssql_tcp_port: 1433
 mssql_firewall_configure: false
 mssql_firewall_close_previous: false
 mssql_ip_address: null

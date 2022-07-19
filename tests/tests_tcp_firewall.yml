@@ -47,9 +47,9 @@
           vars:
             __mssql_tcp_port_new: "{{ __mssql_test_port }}"
 
-    - name: Test with mssql_tcp_port changed to 1434
+    - name: Test with mssql_tcp_port changed to 1435
       vars:
-        __mssql_test_port: 1434
+        __mssql_test_port: 1435
       block:
         - name: Set up SQL Server
           include_role:

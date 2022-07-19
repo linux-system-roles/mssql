@@ -19,7 +19,9 @@
       regex_replace( '^.*\s=\s', '') | string | lower | basename }}
   assert:
     that: __mssql_conf_get_value == __mssql_conf_value | string
-  when: "__mssql_conf_value | type_debug == 'str'"
+  when:
+    - "__mssql_conf_value | type_debug == 'str'"
+    - __mssql_conf_setting != "tcpport"
 
 - name: Verify the {{ __mssql_conf_setting }} setting when it is type bool
   vars:
@@ -28,4 +30,21 @@
       regex_replace( '^.*\s=\s', '') | bool }}
   assert:
     that: __mssql_conf_get_value == __mssql_conf_value
-  when: "__mssql_conf_value | type_debug == 'bool'"
+  when:
+    - "__mssql_conf_value | type_debug == 'bool'"
+    - __mssql_conf_setting != "tcpport"
+
+# Special case for tcpport because sqlcmd does not set tcpport to 1433
+# When you try to set tcpport to 1433, sqlcmd just keeps tcpport entry in
+# mssql.conf empty
+# Empty previous tcp port setting means that the port is default 1433
+- name: Verify that tcpport = {{ __mssql_conf_value }}
+  vars:
+    __mssql_conf_get_value: >-
+      {{ __mssql_conf_get_setting.stdout | regex_search( '[1-9][0-9]{0,4}')
+      if __mssql_conf_get_setting.stdout
+      else '1433' }}
+  assert:
+    that: __mssql_conf_get_value | int == __mssql_conf_value | int
+  when:
+    - __mssql_conf_setting == "tcpport"

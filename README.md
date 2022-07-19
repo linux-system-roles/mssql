@@ -104,15 +104,9 @@ Type: `str`
 
 The port that SQL Server listens on.
 
-If you define this variable, the role configures SQL Server with the defined TCP port.
+Default: `1433`
 
-If you do not define this variable when installing SQL Server, the role configures SQL Server to listen on the SQL Server default TCP port `1443`.
-
-If you do not define this variable when configuring running SQL Server, the role does not change the TCP port setting on SQL Server.
-
-Default: `null`
-
-Type: `str`
+Type: `int`
 
 ### `mssql_firewall_configure`
 
