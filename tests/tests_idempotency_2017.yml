@@ -15,7 +15,7 @@
         mssql_version: 2017
         mssql_password: "p@55w0rD"
         mssql_edition: Evaluation
-        mssql_tcp_port: 1443
+        mssql_tcp_port: 1433
         mssql_ip_address: 0.0.0.0
         mssql_enable_sql_agent: true
         mssql_install_fts: true
@@ -35,7 +35,7 @@
         mssql_version: 2017
         mssql_password: "p@55w0rD"
         mssql_edition: Evaluation
-        mssql_tcp_port: 1443
+        mssql_tcp_port: 1433
         mssql_ip_address: 0.0.0.0
         mssql_enable_sql_agent: true
         mssql_install_fts: true
@@ -47,7 +47,7 @@
       vars:
         __verify_mssql_password: "p@55w0rD"
         __verify_mssql_edition: Evaluation
-        __verify_mssql_tcp_port: 1443
+        __verify_mssql_tcp_port: 1433
         __verify_mssql_ip_address: 0.0.0.0
         __verify_mssql_agent_is_enabled: true
         __verify_mssql_fts_is_installed: true
@@ -60,7 +60,7 @@
       vars:
         mssql_password: "p@55w0rd"
         mssql_edition: Standard
-        mssql_tcp_port: 1442
+        mssql_tcp_port: 1435
         mssql_ip_address: 127.0.0.1
         mssql_enable_sql_agent: false
         mssql_install_fts: false
@@ -76,7 +76,7 @@
       vars:
         mssql_password: "p@55w0rd"
         mssql_edition: Standard
-        mssql_tcp_port: 1442
+        mssql_tcp_port: 1435
         mssql_ip_address: 127.0.0.1
         mssql_enable_sql_agent: false
         mssql_install_fts: false
@@ -88,7 +88,7 @@
       vars:
         __verify_mssql_password: "p@55w0rd"
         __verify_mssql_edition: Standard
-        __verify_mssql_tcp_port: 1442
+        __verify_mssql_tcp_port: 1435
         __verify_mssql_ip_address: 127.0.0.1
         __verify_mssql_agent_is_enabled: false
         __verify_mssql_fts_is_installed: false
