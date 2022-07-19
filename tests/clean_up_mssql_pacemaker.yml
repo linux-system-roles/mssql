@@ -9,6 +9,13 @@
       include_role:
         name: fedora.linux_system_roles.ha_cluster
 
+    - name: Purge firewall configuration
+      vars:
+        firewall:
+          - previous: replaced
+      include_role:
+        name: fedora.linux_system_roles.firewall
+
     - name: Remove cluster RPMs
       package:
         name:
