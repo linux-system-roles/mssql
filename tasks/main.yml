@@ -343,7 +343,6 @@
   vars:
     firewall:
       - port: "{{ mssql_tcp_port }}/tcp"
-        zone: public
         state: enabled
         permanent: true
         runtime: true
@@ -363,7 +362,6 @@
       else '1433' }}
     firewall:
       - port: "{{ __tcpport }}/tcp"
-        zone: public
         state: disabled
         permanent: true
         runtime: true
@@ -509,7 +507,6 @@
       vars:
         firewall:
           - port: "{{ mssql_ha_listener_port }}/tcp"
-            zone: public
             state: enabled
             permanent: true
             runtime: true
