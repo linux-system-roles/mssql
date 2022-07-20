@@ -329,9 +329,7 @@
   when: mssql_ip_address is not none
 
 - name: Register the previous tcpport setting
-  when:
-    - mssql_firewall_configure | bool
-    - mssql_firewall_close_previous | bool
+  when: mssql_firewall_configure | bool
   shell: grep 'tcpport' {{ __mssql_conf_path }} || true
   changed_when: false
   register: __mssql_previous_tcp_port
@@ -369,7 +367,6 @@
     name: fedora.linux_system_roles.firewall
   when:
     - mssql_firewall_configure | bool
-    - mssql_firewall_close_previous | bool
     - __tcpport | int != mssql_tcp_port | int
 
 - name: Configure the sqlagent setting

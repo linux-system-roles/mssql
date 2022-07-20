@@ -122,14 +122,6 @@ Default: `false`
 
 Type: `bool`
 
-#### `mssql_firewall_close_previous`
-
-Whether to close the firewall port that was previously configured in SQL Server in case you change from one port to another when providing the `mssql_firewall_configure` variable.
-
-Default: `false`
-
-Type: `bool`
-
 ### `mssql_ip_address`
 
 The IP address that SQL Server listens on.
@@ -528,7 +520,6 @@ This example shows how to use the role to set up SQL Server, configure it with a
     mssql_tcp_port: 1433
     mssql_ip_address: 0.0.0.0
     mssql_firewall_configure: true
-    mssql_firewall_close_previous: true
   roles:
     - microsoft.sql.server
 ```
@@ -552,7 +543,6 @@ This example shows how to use the role to set up SQL Server and enable the follo
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_firewall_configure: true
-    mssql_firewall_close_previous: true
     mssql_enable_sql_agent: true
     mssql_install_fts: true
     mssql_install_powershell: true
@@ -575,7 +565,6 @@ This example shows how to use the role to set up SQL Server and configure it to 
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_firewall_configure: true
-    mssql_firewall_close_previous: true
     mssql_tls_enable: true
     mssql_tls_cert: mycert.pem
     mssql_tls_private_key: mykey.key
@@ -625,7 +614,6 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_firewall_configure: true
-    mssql_firewall_close_previous: true
     mssql_ha_configure: true
     mssql_ha_firewall_configure: true
     mssql_ha_listener_port: 5022
@@ -659,7 +647,6 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_firewall_configure: true
-    mssql_firewall_close_previous: true
     mssql_ha_configure: true
     mssql_ha_firewall_configure: true
     mssql_ha_listener_port: 5022
@@ -760,7 +747,6 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_firewall_configure: true
-    mssql_firewall_close_previous: true
     mssql_ha_configure: true
     mssql_ha_firewall_configure: true
     mssql_ha_listener_port: 5022
@@ -859,7 +845,6 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_firewall_configure: true
-    mssql_firewall_close_previous: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_ha_configure: true

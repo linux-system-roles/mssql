@@ -7,7 +7,6 @@
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_firewall_configure: true
-    mssql_firewall_close_previous: true
   tasks:
     - name: Test while not settings mssql_tcp_port to default it to 1433
       vars:
