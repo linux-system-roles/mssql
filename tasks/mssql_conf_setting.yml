@@ -2,7 +2,7 @@
 ---
 - name: Get the {{ __mssql_conf_setting }} setting
   command: >-
-    grep ^{{ __mssql_conf_setting | regex_replace( '^.*\s' ,'') | quote }}
+    grep '^{{ __mssql_conf_setting | regex_replace( '^.*\s' ,'') }} = '
     {{ __mssql_conf_path }}
   changed_when: false
   failed_when: false

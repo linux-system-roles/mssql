@@ -145,7 +145,7 @@
 - name: Check if the errorlog file exists and its location
   shell: |
     set -euo pipefail
-    errorlog="$(grep '^errorlogfile' {{ __mssql_conf_path }} \
+    errorlog="$(grep '^errorlogfile = ' {{ __mssql_conf_path }} \
     | sed 's/errorlogfile : //')" || :
     if [ -s "${errorlog}" ]; then
       echo "${errorlog}"
@@ -330,7 +330,7 @@
 
 - name: Register the previous tcpport setting
   when: mssql_firewall_configure | bool
-  command: grep 'tcpport' {{ __mssql_conf_path }}
+  command: grep '^tcpport = ' {{ __mssql_conf_path }}
   failed_when: false
   changed_when: false
   register: __mssql_previous_tcp_port
@@ -409,7 +409,7 @@
   when: mssql_tune_for_fua_storage is not none
   block:
     - name: Check if the 3979 trace flag is enabled
-      command: grep '^traceflag' {{ __mssql_conf_path }}
+      command: grep '^traceflag[0-9] = ' {{ __mssql_conf_path }}
       failed_when: false
       changed_when: false
       register: __mssql_get_traceflag
