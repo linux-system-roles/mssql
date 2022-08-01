@@ -145,7 +145,7 @@
 - name: Check if the errorlog file exists and its location
   shell: |
     set -euo pipefail
-    errorlog="$(grep '^errorlogfile' {{ __mssql_conf_path }} \
+    errorlog="$(grep '^errorlogfile = ' {{ __mssql_conf_path }} \
     | sed 's/errorlogfile : //')" || :
     if [ -s "${errorlog}" ]; then
       echo "${errorlog}"
@@ -182,7 +182,7 @@
           - "mssql_edition"
 
     - name: Set up MSSQL
-      command: /opt/mssql/bin/mssql-conf -n setup
+      command: "{{ __mssql_conf_cli }} -n setup"
       environment:
         - ACCEPT_EULA: "Y"
         - MSSQL_SA_PASSWORD: "{{ mssql_password }}"
@@ -281,7 +281,7 @@
       notify: Restart the mssql-server service
 
     - name: Change the password of the sa user
-      command: /opt/mssql/bin/mssql-conf set-sa-password
+      command: "{{ __mssql_conf_cli }} set-sa-password"
       environment:
         - MSSQL_SA_PASSWORD: "{{ mssql_password }}"
       when: __mssql_password_query is failed
@@ -313,7 +313,7 @@
       notify: Restart the mssql-server service
 
     - name: Change the edition of MSSQL
-      command: /opt/mssql/bin/mssql-conf set-edition
+      command: "{{ __mssql_conf_cli }} set-edition"
       environment:
         MSSQL_PID: "{{ mssql_edition }}"
       register: __mssql_conf_set_edition
@@ -328,12 +328,47 @@
     __mssql_conf_setting_value: "{{ mssql_ip_address }}"
   when: mssql_ip_address is not none
 
-- name: Configure the TCP port setting
+- name: Register the previous tcpport setting
+  when: mssql_firewall_configure | bool
+  command: grep '^tcpport = ' {{ __mssql_conf_path }}
+  failed_when: false
+  changed_when: false
+  register: __mssql_previous_tcp_port
+
+- name: Open the {{ mssql_tcp_port }} TCP port
+  when: mssql_firewall_configure | bool
+  include_role:
+    name: fedora.linux_system_roles.firewall
+  vars:
+    firewall:
+      - port: "{{ mssql_tcp_port }}/tcp"
+        state: enabled
+        permanent: true
+        runtime: true
+
+- name: Configure the TCP port setting to {{ mssql_tcp_port }}
   include_tasks: mssql_conf_setting.yml
   vars:
     __mssql_conf_setting: "network tcpport"
     __mssql_conf_setting_value: "{{ mssql_tcp_port }}"
-  when: mssql_tcp_port is not none
+
+- name: Close the previously set SQL Server TCP port if it changed
+  vars:
+    # Empty previous tcp port setting means that the port is default 1433
+    __tcpport: >-
+      {{ __mssql_previous_tcp_port.stdout | regex_search( '[1-9][0-9]{0,4}')
+      if __mssql_previous_tcp_port.stdout
+      else '1433' }}
+    firewall:
+      - port: "{{ __tcpport }}/tcp"
+        state: disabled
+        permanent: true
+        runtime: true
+  include_role:
+    name: fedora.linux_system_roles.firewall
+  when:
+    - mssql_firewall_configure | bool
+    - __tcpport | int != mssql_tcp_port | int
 
 - name: Configure the sqlagent setting
   include_tasks: mssql_conf_setting.yml
@@ -374,20 +409,19 @@
   when: mssql_tune_for_fua_storage is not none
   block:
     - name: Check if the 3979 trace flag is enabled
-      shell: grep '^traceflag' {{ __mssql_conf_path }} || true
+      command: grep '^traceflag[0-9] = ' {{ __mssql_conf_path }}
+      failed_when: false
       changed_when: false
       register: __mssql_get_traceflag
 
     - name: Set the 3979 traceflag
-      command: >-
-        /opt/mssql/bin/mssql-conf traceflag 3979 on
+      command: "{{ __mssql_conf_cli }} traceflag 3979 on"
       when:
         - mssql_tune_for_fua_storage | bool
         - "'3979' not in __mssql_get_traceflag.stdout"
 
     - name: Unset the 3979 traceflag
-      command: >-
-        /opt/mssql/bin/mssql-conf traceflag 3979 off
+      command: "{{ __mssql_conf_cli }} traceflag 3979 off"
       when:
         - not mssql_tune_for_fua_storage | bool
         - "'3979' in __mssql_get_traceflag.stdout"
@@ -470,7 +504,6 @@
       vars:
         firewall:
           - port: "{{ mssql_ha_listener_port }}/tcp"
-            zone: public
             state: enabled
             permanent: true
             runtime: true

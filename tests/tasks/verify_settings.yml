@@ -48,7 +48,7 @@
   include_tasks: mssql_conf_verify.yml
   vars:
     __mssql_conf_setting: tcpport
-    __mssql_conf_value: __mssql_tcp_port_matches
+    __mssql_conf_value: "{{ __mssql_tcp_port_matches }}"
   when: __mssql_tcp_port_matches is defined
 
 - name: Verify password
