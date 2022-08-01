@@ -33,7 +33,17 @@ BEGIN
     PRINT 'DB_FAILOVER = ON is already set, skipping'
   END
   PRINT 'Verifying replicas'
+{# Sort ansible_play_hosts to have primary replica as last in the list #}
+{# This is required to first configure secondary replicas and then primary #}
+{% set ag_replicas_sorted = [] %}
 {% for item in ansible_play_hosts %}
+{%   if hostvars[item]['mssql_ha_replica_type'] != 'primary' %}
+{{ ag_replicas_sorted.insert(0, item) -}}
+{%   else %}
+{{ ag_replicas_sorted.insert(-1, item) -}}
+{%   endif %}
+{% endfor %}
+{% for item in ag_replicas_sorted %}
 {%   if hostvars[item]['mssql_ha_replica_type'] != 'absent' %}
   IF EXISTS (
     SELECT replica_server_name, availability_mode_desc
@@ -183,6 +193,10 @@ removed, skipping';
 successfully';
   END
 {%   endif %}
+{# Wait after configuring the primary replica for changes to take effect #}
+{%   if hostvars[item]['mssql_ha_replica_type'] == 'primary' %}
+{#  WAITFOR DELAY '00:01'; #}
+{%   endif %}
 {% endfor %}
 END
 
@@ -228,8 +242,3 @@ BEGIN
       );
   PRINT 'The {{ mssql_ha_ag_name }} availability group created successfully';
 END
-
--- It is not possible to grant permissions fully idempotently
-ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} GRANT CREATE ANY DATABASE;
-PRINT 'Granted the CREATE ANY DATABASE permission to the \
-{{ mssql_ha_ag_name }} availability group';

@@ -8,10 +8,19 @@
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
+    mssql_firewall_configure: true
     mssql_ha_db_name: ExampleDB
     __mssql_test_db_name: "{{ mssql_ha_db_name }}"
     mssql_debug: true
   tasks:
+    - name: Install fedora.linux_system_roles on control node
+      command: >-
+        ansible-galaxy collection install \
+        -r {{ playbook_dir }}/../meta/collection-requirements.yml
+      changed_when: '"Nothing to do." not in __mssql_coll_install.stdout'
+      register: __mssql_coll_install
+      delegate_to: localhost
+
     - name: Verify that by default the role fails on EL < 8
       when:
         - ansible_distribution in ['CentOS', 'RedHat']
@@ -55,11 +64,10 @@
         name: linux-system-roles.mssql
       when: mssql_ha_replica_type == 'primary'
 
-    - name: Run on all hosts to configure HA cluster
+    - name: Configure HA and verify ports are set correctly
       vars:
         mssql_ha_configure: true
         mssql_ha_firewall_configure: true
-        mssql_ha_listener_port: 5022
         mssql_ha_cert_name: mssql_cert
         mssql_ha_master_key_password: "p@55w0rD1"
         mssql_ha_private_key_password: "p@55w0rD2"
@@ -69,7 +77,7 @@
         mssql_ha_db_backup_path: /var/opt/mssql/data/{{ mssql_ha_db_name }}.bak
         mssql_ha_login: pacemakerLogin
         mssql_ha_login_password: "p@55w0rD3"
-        mssql_ha_cluster_run_role: true
+        mssql_ha_cluster_run_role: false
         ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
         ha_cluster_hacluster_password: "p@55w0rD4"
         ha_cluster_cluster_properties:
@@ -137,8 +145,30 @@
             resource_then:
               id: virtualip
               action: start
-      include_role:
-        name: linux-system-roles.mssql
+      block:
+        - name: Configure HA with listener port 5022
+          vars:
+            mssql_ha_listener_port: 5022
+          include_role:
+            name: linux-system-roles.mssql
+
+        - name: Verify that tcp and listener ports is set correctly
+          include_tasks: tasks/verify_tcp_port.yml
+          vars:
+            __mssql_ha_listener_port_new: 5022
+
+        - name: Configure HA with listener port 5033
+          vars:
+            mssql_ha_listener_port: 5033
+            mssql_stop: true
+          include_role:
+            name: linux-system-roles.mssql
+
+        - name: Verify that tcp and listener ports is set correctly
+          include_tasks: tasks/verify_tcp_port.yml
+          vars:
+            __mssql_ha_listener_port_new: 5033
+            __mssql_ha_listener_port_previous: 5022
 
 # This play tests if templates configure systems correctly
 # Because CI runs on a single node, the following templates cannot be tested:
@@ -153,12 +183,13 @@
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
+    mssql_firewall_configure: true
     mssql_ha_db_name: ExampleDB
     __mssql_test_db_name: "{{ mssql_ha_db_name }}"
     mssql_debug: true
     mssql_ha_configure: true
     mssql_ha_firewall_configure: true
-    mssql_ha_listener_port: 5022
+    mssql_ha_listener_port: 5033
     mssql_ha_cert_name: mssql_cert
     mssql_ha_master_key_password: "p@55w0rD1"
     mssql_ha_private_key_password: "p@55w0rD2"

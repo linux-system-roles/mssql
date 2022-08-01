@@ -161,15 +161,17 @@
   service_facts:
   no_log: true
 
-- name: Set up MSSQL
-  when: not __mssql_is_setup
-  vars:
+- name: Set the __mssql_is_setup fact
+  set_fact:
     __mssql_is_setup: >-
       {{ ('running' in
       ansible_facts['services']['mssql-server.service']['state']) or
       ('enabled' in
       ansible_facts['services']['mssql-server.service']['status']) or
       (__mssql_errorlog.stdout | length > 0) }}
+
+- name: Set up MSSQL
+  when: not __mssql_is_setup
   block:
     - name: Verify that the variables required for setting up MSSQL are defined
       assert:
@@ -492,13 +494,25 @@
         __mssql_conf_setting_value: "{{ '1' if mssql_tls_enable else 'unset' }}"
 
 - name: Open required firewall ports and set required facts
-  when:
-    - mssql_ha_configure | bool
+  when: mssql_ha_configure | bool
   block:
+    - name: Register the previous listener port
+      when: __mssql_is_setup | bool
+      shell: |
+        set -euo pipefail
+        grep 'Database Mirroring endpoint is now listening for connections' \
+        --before-context=1 \
+        {{ __mssql_errorlog.stdout }} \
+        | tail -2 \
+        | head -1 \
+        | grep -oP '[1-9][0-9]{0,4}' \
+        | tail -1
+      register: __mssql_previous_listener_port
+      failed_when: false
+
     - name: >-
         Open the {{ mssql_ha_listener_port }}/tcp port and
         enable the high-availability service in firewall
-      when: mssql_ha_firewall_configure | bool
       include_role:
         name: fedora.linux_system_roles.firewall
       vars:
@@ -765,6 +779,24 @@
       include_role:
         name: fedora.linux_system_roles.ha_cluster
       when: mssql_ha_cluster_run_role | bool
+
+
+- name: Close the previous listener port
+  when:
+    - mssql_ha_configure | bool
+    - __mssql_previous_listener_port.stdout is defined
+    - __mssql_previous_listener_port.stdout | length > 0
+    - >-
+      __mssql_previous_listener_port.stdout | int !=
+      mssql_ha_listener_port | int
+  include_role:
+    name: fedora.linux_system_roles.firewall
+  vars:
+    firewall:
+      - port: "{{ __mssql_previous_listener_port.stdout }}/tcp"
+        state: disabled
+        permanent: true
+        runtime: true
 
 - name: Verify if the {{ mssql_ha_db_name }} database exists
   vars:

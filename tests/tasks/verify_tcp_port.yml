@@ -29,3 +29,37 @@
   vars:
     __mssql_tcp_port_matches: "{{ __mssql_tcp_port_new }}"
   when: __mssql_tcp_port_new is defined
+
+- name: Verify that the {{ __mssql_ha_listener_port_new }} listener port is open
+  assert:
+    that: >-
+      '{{ __mssql_ha_listener_port_new }}/tcp' in __mssql_firewall_ports.stdout
+  when: __mssql_ha_listener_port_new is defined
+
+- name: Verify that the {{ __mssql_ha_listener_port_previous }} port is closed
+  assert:
+    that: >-
+      '{{ __mssql_ha_listener_port_previous }}/tcp' not in
+      __mssql_firewall_ports.stdout
+  when: __mssql_ha_listener_port_previous is defined
+
+- name: Register the current listener port
+  when: __mssql_ha_listener_port_new is defined
+  shell: |
+    set -euo pipefail
+    grep 'Database Mirroring endpoint is now listening for connections' \
+    --before-context=1 \
+    /var/opt/mssql/log/errorlog \
+    | tail -2 \
+    | head -1 \
+    | grep -oP '[1-9][0-9]{0,4}' \
+    | tail -1
+  register: __mssql_ha_curr_listener_port
+  changed_when: false
+
+- name: Verify that endpoint is listening on {{ __mssql_ha_listener_port_new }}
+  assert:
+    that: >-
+      __mssql_ha_curr_listener_port.stdout | int ==
+      __mssql_ha_listener_port_new | int
+  when: __mssql_ha_listener_port_new is defined
