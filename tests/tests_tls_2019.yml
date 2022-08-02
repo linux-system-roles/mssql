@@ -10,46 +10,50 @@
     mssql_edition: Evaluation
     mssql_tcp_port: 1433
   tasks:
-    - name: List installed RPMs on localhost to see if openssl is present
-      package_facts:
-      changed_when: no
-      delegate_to: localhost
-      no_log: true
-
-    - name: Ensure the openssl package on localhost
+    - name: Ensure the openssl package
       package:
         name: openssl
         state: present
-      delegate_to: localhost
-      when: "'openssl' not in ansible_facts.packages"
+      run_once: true
 
     - name: Create a tempfile for a certificate on hosts
       tempfile:
         state: file
       register: __mssql_cert_tempfile
+      run_once: true
 
     - name: Create a tempfile for a private key on hosts
       tempfile:
         state: file
       register: __mssql_pvk_tempfile
+      run_once: true
 
-    - name: >-
-        Generate a self-signed certificate and public key in the test directory
-        on localhost
+    - name: Generate a self-signed certificate and public key
       command: >-
         openssl req -x509 -nodes -newkey rsa:2048
         -subj "/CN={{ ansible_default_ipv4.address }}"
         -out {{ __mssql_cert_tempfile.path }}
         -keyout {{ __mssql_pvk_tempfile.path }} -days 365
       changed_when: true
-      delegate_to: localhost
       run_once: true
+
+    - name: Copy certificate files to local tmp
+      fetch:
+        src: "{{ item }}"
+        dest: "{{ item }}"
+        flat: true
+        mode: preserve
+      run_once: true
+      loop:
+        - "{{ __mssql_cert_tempfile.path }}"
+        - "{{ __mssql_pvk_tempfile.path }}"
 
     # Test relative and full path with mssql_tls_remote_src: false
     - name: Copy a private key to the playbook directory to test a relative path
       copy:
         src: "{{ __mssql_pvk_tempfile.path }}"
         dest: "{{ __mssql_pvk_tempfile.path | basename }}"
+        mode: preserve
       delegate_to: localhost
       run_once: true
 
