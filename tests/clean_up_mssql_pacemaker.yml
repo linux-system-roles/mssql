@@ -16,19 +16,15 @@
       include_role:
         name: fedora.linux_system_roles.firewall
 
-    - name: Remove cluster RPMs
+    - name: Remove mssql-server
       package:
-        name:
-          - pacemaker
-          - pcs
-          - fence-agents-all
-          - resource-agents
+        name: mssql-server
         state: absent
 
-    - name: Remove mssql RPMs
-      shell: dnf remove mssql-* -y
-      changed_when: true
-
     - name: Remove related files
-      shell: rm -rf /var/opt/mssql/ /opt/mssql* /tmp/ansible.*
+      shell: >-
+        rm -rf /var/opt/mssql
+        /opt/mssql
+        /tmp/ansible.*
+        /var/log/pacemaker/pacemaker.log
       changed_when: true

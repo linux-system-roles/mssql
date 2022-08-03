@@ -789,7 +789,7 @@
   block:
     - name: Save credentials for the {{ mssql_ha_login }} SQL Server login
       copy:
-        content: |-
+        content: |
           {{ mssql_ha_login }}
           {{ mssql_ha_login_password }}
         dest: /var/opt/mssql/secrets/passwd
