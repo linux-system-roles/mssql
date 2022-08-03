@@ -136,21 +136,24 @@ Default: `null`
 
 Type: `str`
 
-### `mssql_input_sql_file`
+### `mssql_pre_input_sql_file` and `mssql_post_input_sql_file`
 
 You can use the role to input a file containing SQL statements or procedures into SQL Server.
-With this variable, enter the path to the SQL file containing the database configuration.
 
-When specifying this variable, you must also specify the `mssql_password`
-variable because authentication is required to input an SQL file to SQL Server.
+* Use `mssql_pre_input_sql_file` to input the SQL file immediately after the role configures SQL Server.
+* Use `mssql_post_input_sql_file` to input the SQL file at the end of the role invocation.
 
-If you do not pass this variable, the role only configures the SQL Server and does not input any SQL file.
+With these variables, enter the path to the files containing SQL scripts.
 
-Note that this task is not idempotent, the role always inputs an SQL file if this variable is defined.
+When specifying any of these variables, you must also specify the `mssql_password` variable because authentication is required to input an SQL file to SQL Server.
 
-When this variable is defined, `mssql_debug` is set to true to print the output of the `sqlcmd` command.
+If you do not pass these variables, the role only configures the SQL Server and does not input any SQL file.
 
-You can find an example of the SQL file at `tests/sql_script.sql`.
+Note that this task is not idempotent, the role always inputs an SQL file if any of these variables is defined.
+
+When any of these variables is defined, `mssql_debug` is set to true to print the output of the `sqlcmd` command.
+
+You can find an example of an SQL file at `tests/sql_script.sql`.
 
 Default: `null`
 

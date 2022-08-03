@@ -10,8 +10,14 @@ mssql_edition: null
 mssql_tcp_port: 1433
 mssql_firewall_configure: false
 mssql_ip_address: null
-mssql_input_sql_file: null
-mssql_debug: "{{ true if mssql_input_sql_file is not none else false }}"
+mssql_pre_input_sql_file: null
+mssql_post_input_sql_file: null
+mssql_debug: "{{
+  true if (mssql_input_sql_file is not none) or
+  (mssql_pre_input_sql_file is not none) or
+  (mssql_post_input_sql_file is not none)
+  else false
+}}"
 mssql_enable_sql_agent: null
 mssql_install_fts: null
 mssql_install_powershell: null
