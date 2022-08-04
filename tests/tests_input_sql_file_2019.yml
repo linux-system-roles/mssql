@@ -16,6 +16,22 @@
         mssql_password: "p@55w0rD"
         mssql_edition: Evaluation
 
+    - name: Assert the latest script invocation resulted in no changes
+      assert:
+        that:
+          - >-
+            'The MyLogin login already exists, skipping' in
+            __mssql_sqlcmd_input_file.stdout
+          - >-
+            'The MyUser user already exists, skipping' in
+            __mssql_sqlcmd_input_file.stdout
+          - >-
+            'The ExampleDB database already exists, skipping' in
+            __mssql_sqlcmd_input_file.stdout
+          - >-
+            'The Inventory table already exists, skipping' in
+            __mssql_sqlcmd_input_file.stdout
+
     - name: Verify the failure when the mssql_password var is not specified
       block:
         - name: Input the sql file without the mssql_password variable
