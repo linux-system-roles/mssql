@@ -136,6 +136,10 @@ Default: `null`
 
 Type: `str`
 
+### `mssql_input_sql_file`
+
+This variable is deprecated. Use the below variables instead.
+
 ### `mssql_pre_input_sql_file` and `mssql_post_input_sql_file`
 
 You can use the role to input a file containing SQL statements or procedures into SQL Server.
@@ -153,7 +157,7 @@ Note that this task is not idempotent, the role always inputs an SQL file if any
 
 When any of these variables is defined, `mssql_debug` is set to true to print the output of the `sqlcmd` command.
 
-You can find an example of an SQL file at `tests/sql_script.sql`.
+You can find an example of an SQL file at `tests/sql_script.sql` at the role's directory.
 
 Default: `null`
 
