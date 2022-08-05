@@ -166,9 +166,9 @@ Type: `str`
 ### `mssql_debug`
 
 Whether or not to print the output of sqlcmd commands.
-The role inputs SQL scripts with the sqlcmd command to configure SQL Server for HA or to input users' SQL scripts when the `mssql_input_sql_file` variable is provided.
+The role inputs SQL scripts with the sqlcmd command to configure SQL Server for HA or to input users' SQL scripts when you define `mssql_pre_input_sql_file` or `mssql_post_input_sql_file` variable.
 
-Default: `true` if `mssql_input_sql_file` is defined else `false`
+Default: `true` if `mssql_pre_input_sql_file` or `mssql_post_input_sql_file` is defined else `false`
 
 Type: `bool`
 
@@ -554,7 +554,8 @@ This example shows how to use the role to set up SQL Server and enable the follo
     mssql_install_fts: true
     mssql_install_powershell: true
     mssql_tune_for_fua_storage: true
-    mssql_input_sql_file: mydatabase.sql
+    mssql_pre_input_sql_file: myusers.sql
+    mssql_post_input_sql_file: mydatabases.sql
   roles:
     - microsoft.sql.server
 ```
