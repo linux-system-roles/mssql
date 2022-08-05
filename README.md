@@ -155,8 +155,6 @@ If you do not pass these variables, the role only configures the SQL Server and 
 
 Note that this task is not idempotent, the role always inputs an SQL file if any of these variables is defined.
 
-When any of these variables is defined, `mssql_debug` is set to true to print the output of the `sqlcmd` command.
-
 You can find an example of an SQL file at `tests/sql_script.sql` at the role's directory.
 
 Default: `null`
@@ -166,9 +164,9 @@ Type: `str`
 ### `mssql_debug`
 
 Whether or not to print the output of sqlcmd commands.
-The role inputs SQL scripts with the sqlcmd command to configure SQL Server for HA or to input users' SQL scripts when you define `mssql_pre_input_sql_file` or `mssql_post_input_sql_file` variable.
+The role inputs SQL scripts with the sqlcmd command to configure SQL Server for HA or to input users' SQL scripts when you define a `mssql_pre_input_sql_file` or `mssql_post_input_sql_file` variable.
 
-Default: `true` if `mssql_pre_input_sql_file` or `mssql_post_input_sql_file` is defined else `false`
+Default: `false`
 
 Type: `bool`
 
