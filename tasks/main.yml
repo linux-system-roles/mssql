@@ -14,10 +14,36 @@
     __mssql_sqlcmd_login_cmd: null
 
 - name: Link the deprecated accept_microsoft_sql_server_2019_standard_eula fact
-  set_fact:
-    mssql_accept_microsoft_sql_server_standard_eula: >-
-      {{ mssql_accept_microsoft_sql_server_2019_standard_eula }}
   when: mssql_accept_microsoft_sql_server_2019_standard_eula is defined
+  block:
+    - name: Print that the variable is deprecated
+      debug:
+        msg: >-
+          "The accept_microsoft_sql_server_2019_standard_eula variable is
+          deprecated and will be removed in a future version. Edit your playbook
+          to use the mssql_accept_microsoft_sql_server_standard_eula variable
+          instead."
+
+    - name: >-
+        Link the deprecated accept_microsoft_sql_server_2019_standard_eula fact
+      set_fact:
+        mssql_accept_microsoft_sql_server_standard_eula: >-
+          {{ mssql_accept_microsoft_sql_server_2019_standard_eula }}
+
+- name: Link the deprecated mssql_input_sql_file fact
+  when: mssql_input_sql_file is defined
+  block:
+    - name: Print that the mssql_input_sql_file variable is deprecated
+      debug:
+        msg: >-
+          "The mssql_input_sql_file variable is deprecated and will be removed
+          in a future version. Edit your playbook to use
+          mssql_post_input_sql_file and mssql_pre_input_sql_file variables
+          instead."
+
+    - name: Link the deprecated mssql_input_sql_file fact
+      set_fact:
+        mssql_post_input_sql_file: "{{ mssql_input_sql_file }}"
 
 - name: Verify that the user accepts EULA variables
   assert:
@@ -286,6 +312,17 @@
         - MSSQL_SA_PASSWORD: "{{ mssql_password }}"
       when: __mssql_password_query is failed
       notify: Restart the mssql-server service
+
+# Keep this task after setting password
+- name: Input the {{ mssql_pre_input_sql_file }} sql file to SQL Server
+  vars:
+    __mssql_input_sql_file: "{{ mssql_pre_input_sql_file }}"
+  include_tasks: input_sql_file.yml
+  when: mssql_pre_input_sql_file is not none
+
+- name: Unset the mssql_pre_input_sql_file fact
+  set_fact:
+    mssql_pre_input_sql_file: null
 
 - name: Set a new edition for MSSQL
   when:
@@ -783,10 +820,12 @@
     insertbefore: BOF
 
 # Keep this task at the bottom, it must be run at the end of the role
-- name: Input the {{ mssql_input_sql_file }} sql file to SQL Server
+- name: Input the {{ mssql_post_input_sql_file }} sql file to SQL Server
   vars:
-    __mssql_input_sql_file: "{{ mssql_input_sql_file }}"
+    __mssql_input_sql_file: "{{ mssql_post_input_sql_file }}"
   include_tasks: input_sql_file.yml
-  when:
-    - mssql_input_sql_file is defined
-    - mssql_input_sql_file is not none
+  when: mssql_post_input_sql_file is not none
+
+- name: Unset the mssql_post_input_sql_file fact
+  set_fact:
+    mssql_post_input_sql_file: null

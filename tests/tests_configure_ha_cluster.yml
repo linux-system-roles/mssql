@@ -48,11 +48,9 @@
         name: fedora.linux_system_roles.ha_cluster
         tasks_from: test_setup.yml
 
-    - name: Configure SQL Server and create an ExampleDB database on primary
-      vars:
-        mssql_input_sql_file: create_example_db.j2
-      include_role:
-        name: linux-system-roles.mssql
+    - name: Set the mssql_pre_input_sql_file fact to appear on primary
+      set_fact:
+        mssql_pre_input_sql_file: create_example_db.j2
       when: mssql_ha_replica_type == 'primary'
 
     - name: Run on all hosts to configure HA cluster

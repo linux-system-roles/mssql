@@ -138,19 +138,24 @@ Type: `str`
 
 ### `mssql_input_sql_file`
 
+This variable is deprecated. Use the below variables instead.
+
+### `mssql_pre_input_sql_file` and `mssql_post_input_sql_file`
+
 You can use the role to input a file containing SQL statements or procedures into SQL Server.
-With this variable, enter the path to the SQL file containing the database configuration.
 
-When specifying this variable, you must also specify the `mssql_password`
-variable because authentication is required to input an SQL file to SQL Server.
+* Use `mssql_pre_input_sql_file` to input the SQL file immediately after the role configures SQL Server.
+* Use `mssql_post_input_sql_file` to input the SQL file at the end of the role invocation.
 
-If you do not pass this variable, the role only configures the SQL Server and does not input any SQL file.
+With these variables, enter the path to the files containing SQL scripts.
 
-Note that this task is not idempotent, the role always inputs an SQL file if this variable is defined.
+When specifying any of these variables, you must also specify the `mssql_password` variable because authentication is required to input an SQL file to SQL Server.
 
-When this variable is defined, `mssql_debug` is set to true to print the output of the `sqlcmd` command.
+If you do not pass these variables, the role only configures the SQL Server and does not input any SQL file.
 
-You can find an example of the SQL file at `tests/sql_script.sql`.
+Note that this task is not idempotent, the role always inputs an SQL file if any of these variables is defined.
+
+You can find an example of an SQL file at `tests/sql_script.sql` at the role's directory.
 
 Default: `null`
 
@@ -159,9 +164,9 @@ Type: `str`
 ### `mssql_debug`
 
 Whether or not to print the output of sqlcmd commands.
-The role inputs SQL scripts with the sqlcmd command to configure SQL Server for HA or to input users' SQL scripts when the `mssql_input_sql_file` variable is provided.
+The role inputs SQL scripts with the sqlcmd command to configure SQL Server for HA or to input users' SQL scripts when you define a `mssql_pre_input_sql_file` or `mssql_post_input_sql_file` variable.
 
-Default: `true` if `mssql_input_sql_file` is defined else `false`
+Default: `false`
 
 Type: `bool`
 
@@ -547,7 +552,8 @@ This example shows how to use the role to set up SQL Server and enable the follo
     mssql_install_fts: true
     mssql_install_powershell: true
     mssql_tune_for_fua_storage: true
-    mssql_input_sql_file: mydatabase.sql
+    mssql_pre_input_sql_file: myusers.sql
+    mssql_post_input_sql_file: mydatabases.sql
   roles:
     - microsoft.sql.server
 ```
