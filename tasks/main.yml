@@ -19,10 +19,10 @@
     - name: Print that the variable is deprecated
       debug:
         msg: >-
-          "The accept_microsoft_sql_server_2019_standard_eula variable is
+          The accept_microsoft_sql_server_2019_standard_eula variable is
           deprecated and will be removed in a future version. Edit your playbook
           to use the mssql_accept_microsoft_sql_server_standard_eula variable
-          instead."
+          instead.
 
     - name: >-
         Link the deprecated accept_microsoft_sql_server_2019_standard_eula fact
@@ -36,10 +36,10 @@
     - name: Print that the mssql_input_sql_file variable is deprecated
       debug:
         msg: >-
-          "The mssql_input_sql_file variable is deprecated and will be removed
+          The mssql_input_sql_file variable is deprecated and will be removed
           in a future version. Edit your playbook to use
           mssql_post_input_sql_file and mssql_pre_input_sql_file variables
-          instead."
+          instead.
 
     - name: Link the deprecated mssql_input_sql_file fact
       set_fact:
