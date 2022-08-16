@@ -640,9 +640,11 @@ Note that production environments require Pacemaker configured with fencing agen
 #### Configuring SQL Server with HA and Pacemaker on Bare Metal
 
 If you want to configure Pacemaker from this role, you can set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true` and provide variables required by the `ha_cluster` role to configure Pacemaker for your environment properly.
-See the `ha_cluster` role's documentation for more information.
 
-Note that production environments require Pacemaker configured with fencing agents, this example playbook configures the `stonith:fence_apc_snmp` agent.
+This example configures required Pacemaker properties and resources and enables SBD watchdog.
+
+The ha_cluster role expects watchdog devices to be configured on `/dev/watchdog` by default, you can set a different device per host in inventory.
+For more information, see the `ha_cluster` role documentation.
 
 ```yaml
 - hosts: all
@@ -663,48 +665,39 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_ha_endpoint_name: Example_Endpoint
     mssql_ha_ag_name: ExampleAG
     mssql_ha_db_name: ExampleDB
-    mssql_ha_login: ExamleLogin
+    mssql_ha_login: ExampleLogin
     mssql_ha_login_password: "p@55w0rD3"
     mssql_ha_cluster_run_role: true
     ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
     ha_cluster_hacluster_password: "p@55w0rD4"
+    ha_cluster_sbd_enabled: true
     ha_cluster_cluster_properties:
       - attrs:
-        - name: cluster-recheck-interval
-          value: 2min
-        - name: start-failure-is-fatal
-          value: true
-        - name: stonith-enabled
-          value: true
+          - name: cluster-recheck-interval
+            value: 2min
+          - name: start-failure-is-fatal
+            value: true
+          - name: stonith-enabled
+            value: true
+          - name: stonith-watchdog-timeout
+            value: 10
     ha_cluster_resource_primitives:
-      - id: Example_apc
-        agent: stonith:fence_apc_snmp
-        instance_attrs:
-          - attrs:
-            - name: login
-              value: apc_login
-            - name: passwd
-              value: apc_pass
-            - name: ipaddr
-              value: apc-switch.example.com
-            - name: pcmk_host_map
-              value: rhel8-node1.example.com:1;rhel8-node2.example.com:2
       - id: ag_cluster
         agent: ocf:mssql:ag
         instance_attrs:
           - attrs:
-            - name: ag_name
-              value: "{{ mssql_ha_ag_name }}"
+              - name: ag_name
+                value: "{{ mssql_ha_ag_name }}"
         meta_attrs:
           - attrs:
-            - name: failure-timeout
-              value: 60s
+              - name: failure-timeout
+                value: 60s
       - id: virtualip
         agent: ocf:heartbeat:IPaddr2
         instance_attrs:
           - attrs:
-            - name: ip
-              value: 192.XXX.XXX.XXX
+              - name: ip
+                value: 192.XXX.XXX.XXX
         operations:
           - action: monitor
             attrs:
@@ -715,8 +708,8 @@ Note that production environments require Pacemaker configured with fencing agen
         promotable: yes
         meta_attrs:
           - attrs:
-            - name: notify
-              value: true
+              - name: notify
+                value: true
     ha_cluster_constraints_colocation:
       - resource_leader:
           id: ag_cluster-clone
