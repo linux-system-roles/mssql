@@ -325,6 +325,9 @@ Type: `string`
 
 Use the variables starting with the `mssql_ha_` prefix to configure an SQL Server Always On availability group to provide high availability.
 
+Ensure that your hosts meet the requirements for high availability configuration, namely DNS resolution configured so that hosts can communicate using short names.
+For more information, see Prerequisites in [Configure SQL Server Always On Availability Group for high availability on Linux](https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-availability-group-configure-ha?view=sql-server-ver15#prerequisites).
+
 Configuring for high availability is not supported on RHEL 7 because the System Roles ha_cluster role does not support RHEL 7.
 
 Set to `true` to configure for high availability.
