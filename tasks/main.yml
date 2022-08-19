@@ -766,12 +766,6 @@
       vars:
         __mssql_input_sql_file: grant_permissions_to_ha_login.j2
       include_tasks: input_sql_file.yml
-
-    - name: Verify if the {{ mssql_ha_db_name }} database exists on secondaries
-      vars:
-        __mssql_input_sql_file: verify_sql_cluster.j2
-      include_tasks: input_sql_file.yml
-      when: mssql_ha_replica_type not in ['primary', 'witness']
   always:
     # changed_when: false because this task removes unused remnant of cert files
     - name: Remove certificate and private key from the control node
@@ -802,14 +796,6 @@
       include_role:
         name: fedora.linux_system_roles.ha_cluster
       when: mssql_ha_cluster_run_role | bool
-
-- name: Verify if the {{ mssql_ha_db_name }} database exists
-  vars:
-    __mssql_input_sql_file: verify_sql_cluster.j2
-  include_tasks: input_sql_file.yml
-  when:
-    - mssql_ha_configure | bool
-    - mssql_ha_replica_type != 'witness'
 
 - name: Ensure the ansible_managed header in {{ __mssql_conf_path }}
   vars:
