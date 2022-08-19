@@ -899,6 +899,8 @@ For more information, see the following articles in Microsoft documentation:
 
 Note that production environments require Pacemaker configured with fencing agents, this example playbook configures the `stonith:fence_azure_arm` agent.
 
+This example playbooks sets the `firewall` variables for the `fedora.linux_system_roles.firewall` role and then runs this role to open the probe port configured in Azure.
+
 ```yaml
 - hosts: all
   vars:
@@ -920,6 +922,8 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_ha_db_name: ExampleDB
     mssql_ha_login: ExampleLogin
     mssql_ha_login_password: "p@55w0rD3"
+    # Set mssql_ha_virtual_ip to the frontend IP address configured in the Azure
+    # load balancer
     mssql_ha_virtual_ip: 192.XXX.XXX.XXX
     mssql_ha_ag_listener_ip: "{{ mssql_ha_virtual_ip }}"
     mssql_ha_cluster_run_role: true
@@ -959,6 +963,7 @@ Note that production environments require Pacemaker configured with fencing agen
         agent: azure-lb
         instance_attrs:
           - attrs:
+            # probe port configured in Azure
             - name: port
               value: 59999
       - id: ag_cluster
@@ -1010,7 +1015,14 @@ Note that production environments require Pacemaker configured with fencing agen
         resource_then:
           id: azure_load_balancer
           action: start
+    # Variables to open the probe port configured in Azure in firewall
+    firewall:
+      - port: 59999
+        state: enabled
+        permanent: true
+        runtime: true
   roles:
+    - fedora.linux_system_roles.firewall
     - microsoft.sql.server
 ```
 
