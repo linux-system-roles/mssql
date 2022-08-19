@@ -383,6 +383,9 @@ Type: `bool`
 
 The TCP port used to replicate data for an Always On availability group.
 
+Note that due to an SQL Server limitation it is not possible to change a listener port number on an existing availability group when the availability group contains a configuration-only replica.
+To do that, you must re-create the availability group using the required port number.
+
 Default: `5022`
 
 Type: `int`
