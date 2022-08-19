@@ -640,21 +640,38 @@ Examples in this section shows how to use the role to set up SQL Server and conf
 
 You must set the `mssql_ha_replica_type` variable for each host that you want to configure.
 
-If you set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true`, you can optionally provide variables required by the `fedora.linux_system_roles.ha_cluster` role.
+If you set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true`, you can provide variables required by the `fedora.linux_system_roles.ha_cluster` role.
 If you do not provide names or addresses, the `fedora.linux_system_roles.ha_cluster` uses play's targets.
-See the `fedora.linux_system_roles.ha_cluster` role documentation for more information.
+Therefore, if your play's targets differ from the pacemaker node and pcs names that you want to configure, or the default IP address differs from the IP address that pacemaker must use, you must set the corresponding `fedora.linux_system_roles.ha_cluster` role variables.
 
-Example inventory:
+See the `fedora.linux_system_roles.ha_cluster` role's documentation for more information.
+
+The following example inventory sets all variables:
 
 ```yaml
 all:
   hosts:
-    host1:
+    host1.example.com:
       mssql_ha_replica_type: primary
-    host2:
+      ha_cluster:
+        node_name: host1
+        pcs_address: host1
+        corosync_addresses:
+          - 192.XXX.XXX.111
+    host2.example.com:
       mssql_ha_replica_type: synchronous
-    host3:
+      ha_cluster:
+        node_name: host2
+        pcs_address: host2
+        corosync_addresses:
+          - 192.XXX.XXX.222
+    host3.example.com:
       mssql_ha_replica_type: witness
+      ha_cluster:
+        node_name: host3
+        pcs_address: host3
+        corosync_addresses:
+          - 192.XXX.XXX.333
 ```
 
 #### Configuring SQL Server HA without Pacemaker
@@ -895,7 +912,7 @@ You must configure all required resources in Azure.
 For more information, see the following articles in Microsoft documentation:
 
 * [Setting up Pacemaker on Red Hat Enterprise Linux in Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-pacemaker#1-create-the-stonith-devices)
-* [Tutorial: Configure availability groups for SQL Server on RHEL virtual machines in Azure]([Tutorial: Configure availability groups for SQL Server on RHEL virtual machines in Azure](https://docs.microsoft.com/en-us/azure/azure-sql/virtual-machines/linux/rhel-high-availability-stonith-tutorial?view=azuresql))
+* [Tutorial: Configure availability groups for SQL Server on RHEL virtual machines in Azure](https://docs.microsoft.com/en-us/azure/azure-sql/virtual-machines/linux/rhel-high-availability-stonith-tutorial?view=azuresql)
 
 Note that production environments require Pacemaker configured with fencing agents, this example playbook configures the `stonith:fence_azure_arm` agent.
 
