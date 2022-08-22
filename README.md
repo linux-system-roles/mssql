@@ -94,7 +94,7 @@ Use one of the following values:
 * `Express`
 * `Evaluation`
 * A product key in the form `#####-#####-#####-#####-#####`, where `#` is a number or a letter.
-  For more information, see  <https://docs.microsoft.com/en-us/sql/linux sql-server-linux-configure-environment-variables?view=sql-server-ver15>.
+  For more information, see [Configure SQL Server settings with environment variables on Linux](https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-configure-environment-variables?view=sql-server-ver16).
 
 Default: `null`
 
@@ -164,7 +164,7 @@ Type: `str`
 ### `mssql_debug`
 
 Whether or not to print the output of sqlcmd commands.
-The role inputs SQL scripts with the sqlcmd command to configure SQL Server for HA or to input users' SQL scripts when you define a `mssql_pre_input_sql_file` or `mssql_post_input_sql_file` variable.
+The role inputs SQL scripts with the sqlcmd command to configure SQL Server for HA or to input users' SQL scripts when you define a [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) or [`mssql_post_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable.
 
 Default: `false`
 
@@ -220,7 +220,7 @@ When set to `false`, the role applies the following settings:
 * Set the `control.alternatewritethrough` setting to its default value `0`
 * Set the `control.writethrough` setting to its default value `0`
 
-For more details, see SQL Server and Forced Unit Access (FUA) I/O subsystem capability at <https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-performance-best-practices?view=sql-server-ver15>.
+For more details, see SQL Server and Forced Unit Access (FUA) I/O subsystem capability at [Performance best practices and configuration guidelines for SQL Server on Linux](https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-performance-best-practices?view=sql-server-ver15).
 
 Default: `null`
 
@@ -336,15 +336,15 @@ Setting to `false` does not remove configuration for high availability.
 When set to `true`, the role performs the following tasks:
 
 1. Include the `fedora.linux_system_roles.firewall` role to configure firewall:
-1.1. Open the firewall port set with the `mssql_ha_listener_port` variable.
-1.2. Enable the `high-availability` service in firewall.
+     1. Open the firewall port set with the [`mssql_ha_listener_port`](#mssql_ha_listener_port) variable.
+     2. Enable the `high-availability` service in firewall.
 2. Configure SQL Server for high availability:
-2.1. Enable AlwaysOn Health events.
-2.2. Create certificate on the primary replica and distribute to other replicas.
-2.3. Configure endpoint and availability group.
-2.4. Configure the user provided with the `mssql_ha_login` variable for
+     1. Enable AlwaysOn Health events.
+     2. Create certificate on the primary replica and distribute to other replicas.
+     3. Configure endpoint and availability group.
+     4. Configure the user provided with the [`mssql_ha_login`](#mssql_ha_login) variable for
 Pacemaker.
-1. Optional: Include the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker.
+3. Optional: Include the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker.
 You must set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true` and provide all variables required by the `fedora.linux_system_roles.ha_cluster` role for a proper Pacemaker cluster configuration based on example playbooks in [Setting Up SQL Server and Configuring for High Availability](#Setting_Up_SQL_Server_and_Configuring_for_High_Availability).
 
 Default: `false`
