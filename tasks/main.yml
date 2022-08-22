@@ -558,6 +558,7 @@
         __mssql_ha_seeding_mode: "{{ __mssql_ha_seeding_mode }}"
 
 - name: Configure availability group on the primary node
+  any_errors_fatal: true
   when:
     - mssql_ha_configure | bool
     - mssql_ha_replica_type == 'primary'
@@ -657,42 +658,11 @@
         __mssql_input_sql_file: replicate_db.j2
       include_tasks: input_sql_file.yml
 
-    # This is required because `any_errors_fatal: true` does not work within
-    # blocks that have rescue or always sections
-    - name: Set a fact to indicate successful set up on the primary replica
-      delegate_to: localhost
-      set_fact:
-        __mssql_primary_successful: true
-      run_once: true
-  rescue:
-    # changed_when: false because this task removes unused remnant of cert files
-    - name: Remove certificate and private key from the control node
-      delegate_to: localhost
-      file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - cert
-        - key
-      changed_when: false
-
-    - name: Fail because this rescue block does not actually rescue failed tasks
-      fail:
-        msg: Configuration tasks failed
-
 - name: Configure availability group on replicas
   when:
     - mssql_ha_configure | bool
     - mssql_ha_replica_type in ['synchronous', 'witness']
-  any_errors_fatal: true
   block:
-    - name: Fail if the primary node failed
-      delegate_to: localhost
-      fail:
-        msg: "Halting playbook execution due to error on the primary node"
-      when: not __mssql_primary_successful | d(false)
-      run_once: true
-
     - name: Ensure the {{ __mssql_server_ha_packages }} package
       package:
         name: "{{ __mssql_server_ha_packages }}"

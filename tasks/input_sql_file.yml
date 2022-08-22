@@ -84,9 +84,9 @@
         - not mssql_debug
       changed_when: false
 
-    # This is required because in the case when a task that precedes the input
-    # task fails, the print task prints a previous result
-    - name: Unset the __mssql_sqlcmd_input_file variable
-      set_fact:
-        __mssql_sqlcmd_input_file: ""
-      when: not mssql_debug
+    # This is required because the always block resets the failed tasks status
+    # and causes the any_error_fatal: true setting to count tasks as not failed
+    - name: Fail because the Input with sqlcmd task failed
+      fail:
+        msg: Fail because the Input with sqlcmd task failed
+      when: __mssql_sqlcmd_input_file is failed
