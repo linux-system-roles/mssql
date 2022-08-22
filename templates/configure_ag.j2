@@ -41,12 +41,17 @@ BEGIN
 {# removed beforehand. Otherwise, the script fails with 'only supports one #}
 {# replica which has configuration-only availability mode.' #}
 {% set ag_replicas_sorted = [] %}
+{# In the first loop, add primaries at the end and witness at the beginning #}
 {% for item in ansible_play_hosts %}
 {%   if hostvars[item]['mssql_ha_replica_type'] == 'primary' %}
-{{ ag_replicas_sorted.insert(-1, item) -}}
+{{ ag_replicas_sorted.append(item) -}}
 {%   elif hostvars[item]['mssql_ha_replica_type'] == 'witness' %}
-{{ ag_replicas_sorted.insert(-2, item) -}}
-{%   else  %}
+{{ ag_replicas_sorted.insert(0, item) -}}
+{%   endif %}
+{% endfor %}
+{# In the second loop, add others at the beginning #}
+{% for item in ansible_play_hosts %}
+{%   if hostvars[item]['mssql_ha_replica_type'] not in ag_replicas_sorted %}
 {{ ag_replicas_sorted.insert(0, item) -}}
 {%   endif %}
 {% endfor %}
