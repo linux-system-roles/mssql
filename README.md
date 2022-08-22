@@ -641,37 +641,39 @@ Examples in this section shows how to use the role to set up SQL Server and conf
 You must set the `mssql_ha_replica_type` variable for each host that you want to configure.
 
 If you set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true`, you can provide variables required by the `fedora.linux_system_roles.ha_cluster` role.
-If you do not provide names or addresses, the `fedora.linux_system_roles.ha_cluster` uses play's targets.
-Therefore, if your play's targets differ from the pacemaker node and pcs names that you want to configure, or the default IP address differs from the IP address that pacemaker must use, you must set the corresponding `fedora.linux_system_roles.ha_cluster` role variables.
+If you do not provide names or addresses, the `fedora.linux_system_roles.ha_cluster` uses play's targets, and the high availability setup requires pacemaker to be configured with short names.
+Therefore, if you define hosts in inventory not by short names, or the default hosts' IP address differs from the IP address that pacemaker must use, you must set the corresponding `fedora.linux_system_roles.ha_cluster` role variables.
 
 See the `fedora.linux_system_roles.ha_cluster` role's documentation for more information.
 
-The following example inventory sets all variables:
+The following example inventory describes different cases:
 
 ```yaml
 all:
   hosts:
-    host1.example.com:
+    # host1 is defined by a short name
+    # There is no need to specify ha_cluster names explicitly
+    host1:
       mssql_ha_replica_type: primary
-      ha_cluster:
-        node_name: host1
-        pcs_address: host1
-        corosync_addresses:
-          - 192.XXX.XXX.111
+    # host2 is defined by FQDN
+    # You must define ha_cluster names to be in the short name format
     host2.example.com:
       mssql_ha_replica_type: synchronous
       ha_cluster:
         node_name: host2
         pcs_address: host2
-        corosync_addresses:
-          - 192.XXX.XXX.222
-    host3.example.com:
+    # host3 is defined by an ip address
+    # You must define ha_cluster names to be in the short name format
+    # In the case where the default host's IP address differs from the IP
+    # address that Pacemaker must use to set up cluster, you must define
+    # ha_cluster corosync_addresses
+    192.XXX.XXX.333:
       mssql_ha_replica_type: witness
       ha_cluster:
         node_name: host3
         pcs_address: host3
         corosync_addresses:
-          - 192.XXX.XXX.333
+          - 10.XXX.XXX.333
 ```
 
 #### Configuring SQL Server HA without Pacemaker
