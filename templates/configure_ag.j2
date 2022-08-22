@@ -33,7 +33,24 @@ BEGIN
     PRINT 'DB_FAILOVER = ON is already set, skipping'
   END
   PRINT 'Verifying replicas'
+{# Sort ansible_play_hosts #}
+{# Sort primary replica as the last in the list #}
+{# Sort witness replica as the next-to-last in the list #}
+{# Configure primary last because it has information about other replicas #}
+{# Configure witness next-to-last to ensure that previous witness replica is #}
+{# removed beforehand. Otherwise, the script fails with 'only supports one #}
+{# replica which has configuration-only availability mode.' #}
+{% set ag_replicas_sorted = [] %}
 {% for item in ansible_play_hosts %}
+{%   if hostvars[item]['mssql_ha_replica_type'] == 'primary' %}
+{{ ag_replicas_sorted.insert(-1, item) -}}
+{%   elif hostvars[item]['mssql_ha_replica_type'] == 'witness' %}
+{{ ag_replicas_sorted.insert(-2, item) -}}
+{%   else  %}
+{{ ag_replicas_sorted.insert(0, item) -}}
+{%   endif %}
+{% endfor %}
+{% for item in ag_replicas_sorted %}
 {%   if hostvars[item]['mssql_ha_replica_type'] != 'absent' %}
   IF EXISTS (
     SELECT replica_server_name, availability_mode_desc

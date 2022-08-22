@@ -626,7 +626,7 @@
         key: "{{ __mssql_ha_private_key_dest }}"
       changed_when: false
 
-    - name: Create database mirroring endpoints
+    - name: Configure database mirroring endpoints
       vars:
         __mssql_input_sql_file: configure_endpoint.j2
       include_tasks: input_sql_file.yml
@@ -642,7 +642,7 @@
         manager: auto
       no_log: true
 
-    - name: Create the {{ mssql_ha_ag_name }} availability group
+    - name: Configure the {{ mssql_ha_ag_name }} availability group
       vars:
         __mssql_input_sql_file: configure_ag.j2
       include_tasks: input_sql_file.yml
@@ -747,7 +747,7 @@
         __mssql_input_sql_file: restore_cert.j2
       include_tasks: input_sql_file.yml
 
-    - name: Create database mirroring endpoints
+    - name: Configure database mirroring endpoints
       vars:
         __mssql_input_sql_file: configure_endpoint.j2
       include_tasks: input_sql_file.yml
