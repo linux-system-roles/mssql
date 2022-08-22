@@ -73,7 +73,7 @@ Do not use single quotes ('), double quotes ("), and spaces in the password beca
 
 This variable is required when you run the role to install SQL Server.
 
-When running this role on a host that has SQL Server installed, the `mssql_password` variable overwrites theexisting sa user password to the one that you specified.
+When running this role on a host that has SQL Server installed, the `mssql_password` variable overwrites the existing sa user password to the one that you specified.
 
 Default: `null`
 
@@ -325,8 +325,14 @@ Type: `string`
 
 Use the variables starting with the `mssql_ha_` prefix to configure an SQL Server Always On availability group to provide high availability.
 
-Ensure that your hosts meet the requirements for high availability configuration, namely DNS resolution configured so that hosts can communicate using short names.
+**Prerequisites**
+
+* Ensure that your hosts meet the requirements for high availability configuration, namely DNS resolution configured so that hosts can communicate using short names.
 For more information, see Prerequisites in [Configure SQL Server Always On Availability Group for high availability on Linux](https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-availability-group-configure-ha?view=sql-server-ver15#prerequisites).
+* In SQL Server, create a database to be used for replication.
+Provide the database name to the role with the [`mssql_ha_db_name`](#mssql_ha_db_name) variable.
+You can set the [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable to pre-create the database.
+For more information, see the description of the [`mssql_ha_db_name`](#mssql_ha_db_name) variable.
 
 Configuring for high availability is not supported on RHEL 7 because the `fedora.linux_system_roles.ha_cluster` role does not support RHEL 7.
 
@@ -442,6 +448,22 @@ Type: `string`
 
 The name of the database to be replicated.
 This database must exist in SQL Server.
+
+You can write a T-SQL script that creates a database and feed it into the role with the [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable.
+This way, the role runs your script to create a database after ensuring that SQL Server is running and then replicates this database for high availability.
+
+For example, you can write a `create_example_db.sql` SQL script that creates a test database and feed it into the SQL Server from the primary replica with `mssql_pre_input_sql_file` prior to running the role.
+
+```yaml
+- name: Set facts to create a test DB on primary as a pre task
+  set_fact:
+    mssql_pre_input_sql_file: create_example_db.sql
+  when: mssql_ha_replica_type == 'primary'
+
+- name: Run on all hosts to configure HA cluster
+  include_role:
+    name: microsoft.sql.server
+```
 
 Default: `null`
 
