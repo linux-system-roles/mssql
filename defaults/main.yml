@@ -40,4 +40,5 @@ mssql_ha_db_name: null
 mssql_ha_db_backup_path: /var/opt/mssql/data/{{ mssql_ha_db_name }}.bak
 mssql_ha_login: null
 mssql_ha_login_password: null
+mssql_ha_virtual_ip: null
 mssql_ha_cluster_run_role: false

@@ -1,0 +1,7 @@
+PRINT 'Adding the TEST-listener listener to the \
+{{ mssql_ha_ag_name }} availability group';
+ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }}
+ADD LISTENER 'TEST-listener' (
+  WITH IP ( ('{{ mssql_ha_virtual_ip }}','255.255.255.0') ),
+  PORT = {{ mssql_tcp_port }}
+);

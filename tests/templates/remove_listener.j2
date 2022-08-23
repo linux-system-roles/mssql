@@ -1,0 +1,19 @@
+IF NOT EXISTS (
+  SELECT dns_name
+  FROM sys.availability_group_listeners
+)
+BEGIN
+  PRINT 'Listeners do not exist, skipping'
+END
+ELSE
+BEGIN
+  DECLARE @ListenerName VARCHAR(30) = (
+    SELECT dns_name FROM sys.availability_group_listeners
+  );
+  PRINT 'Removing the listener ' + CAST(@ListenerName AS VARCHAR);
+  EXEC (
+    'ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }}
+    REMOVE LISTENER "'+@ListenerName+'"'
+  );
+  PRINT 'Removed the listener ' + CAST(@ListenerName AS VARCHAR) + ' successfully';
+END

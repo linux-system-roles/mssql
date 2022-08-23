@@ -1,0 +1,61 @@
+IF NOT EXISTS (
+  SELECT dns_name
+  FROM sys.availability_group_listeners
+)
+BEGIN
+  PRINT 'Adding the {{ mssql_ha_ag_name }}-listener listener to the \
+{{ mssql_ha_ag_name }} availability group';
+  ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }}
+  ADD LISTENER '{{ mssql_ha_ag_name }}-listener' (
+    WITH IP ( ('{{ mssql_ha_virtual_ip }}','255.255.255.0') ),
+    PORT = {{ mssql_tcp_port }}
+  );
+  PRINT 'Added the {{ mssql_ha_ag_name }}-listener listener successfully';
+END
+ELSE
+BEGIN
+  DECLARE @ListenerName VARCHAR(30) = (
+    SELECT dns_name FROM sys.availability_group_listeners
+  );
+  PRINT 'Verifying the existing listener ' + CAST(@ListenerName AS VARCHAR);
+  IF NOT EXISTS (
+    SELECT port
+    FROM sys.availability_group_listeners
+    WHERE port = '{{ mssql_tcp_port }}'
+  )
+  BEGIN
+    PRINT 'Modifying the listener port setting'
+    EXEC (
+      'ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }}
+      MODIFY LISTENER "'+@ListenerName+'" (
+        PORT = {{ mssql_tcp_port }}
+      )'
+    );
+    PRINT 'Set listener port to {{ mssql_tcp_port }} successfully'
+  END
+  ELSE
+  BEGIN
+    PRINT 'The port setting is already set correctly, skipping'
+  END
+  IF NOT EXISTS (
+    SELECT listener_id
+    FROM sys.availability_group_listener_ip_addresses
+    WHERE ip_address = '{{ mssql_ha_virtual_ip }}' AND
+          ip_subnet_mask = '255.255.255.0'
+  )
+  BEGIN
+    PRINT 'Modifying the listener ip address setting'
+    EXEC (
+      'ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }}
+      MODIFY LISTENER "'+@ListenerName+'" (
+        ADD IP ("{{ mssql_ha_virtual_ip }}","255.255.255.0")
+      )'
+    );
+    PRINT 'Added listener ip address \
+{{ mssql_ha_virtual_ip}},255.255.255.0 successfully'
+  END
+  ELSE
+  BEGIN
+    PRINT 'The listener ip address setting is already set correctly, skipping'
+  END
+END

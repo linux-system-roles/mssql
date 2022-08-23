@@ -22,6 +22,7 @@
     mssql_ha_db_name: ExampleDB
     mssql_ha_login: ExampleLogin
     mssql_ha_login_password: "p@55w0rD3"
+    mssql_ha_virtual_ip: 192.168.122.148
     mssql_ha_cluster_run_role: true
     ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
     ha_cluster_hacluster_password: "p@55w0rD4"
@@ -52,7 +53,7 @@
         instance_attrs:
           - attrs:
               - name: ip
-                value: 192.XXX.XXX.XXX
+                value: "{{ mssql_ha_virtual_ip }}"
         operations:
           - action: monitor
             attrs:
@@ -155,6 +156,7 @@
     mssql_ha_ag_name: ExampleAG
     mssql_ha_login: ExampleLogin
     mssql_ha_login_password: "p@55w0rD3"
+    mssql_ha_virtual_ip: 192.168.122.148
     mssql_ha_cluster_run_role: false
   tasks:
     - name: Testing templates only supported for primary replicas
@@ -284,6 +286,96 @@
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_file.yml
+
+    # configure_listener.j2 template test
+    - name: Remove a listener for test purposes
+      vars:
+        __mssql_input_sql_file: remove_listener.j2
+      include_role:
+        name: linux-system-roles.mssql
+        tasks_from: input_sql_file.yml
+
+    - name: Add a listener with a different name
+      vars:
+        __mssql_input_sql_file: add_test_listener.j2
+      include_role:
+        name: linux-system-roles.mssql
+        tasks_from: input_sql_file.yml
+
+    - name: Modify a listener
+      vars:
+        __mssql_input_sql_file: configure_listener.j2
+        mssql_tcp_port: 1434
+        mssql_ha_virtual_ip: 192.168.122.149
+      include_role:
+        name: linux-system-roles.mssql
+        tasks_from: input_sql_file.yml
+
+    - name: Assert expected messages
+      assert:
+        that:
+          - >-
+            "Verifying the existing listener TEST-listener"
+            in __mssql_sqlcmd_input_file.stdout
+          - >-
+            "Modifying the listener port setting"
+            in __mssql_sqlcmd_input_file.stdout
+          - >-
+            "Set listener port to 1434 successfully"
+            in __mssql_sqlcmd_input_file.stdout
+          - >-
+            "Modifying the listener ip address setting"
+            in __mssql_sqlcmd_input_file.stdout
+          - >-
+            "Added listener ip address 192.168.122.149,255.255.255.0
+            successfully"
+            in __mssql_sqlcmd_input_file.stdout
+
+    - name: Remove a listener to re-create with default values
+      vars:
+        __mssql_input_sql_file: remove_listener.j2
+        mssql_listener_name: TEST
+      include_role:
+        name: linux-system-roles.mssql
+        tasks_from: input_sql_file.yml
+
+    - name: Add a listener with previous settings
+      vars:
+        __mssql_input_sql_file: configure_listener.j2
+      include_role:
+        name: linux-system-roles.mssql
+        tasks_from: input_sql_file.yml
+
+    - name: Assert expected messages
+      assert:
+        that:
+          - >-
+            "Adding the {{ mssql_ha_ag_name }}-listener listener to the
+            {{ mssql_ha_ag_name }} availability group"
+            in __mssql_sqlcmd_input_file.stdout
+          - >-
+            "Added the {{ mssql_ha_ag_name }}-listener listener successfully"
+            in __mssql_sqlcmd_input_file.stdout
+
+    - name: Add a listener when it exists
+      vars:
+        __mssql_input_sql_file: configure_listener.j2
+      include_role:
+        name: linux-system-roles.mssql
+        tasks_from: input_sql_file.yml
+
+    - name: Assert expected messages
+      assert:
+        that:
+          - >-
+            "Verifying the existing listener {{ mssql_ha_ag_name }}-listener"
+            in __mssql_sqlcmd_input_file.stdout
+          - >-
+            "The port setting is already set correctly, skipping"
+            in __mssql_sqlcmd_input_file.stdout
+          - >-
+            "The listener ip address setting is already set correctly, skipping"
+            in __mssql_sqlcmd_input_file.stdout
 
     # create_master_key_encryption.j2 template test
     - name: Create a master key when it exists

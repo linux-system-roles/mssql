@@ -363,9 +363,11 @@ A host variable that specifies the type of the replica to be configured on this 
 
 See [`Setting Up SQL Server and Configuring for High Availability`](#Setting-Up-SQL-Server-and-Configuring-for-High-Availability) for an example inventory.
 
-You must set the `mssql_ha_replica_type` variable to `primary` for exactly one host.
-
 The available values are: `primary`, `synchronous`, `witness`.
+
+You must set this variable to `primary` for exactly one host.
+
+You can set this variable to `witness` for maximum one host.
 
 Default: no default
 
@@ -518,6 +520,20 @@ Default: `false`
 
 Type: `bool`
 
+#### `mssql_ha_virtual_ip`
+
+The virtual IP address to be configured for the SQL cluster.
+
+The role creates an availability group listener using the following values:
+
+* The port provided with the `mssql_tcp_port` variable,
+* The IP address provided with the `mssql_ha_virtual_ip` variable
+* The `255.255.255.0` subnet mask
+
+Default: `null`
+
+Type: `string`
+
 ## Example Playbooks
 
 This section outlines example playbooks that you can use as a reference.
@@ -616,21 +632,40 @@ Examples in this section shows how to use the role to set up SQL Server and conf
 
 You must set the `mssql_ha_replica_type` variable for each host that you want to configure.
 
-If you set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true`, you can optionally provide variables required by the `fedora.linux_system_roles.ha_cluster` role.
-If you do not provide names or addresses, the `fedora.linux_system_roles.ha_cluster` uses play's targets.
-See the `fedora.linux_system_roles.ha_cluster` role documentation for more information.
+If you set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true`, you can provide variables required by the `fedora.linux_system_roles.ha_cluster` role.
+If you do not provide names or addresses, the `fedora.linux_system_roles.ha_cluster` uses play's targets, and the high availability setup requires pacemaker to be configured with short names.
+Therefore, if you define hosts in inventory not by short names, or the default hosts' IP address differs from the IP address that pacemaker must use, you must set the corresponding `fedora.linux_system_roles.ha_cluster` role variables.
 
-Example inventory:
+See the `fedora.linux_system_roles.ha_cluster` role's documentation for more information.
+
+The following example inventory describes different cases:
 
 ```yaml
 all:
   hosts:
+    # host1 is defined by a short name
+    # There is no need to specify ha_cluster names explicitly
     host1:
       mssql_ha_replica_type: primary
-    host2:
+    # host2 is defined by FQDN
+    # You must define ha_cluster names to be in the short name format
+    host2.example.com:
       mssql_ha_replica_type: synchronous
-    host3:
+      ha_cluster:
+        node_name: host2
+        pcs_address: host2
+    # host3 is defined by an ip address
+    # You must define ha_cluster names to be in the short name format
+    # In the case where the default host's IP address differs from the IP
+    # address that Pacemaker must use to set up cluster, you must define
+    # ha_cluster corosync_addresses
+    192.XXX.XXX.333:
       mssql_ha_replica_type: witness
+      ha_cluster:
+        node_name: host3
+        pcs_address: host3
+        corosync_addresses:
+          - 10.XXX.XXX.333
 ```
 
 #### Configuring SQL Server HA without Pacemaker
@@ -660,6 +695,7 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_ha_db_name: ExampleDB
     mssql_ha_login: ExamleLogin
     mssql_ha_login_password: "p@55w0rD3"
+    mssql_ha_virtual_ip: 192.XXX.XXX.XXX
     mssql_ha_cluster_run_role: false
   roles:
     - microsoft.sql.server
@@ -695,6 +731,7 @@ For more information, see the `fedora.linux_system_roles.ha_cluster` role docume
     mssql_ha_db_name: ExampleDB
     mssql_ha_login: ExampleLogin
     mssql_ha_login_password: "p@55w0rD3"
+    mssql_ha_virtual_ip: 192.XXX.XXX.XXX
     mssql_ha_cluster_run_role: true
     ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
     ha_cluster_hacluster_password: "p@55w0rD4"
@@ -725,7 +762,7 @@ For more information, see the `fedora.linux_system_roles.ha_cluster` role docume
         instance_attrs:
           - attrs:
               - name: ip
-                value: 192.XXX.XXX.XXX
+                value: "{{ mssql_ha_virtual_ip }}"
         operations:
           - action: monitor
             attrs:
@@ -784,48 +821,49 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_ha_endpoint_name: Example_Endpoint
     mssql_ha_ag_name: ExampleAG
     mssql_ha_db_name: ExampleDB
-    mssql_ha_login: ExamleLogin
+    mssql_ha_login: ExampleLogin
     mssql_ha_login_password: "p@55w0rD3"
+    mssql_ha_virtual_ip: 192.XXX.XXX.XXX
     mssql_ha_cluster_run_role: true
     ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
     ha_cluster_hacluster_password: "p@55w0rD4"
     ha_cluster_cluster_properties:
       - attrs:
-        - name: cluster-recheck-interval
-          value: 2min
-        - name: start-failure-is-fatal
-          value: true
-        - name: stonith-enabled
-          value: true
+          - name: cluster-recheck-interval
+            value: 2min
+          - name: start-failure-is-fatal
+            value: true
+          - name: stonith-enabled
+            value: true
     ha_cluster_resource_primitives:
       - id: vmfence
         agent: stonith:fence_vmware_soap
         instance_attrs:
           - attrs:
-            - name: username
-              value: vmware_Login
-            - name: passwd
-              value: vmware_password
-            - name: ip
-              value: vmware_ip
-            - name: ssl_insecure
-              value: 1
+              - name: username
+                value: vmware_Login
+              - name: passwd
+                value: vmware_password
+              - name: ip
+                value: vmware_ip
+              - name: ssl_insecure
+                value: 1
       - id: ag_cluster
         agent: ocf:mssql:ag
         instance_attrs:
           - attrs:
-            - name: ag_name
-              value: "{{ mssql_ha_ag_name }}"
+              - name: ag_name
+                value: "{{ mssql_ha_ag_name }}"
         meta_attrs:
           - attrs:
-            - name: failure-timeout
-              value: 60s
+              - name: failure-timeout
+                value: 60s
       - id: virtualip
         agent: ocf:heartbeat:IPaddr2
         instance_attrs:
           - attrs:
-            - name: ip
-              value: 192.XXX.XXX.XXX
+              - name: ip
+                value: "{{ mssql_ha_virtual_ip }}"
         operations:
           - action: monitor
             attrs:
@@ -836,8 +874,8 @@ Note that production environments require Pacemaker configured with fencing agen
         promotable: yes
         meta_attrs:
           - attrs:
-            - name: notify
-              value: true
+              - name: notify
+                value: true
     ha_cluster_constraints_colocation:
       - resource_leader:
           id: ag_cluster-clone
@@ -863,7 +901,16 @@ Note that production environments require Pacemaker configured with fencing agen
 If you want to configure Pacemaker from this role, you can set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true` and provide variables required by the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker for your environment properly.
 See the `fedora.linux_system_roles.ha_cluster` role documentation for more information.
 
+**Prerequisites**
+You must configure all required resources in Azure.
+For more information, see the following articles in Microsoft documentation:
+
+* [Setting up Pacemaker on Red Hat Enterprise Linux in Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-pacemaker#1-create-the-stonith-devices)
+* [Tutorial: Configure availability groups for SQL Server on RHEL virtual machines in Azure](https://docs.microsoft.com/en-us/azure/azure-sql/virtual-machines/linux/rhel-high-availability-stonith-tutorial?view=azuresql)
+
 Note that production environments require Pacemaker configured with fencing agents, this example playbook configures the `stonith:fence_azure_arm` agent.
+
+This example playbooks sets the `firewall` variables for the `fedora.linux_system_roles.firewall` role and then runs this role to open the probe port configured in Azure.
 
 ```yaml
 - hosts: all
@@ -884,46 +931,51 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_ha_endpoint_name: Example_Endpoint
     mssql_ha_ag_name: ExampleAG
     mssql_ha_db_name: ExampleDB
-    mssql_ha_login: ExamleLogin
+    mssql_ha_login: ExampleLogin
     mssql_ha_login_password: "p@55w0rD3"
+    # Set mssql_ha_virtual_ip to the frontend IP address configured in the Azure
+    # load balancer
+    mssql_ha_virtual_ip: 192.XXX.XXX.XXX
     mssql_ha_cluster_run_role: true
     ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
     ha_cluster_hacluster_password: "p@55w0rD4"
+    ha_cluster_extra_packages: fence-agents-azure-arm
     ha_cluster_cluster_properties:
       - attrs:
-        - name: cluster-recheck-interval
-          value: 2min
-        - name: start-failure-is-fatal
-          value: true
-        - name: stonith-enabled
-          value: true
-        - name: stonith-timeout
-          value: 900
+          - name: cluster-recheck-interval
+            value: 2min
+          - name: start-failure-is-fatal
+            value: true
+          - name: stonith-enabled
+            value: true
+          - name: stonith-timeout
+            value: 900
     ha_cluster_resource_primitives:
-        - id: rsc_st_azure
-          agent: stonith:fence_azure_arm
-          instance_attrs:
-            - attrs:
+      - id: rsc_st_azure
+        agent: stonith:fence_azure_arm
+        instance_attrs:
+          - attrs:
               - name: login
-                value: azure_login
+                value: ApplicationID
               - name: passwd
-                value: azure_password
+                value: servicePrincipalPassword
               - name: resourceGroup
-                value: azure_resourceGroup_name
+                value: resourceGroupName
               - name: tenantId
-                value: azure_tenant_ID
+                value: tenantID
               - name: subscriptionId
-                value: azure_subscription_ID
+                value: subscriptionID
               - name: power_timeout
                 value: 240
               - name: pcmk_reboot_timeout
                 value: 900
-        - id: azure_load_balancer
-          agent: azure-lb
-          instance_attrs:
-            - attrs:
-              - name: port
-                value: 1234
+      - id: azure_load_balancer
+        agent: azure-lb
+        instance_attrs:
+          - attrs:
+            # probe port configured in Azure
+            - name: port
+              value: 59999
       - id: ag_cluster
         agent: ocf:mssql:ag
         instance_attrs:
@@ -939,7 +991,7 @@ Note that production environments require Pacemaker configured with fencing agen
         instance_attrs:
           - attrs:
             - name: ip
-              value: 192.XXX.XXX.XXX
+              value: "{{ mssql_ha_virtual_ip }}"
         operations:
           - action: monitor
             attrs:
@@ -968,22 +1020,20 @@ Note that production environments require Pacemaker configured with fencing agen
             value: INFINITY
     ha_cluster_constraints_order:
       - resource_first:
-          id: ag_cluster-master
+          id: ag_cluster-clone
           action: promote
         resource_then:
           id: azure_load_balancer
           action: start
+    # Variables to open the probe port configured in Azure in firewall
+    firewall:
+      - port: 59999
+        state: enabled
+        permanent: true
+        runtime: true
   roles:
+    - fedora.linux_system_roles.firewall
     - microsoft.sql.server
-```
-
-After running the following example playbook, you must also add a listener pointing to Azure using the following SQL statement:
-
-```sql
-ALTER AVAILABILITY GROUP ExampleAG ADD LISTENER 'ExampleAG-listener' (
-  WITH IP ( (azure_lb_ip),('255.255.255.0') ),
-       PORT = 1433
-);
 ```
 
 ## License

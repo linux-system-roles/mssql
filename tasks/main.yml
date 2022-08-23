@@ -767,6 +767,12 @@
         name: fedora.linux_system_roles.ha_cluster
       when: mssql_ha_cluster_run_role | bool
 
+- name: Configure a listener for the {{ mssql_ha_ag_name }} availability group
+  vars:
+    __mssql_input_sql_file: configure_listener.j2
+  include_tasks: input_sql_file.yml
+  when: mssql_ha_replica_type == 'primary'
+
 - name: Ensure the ansible_managed header in {{ __mssql_conf_path }}
   vars:
     __lsr_ansible_managed: "{{ lookup('template', 'get_ansible_managed.j2') }}"
