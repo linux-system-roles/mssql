@@ -3,6 +3,12 @@
 # If you feed a file with .j2 extension, it generates a template from it.
 # If you feed a file with other extension, it just copies the file and runs it.
 ---
+# This is required because in the case when a task that precedes the input
+# task fails, the print task prints a previous result
+- name: Unset the __mssql_sqlcmd_input_file variable
+  set_fact:
+    __mssql_sqlcmd_input_file: ""
+
 - name: Verify that the mssql_password variable is defined
   assert:
     that:
