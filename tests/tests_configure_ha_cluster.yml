@@ -23,7 +23,6 @@
     mssql_ha_login: ExampleLogin
     mssql_ha_login_password: "p@55w0rD3"
     mssql_ha_virtual_ip: 192.168.122.148
-    mssql_ha_ag_listener_ip: "{{ mssql_ha_virtual_ip }}"
     mssql_ha_cluster_run_role: true
     ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
     ha_cluster_hacluster_password: "p@55w0rD4"
@@ -158,7 +157,6 @@
     mssql_ha_login: ExampleLogin
     mssql_ha_login_password: "p@55w0rD3"
     mssql_ha_virtual_ip: 192.168.122.148
-    mssql_ha_ag_listener_ip: "{{ mssql_ha_virtual_ip }}"
     mssql_ha_cluster_run_role: false
   tasks:
     - name: Testing templates only supported for primary replicas
@@ -308,7 +306,7 @@
       vars:
         __mssql_input_sql_file: configure_listener.j2
         mssql_tcp_port: 1434
-        mssql_ha_ag_listener_ip: 192.168.122.149
+        mssql_ha_virtual_ip: 192.168.122.149
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_file.yml

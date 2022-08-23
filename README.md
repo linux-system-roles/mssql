@@ -522,21 +522,11 @@ Type: `bool`
 
 The virtual IP address to be configured for the SQL cluster.
 
-Default: `null`
+The role creates an availability group listener using the following values:
 
-Type: `string`
-
-#### `mssql_ha_ag_listener_ip`
-
-This is an optional variable.
-If you do not set this variable, the role does not add a listener to an availability group in SQL Server.
-
-You can set this variable if you want to configure an availability group listener.
-This is applicable, for example, for configuring Azure hosts.
-
-With this variable, provide an IP address for the availability group listener.
-
-When creating an availability group listener, the role uses the port provided with the `mssql_tcp_port` variable, and a `255.255.255.0` subnet mask.
+* The port provided with the `mssql_tcp_port` variable,
+* The IP address provided with the `mssql_ha_virtual_ip` variable
+* The `255.255.255.0` subnet mask
 
 Default: `null`
 
@@ -944,7 +934,6 @@ This example playbooks sets the `firewall` variables for the `fedora.linux_syste
     # Set mssql_ha_virtual_ip to the frontend IP address configured in the Azure
     # load balancer
     mssql_ha_virtual_ip: 192.XXX.XXX.XXX
-    mssql_ha_ag_listener_ip: "{{ mssql_ha_virtual_ip }}"
     mssql_ha_cluster_run_role: true
     ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
     ha_cluster_hacluster_password: "p@55w0rD4"
