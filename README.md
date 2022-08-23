@@ -363,9 +363,11 @@ A host variable that specifies the type of the replica to be configured on this 
 
 See [`Setting Up SQL Server and Configuring for High Availability`](#Setting-Up-SQL-Server-and-Configuring-for-High-Availability) for an example inventory.
 
-You must set the `mssql_ha_replica_type` variable to `primary` for exactly one host.
-
 The available values are: `primary`, `synchronous`, `witness`.
+
+You must set this variable to `primary` for exactly one host.
+
+You can set this variable to `witness` for maximum one host.
 
 Default: no default
 
