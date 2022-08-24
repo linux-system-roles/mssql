@@ -9,7 +9,7 @@
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
-    mssql_firewall_configure: true
+    mssql_manage_firewall: true
     mssql_ha_configure: true
     mssql_ha_listener_port: 5022
     mssql_ha_cert_name: ExampleCert

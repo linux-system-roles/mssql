@@ -104,16 +104,16 @@ Type: `str`
 
 The port that SQL Server listens on.
 
-If you set `mssql_firewall_configure` to `false`, you must open the firewall port defined with the `mssql_tcp_port` variable prior to running this role.
+If you set `mssql_manage_firewall` to `false`, you must open the firewall port defined with the `mssql_tcp_port` variable prior to running this role.
 
 You can change the TCP port by setting this variable to a different port.
-If you set `mssql_firewall_configure` to `true` while changing the TCP port, the role closes the previously opened firewall port.
+If you set `mssql_manage_firewall` to `true` while changing the TCP port, the role closes the previously opened firewall port.
 
 Default: `1433`
 
 Type: `int`
 
-### `mssql_firewall_configure`
+### `mssql_manage_firewall`
 
 Whether to open firewall ports required by this role.
 
@@ -387,7 +387,7 @@ The TCP port used to replicate data for an Always On availability group.
 Note that due to an SQL Server limitation it is not possible to change a listener port number on an existing availability group when the availability group contains a configuration-only replica.
 To do that, you must re-create the availability group using the required port number.
 
-If you set `mssql_firewall_configure` to `false`, you must open the firewall port defined with the `mssql_ha_listener_port` variable prior to running this role.
+If you set `mssql_manage_firewall` to `false`, you must open the firewall port defined with the `mssql_ha_listener_port` variable prior to running this role.
 
 Default: `5022`
 
@@ -556,7 +556,7 @@ This example shows how to use the role to set up SQL Server, configure it with a
     mssql_edition: Evaluation
     mssql_tcp_port: 1433
     mssql_ip_address: 0.0.0.0
-    mssql_firewall_configure: true
+    mssql_manage_firewall: true
   roles:
     - microsoft.sql.server
 ```
@@ -579,7 +579,7 @@ This example shows how to use the role to set up SQL Server and enable the follo
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
-    mssql_firewall_configure: true
+    mssql_manage_firewall: true
     mssql_enable_sql_agent: true
     mssql_install_fts: true
     mssql_install_powershell: true
@@ -602,7 +602,7 @@ This example shows how to use the role to set up SQL Server and configure it to 
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
-    mssql_firewall_configure: true
+    mssql_manage_firewall: true
     mssql_tls_enable: true
     mssql_tls_cert: mycert.pem
     mssql_tls_private_key: mykey.key
@@ -670,7 +670,7 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
-    mssql_firewall_configure: true
+    mssql_manage_firewall: true
     mssql_ha_configure: true
     mssql_ha_listener_port: 5022
     mssql_ha_cert_name: ExampleCert
@@ -707,7 +707,7 @@ For more information, see the `fedora.linux_system_roles.ha_cluster` role docume
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
-    mssql_firewall_configure: true
+    mssql_manage_firewall: true
     mssql_ha_configure: true
     mssql_ha_listener_port: 5022
     mssql_ha_cert_name: ExampleCert
@@ -800,7 +800,7 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
-    mssql_firewall_configure: true
+    mssql_manage_firewall: true
     mssql_ha_configure: true
     mssql_ha_listener_port: 5022
     mssql_ha_cert_name: ExampleCert
@@ -909,7 +909,7 @@ This example playbooks sets the `firewall` variables for the `fedora.linux_syste
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
-    mssql_firewall_configure: true
+    mssql_manage_firewall: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_ha_configure: true

@@ -8,7 +8,7 @@ mssql_upgrade: false
 mssql_password: null
 mssql_edition: null
 mssql_tcp_port: 1433
-mssql_firewall_configure: false
+mssql_manage_firewall: false
 mssql_ip_address: null
 mssql_pre_input_sql_file: null
 mssql_post_input_sql_file: null
