@@ -1027,7 +1027,7 @@ This example playbooks sets the `firewall` variables for the `fedora.linux_syste
           action: start
     # Variables to open the probe port configured in Azure in firewall
     firewall:
-      - port: 59999
+      - port: 59999/tcp
         state: enabled
         permanent: true
         runtime: true
