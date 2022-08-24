@@ -653,10 +653,11 @@
         __mssql_input_sql_file: grant_permissions_to_ha_login.j2
       include_tasks: input_sql_file.yml
 
-    - name: Back up and replicate the {{ mssql_ha_db_name }} database
+    - name: Back up and replicate databases
       vars:
         __mssql_input_sql_file: replicate_db.j2
       include_tasks: input_sql_file.yml
+      when: mssql_ha_db_names is not none
 
 - name: Configure availability group on replicas
   when:
