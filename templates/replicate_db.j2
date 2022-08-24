@@ -1,36 +1,38 @@
+{% for item in mssql_ha_db_names %}
+{%   set db_backup_path = "/var/opt/mssql/data/" + item %}
 IF NOT EXISTS (
   SELECT name, recovery_model_desc
   FROM sys.databases
-  WHERE name = '{{ mssql_ha_db_name }}' AND
+  WHERE name = '{{ item }}' AND
         recovery_model_desc = 'FULL'
 )
 BEGIN
-  PRINT 'Setting RECOVERY FULL on the {{ mssql_ha_db_name }} database';
-  ALTER DATABASE {{ mssql_ha_db_name }} SET RECOVERY FULL;
-  PRINT 'RECOVERY FULL on the {{ mssql_ha_db_name }} database set successfully';
+  PRINT 'Setting RECOVERY FULL on the {{ item }} database';
+  ALTER DATABASE {{ item }} SET RECOVERY FULL;
+  PRINT 'RECOVERY FULL on the {{ item }} database set successfully';
 END
 ELSE
 BEGIN
-  PRINT 'RECOVERY FULL on the {{ mssql_ha_db_name }} database is set, skipping';
+  PRINT 'RECOVERY FULL on the {{ item }} database is set, skipping';
 END
 
 IF NOT EXISTS (
   SELECT [database_name], backup_start_date, backup_finish_date, [type]
   FROM msdb.dbo.backupset
   WHERE [type]='D' AND
-        [database_name]='{{ mssql_ha_db_name }}' AND
+        [database_name]='{{ item }}' AND
         backup_finish_date >= DATEADD(hh, -3, GETDATE())
 )
 BEGIN
-  PRINT 'Backing up the {{ mssql_ha_db_name }} database to \
-{{ mssql_ha_db_backup_path }}';
-  BACKUP DATABASE {{ mssql_ha_db_name }}
-    TO DISK = N'{{ mssql_ha_db_backup_path }}';
-  PRINT 'The {{ mssql_ha_db_name }} database backed up successfully';
+  PRINT 'Backing up the {{ item }} database to \
+{{ db_backup_path }}';
+  BACKUP DATABASE {{ item }}
+    TO DISK = N'{{ db_backup_path }}';
+  PRINT 'The {{ item }} database backed up successfully';
 END
 ELSE
 BEGIN
-  PRINT 'The {{ mssql_ha_db_name }} database is already backed up, skipping';
+  PRINT 'The {{ item }} database is already backed up, skipping';
 END
 
 IF NOT EXISTS (
@@ -55,15 +57,16 @@ IF NOT EXISTS (
     AND dbcs.group_database_id = dbrs.group_database_id
 )
 BEGIN
-  PRINT 'Adding the {{ mssql_ha_db_name }} database to the \
+  PRINT 'Adding the {{ item }} database to the \
 {{ mssql_ha_ag_name }} availability group';
   ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }}
-    ADD DATABASE {{ mssql_ha_db_name }};
-  PRINT 'The {{ mssql_ha_db_name }} database added to the \
+    ADD DATABASE {{ item }};
+  PRINT 'The {{ item }} database added to the \
 {{ mssql_ha_ag_name }} availability group successfully';
 END
 ELSE
 BEGIN
-  PRINT 'The {{ mssql_ha_db_name }} database is already added to the \
+  PRINT 'The {{ item }} database is already added to the \
 {{ mssql_ha_ag_name }} availability group, skipping';
 END
+{% endfor %}

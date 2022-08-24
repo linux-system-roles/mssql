@@ -328,11 +328,13 @@ Use the variables starting with the `mssql_ha_` prefix to configure an SQL Serve
 **Prerequisites**
 
 * Ensure that your hosts meet the requirements for high availability configuration, namely DNS resolution configured so that hosts can communicate using short names.
-For more information, see Prerequisites in [Configure SQL Server Always On Availability Group for high availability on Linux](https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-availability-group-configure-ha?view=sql-server-ver15#prerequisites).
-* In SQL Server, create a database to be used for replication.
-Provide the database name to the role with the [`mssql_ha_db_name`](#mssql_ha_db_name) variable.
-You can set the [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable to pre-create the database.
-For more information, see the description of the [`mssql_ha_db_name`](#mssql_ha_db_name) variable.
+  For more information, see Prerequisites in [Configure SQL Server Always On Availability Group for high availability on Linux](https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-availability-group-configure-ha?view=sql-server-ver15#prerequisites).
+* Optional: In SQL Server, create one or more databases to be used for replication.
+  Provide databases names to the role with the [`mssql_ha_db_names`](#mssql_ha_db_names) variable.
+  You can set the [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable to pre-create databases.
+  For more information, see the description of the [`mssql_ha_db_names`](#mssql_ha_db_names) variable.
+
+  If you do not provide the [`mssql_ha_db_names`](#mssql_ha_db_names) variable, the role creates a cluster without replicating database in it.
 
 Configuring for high availability is not supported on RHEL 7 because the `fedora.linux_system_roles.ha_cluster` role does not support RHEL 7.
 
@@ -446,13 +448,17 @@ Default: `null`
 
 Type: `string`
 
-#### `mssql_ha_db_name`
+#### `mssql_ha_db_names`
 
-The name of the database to be replicated.
-This database must exist in SQL Server.
+This is an optional variable.
 
-You can write a T-SQL script that creates a database and feed it into the role with the [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable.
-This way, the role runs your script to create a database after ensuring that SQL Server is running and then replicates this database for high availability.
+You can set this variable to the list of names of one or more existing SQL databases to replicate these database in the cluster.
+The role backs up databases provided if no back up newer than 3 hours exists to the `/var/opt/mssql/data/` directory.
+
+If you do not provide this variable, the role creates a cluster without replicating databases in it.
+
+You can write a T-SQL script that creates database and feed it into the role with the [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable.
+This way, the role runs your script to create databases after ensuring that SQL Server is running and then replicate these databases for high availability.
 
 For example, you can write a `create_example_db.sql` SQL script that creates a test database and feed it into the SQL Server from the primary replica with `mssql_pre_input_sql_file` prior to running the role.
 
@@ -468,17 +474,6 @@ For example, you can write a `create_example_db.sql` SQL script that creates a t
 ```
 
 Default: `null`
-
-Type: `string`
-
-#### `mssql_ha_db_backup_path`
-
-For SQL Server, any database participating in an Availability Group must be in a full recovery mode and have a valid log backup.
-The role uses this path to backup the database provided with `mssql_ha_db_name` prior to initiating replication within an Always On availability group.
-
-The role backs up the database provided with `mssql_ha_db_backup_path` if no back up newer than 3 hours exists.
-
-Default: `/var/opt/mssql/data/{{ mssql_ha_db_name }}.bak`
 
 Type: `string`
 
@@ -692,7 +687,9 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_ha_reset_cert: false
     mssql_ha_endpoint_name: Example_Endpoint
     mssql_ha_ag_name: ExampleAG
-    mssql_ha_db_name: ExampleDB
+    mssql_ha_db_names:
+      - ExampleDB1
+      - ExampleDB2
     mssql_ha_login: ExamleLogin
     mssql_ha_login_password: "p@55w0rD3"
     mssql_ha_virtual_ip: 192.XXX.XXX.XXX
@@ -728,7 +725,9 @@ For more information, see the `fedora.linux_system_roles.ha_cluster` role docume
     mssql_ha_reset_cert: false
     mssql_ha_endpoint_name: Example_Endpoint
     mssql_ha_ag_name: ExampleAG
-    mssql_ha_db_name: ExampleDB
+    mssql_ha_db_names:
+      - ExampleDB1
+      - ExampleDB2
     mssql_ha_login: ExampleLogin
     mssql_ha_login_password: "p@55w0rD3"
     mssql_ha_virtual_ip: 192.XXX.XXX.XXX
@@ -820,7 +819,9 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_ha_reset_cert: false
     mssql_ha_endpoint_name: Example_Endpoint
     mssql_ha_ag_name: ExampleAG
-    mssql_ha_db_name: ExampleDB
+    mssql_ha_db_names:
+      - ExampleDB1
+      - ExampleDB2
     mssql_ha_login: ExampleLogin
     mssql_ha_login_password: "p@55w0rD3"
     mssql_ha_virtual_ip: 192.XXX.XXX.XXX
@@ -930,7 +931,9 @@ This example playbooks sets the `firewall` variables for the `fedora.linux_syste
     mssql_ha_reset_cert: false
     mssql_ha_endpoint_name: Example_Endpoint
     mssql_ha_ag_name: ExampleAG
-    mssql_ha_db_name: ExampleDB
+    mssql_ha_db_names:
+      - ExampleDB1
+      - ExampleDB2
     mssql_ha_login: ExampleLogin
     mssql_ha_login_password: "p@55w0rD3"
     # Set mssql_ha_virtual_ip to the frontend IP address configured in the Azure
