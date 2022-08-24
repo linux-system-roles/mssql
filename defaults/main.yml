@@ -28,6 +28,9 @@ mssql_rpm_key: https://packages.microsoft.com/keys/microsoft.asc
 mssql_server_repository: "{{ __mssql_server_repository }}"
 mssql_client_repository: "{{ __mssql_client_repository }}"
 mssql_ha_configure: false
+# mssql_ha_replica_type must be set per host in inventory. Setting it hear to
+# avoid "variable not defined" error in Ansible
+mssql_ha_replica_type: null
 mssql_ha_firewall_configure: false
 mssql_ha_listener_port: 5022
 mssql_ha_cert_name: null
