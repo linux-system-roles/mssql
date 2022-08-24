@@ -535,7 +535,7 @@
     - name: >-
         Open the {{ mssql_ha_listener_port }}/tcp port and
         enable the high-availability service in firewall
-      when: mssql_ha_firewall_configure | bool
+      when: mssql_firewall_configure | bool
       include_role:
         name: fedora.linux_system_roles.firewall
       vars:

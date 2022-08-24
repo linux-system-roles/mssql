@@ -11,7 +11,6 @@
     mssql_edition: Evaluation
     mssql_firewall_configure: true
     mssql_ha_configure: true
-    mssql_ha_firewall_configure: true
     mssql_ha_listener_port: 5022
     mssql_ha_cert_name: ExampleCert
     mssql_ha_master_key_password: "p@55w0rD1"
@@ -153,7 +152,6 @@
       - ExampleDB2
     mssql_debug: true
     mssql_ha_configure: true
-    mssql_ha_firewall_configure: true
     mssql_ha_listener_port: 5022
     mssql_ha_cert_name: ExampleCert
     mssql_ha_master_key_password: "p@55w0rD1"
