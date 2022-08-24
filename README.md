@@ -939,7 +939,8 @@ This example playbooks sets the `firewall` variables for the `fedora.linux_syste
     mssql_ha_cluster_run_role: true
     ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
     ha_cluster_hacluster_password: "p@55w0rD4"
-    ha_cluster_extra_packages: fence-agents-azure-arm
+    ha_cluster_extra_packages:
+      - fence-agents-azure-arm
     ha_cluster_cluster_properties:
       - attrs:
           - name: cluster-recheck-interval
@@ -1027,7 +1028,7 @@ This example playbooks sets the `firewall` variables for the `fedora.linux_syste
           action: start
     # Variables to open the probe port configured in Azure in firewall
     firewall:
-      - port: 59999
+      - port: 59999/tcp
         state: enabled
         permanent: true
         runtime: true
