@@ -122,12 +122,15 @@
 
     - name: Configure SQL Server and create test databases on primary
       vars:
-        __mssql_input_sql_file: create_example_db.j2
-        __mssql_test_db_name: "{{ item }}"
+        mssql_pre_input_sql_file: create_example_db.j2
+        __mssql_test_db_name: "{{ dbname }}"
+        mssql_ha_configure: false
+        mssql_manage_firewall: false
       include_role:
         name: linux-system-roles.mssql
-        tasks_from: input_sql_file.yml
       loop: "{{ mssql_ha_db_names }}"
+      loop_control:
+        loop_var: dbname
       when: mssql_ha_replica_type == 'primary'
 
     - name: Run on all hosts to configure HA cluster
