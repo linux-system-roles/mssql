@@ -1,6 +1,23 @@
 Changelog
 =========
 
+[1.2.3] - 2022-08-25
+--------------------
+
+### New Features
+
+- none
+
+### Bug Fixes
+
+- Fix adding listener and creating test dbs (#107)
+  - Add listener when mssql_ha_configure is true
+  - tests: create test dbs by running the role
+
+### Other Changes
+
+- none
+
 [1.2.2] - 2022-08-25
 --------------------
 
