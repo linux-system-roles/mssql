@@ -1,6 +1,47 @@
 Changelog
 =========
 
+[1.2.2] - 2022-08-25
+--------------------
+
+### New Features
+
+- Add mssql_ha_db_names to let users replicate multiple DBs
+  - Replace mssql_ha_db_name with mssql_ha_db_names so that users can
+    provide a list of databases to be replicated
+  - Previously, a database must exist in SQL Server to create a cluster.
+    Now mssql_ha_db_names is optional, if it is not provided the role
+    creates a cluster without replicating databases
+  - Remove mssql_ha_db_backup_path and always back up to the
+    /var/opt/mssql/data/ directory for simplicity
+
+- Remove `mssql_ha_firewall_configure`, rename `mssql_firewall_configure` to `mssql_manage_firewall` (#104)
+
+  - Previously, two variables existed, `mssql_ha_firewall_configure` and
+    `mssql_firewall_configure`. For simplicity, the role now only uses
+    `mssql_firewall_configure` for configuring firewall.
+  
+  - s/mssql_firewall_configure/mssql_manage_firewall for consistency.
+    `mssql_manage_firewall` makes more sense because firewall is a service and
+    the word manage fits it better.
+    Other system roles use the `rolename_manage_firewall` wording too and
+    mssql must be consistent with them for simplicity
+
+### Bug Fixes
+
+- Fix HA on Azure example to set firewall and ha_cluster vars correctly (#103)
+
+  - Fix HA on Azure example to set firewall port variable correctly
+
+  - Fix Azure example to set `ha_cluster_extra_packages` port variable correctly
+
+- Set mssql_ha_replica_type in defaults/main.yml
+
+### Other Changes
+
+- none
+
+
 [1.2.1] - 2022-08-23
 --------------------
 
