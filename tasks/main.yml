@@ -366,14 +366,14 @@
   when: mssql_ip_address is not none
 
 - name: Register the previous tcpport setting
-  when: mssql_firewall_configure | bool
+  when: mssql_manage_firewall | bool
   command: grep '^tcpport = ' {{ __mssql_conf_path }}
   failed_when: false
   changed_when: false
   register: __mssql_previous_tcp_port
 
 - name: Open the {{ mssql_tcp_port }} TCP port
-  when: mssql_firewall_configure | bool
+  when: mssql_manage_firewall | bool
   include_role:
     name: fedora.linux_system_roles.firewall
   vars:
@@ -404,7 +404,7 @@
   include_role:
     name: fedora.linux_system_roles.firewall
   when:
-    - mssql_firewall_configure | bool
+    - mssql_manage_firewall | bool
     - __tcpport | int != mssql_tcp_port | int
 
 - name: Configure the sqlagent setting
@@ -535,7 +535,7 @@
     - name: >-
         Open the {{ mssql_ha_listener_port }}/tcp port and
         enable the high-availability service in firewall
-      when: mssql_ha_firewall_configure | bool
+      when: mssql_manage_firewall | bool
       include_role:
         name: fedora.linux_system_roles.firewall
       vars:
