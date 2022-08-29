@@ -10,8 +10,8 @@ mssql_edition: null
 mssql_tcp_port: 1433
 mssql_manage_firewall: false
 mssql_ip_address: null
-mssql_pre_input_sql_file: null
-mssql_post_input_sql_file: null
+mssql_pre_input_sql_file: []
+mssql_post_input_sql_file: []
 mssql_debug: false
 mssql_enable_sql_agent: null
 mssql_install_fts: null

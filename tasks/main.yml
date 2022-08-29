@@ -314,15 +314,12 @@
       notify: Restart the mssql-server service
 
 # Keep this task after setting password
-- name: Input the {{ mssql_pre_input_sql_file }} sql file to SQL Server
+- name: Pre-input the {{ mssql_pre_input_sql_file }} sql file to SQL Server
   vars:
-    __mssql_input_sql_file: "{{ mssql_pre_input_sql_file }}"
+    __mssql_input_sql_file: "{{ item }}"
   include_tasks: input_sql_file.yml
-  when: mssql_pre_input_sql_file is not none
-
-- name: Unset the mssql_pre_input_sql_file fact
-  set_fact:
-    mssql_pre_input_sql_file: null
+  when: mssql_pre_input_sql_file | length > 0
+  loop: "{{ mssql_pre_input_sql_file }}"
 
 - name: Set a new edition for MSSQL
   when:
@@ -785,12 +782,9 @@
     insertbefore: BOF
 
 # Keep this task at the bottom, it must be run at the end of the role
-- name: Input the {{ mssql_post_input_sql_file }} sql file to SQL Server
+- name: Post-input the {{ mssql_post_input_sql_file }} sql file to SQL Server
   vars:
-    __mssql_input_sql_file: "{{ mssql_post_input_sql_file }}"
+    __mssql_input_sql_file: "{{ item }}"
   include_tasks: input_sql_file.yml
-  when: mssql_post_input_sql_file is not none
-
-- name: Unset the mssql_post_input_sql_file fact
-  set_fact:
-    mssql_post_input_sql_file: null
+  when: mssql_post_input_sql_file | length > 0
+  loop: "{{ mssql_post_input_sql_file }}"
