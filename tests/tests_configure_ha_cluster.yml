@@ -120,17 +120,11 @@
         name: fedora.linux_system_roles.ha_cluster
         tasks_from: test_setup.yml
 
-    - name: Configure SQL Server and create test databases on primary
-      vars:
-        mssql_pre_input_sql_file: create_example_db.j2
-        __mssql_test_db_name: "{{ dbname }}"
-        mssql_ha_configure: false
-        mssql_manage_firewall: false
-      include_role:
-        name: linux-system-roles.mssql
-      loop: "{{ mssql_ha_db_names }}"
-      loop_control:
-        loop_var: dbname
+    - name: Set facts to create test DBs on primary as a pre task
+      set_fact:
+        mssql_pre_input_sql_file:
+          - create_ExampleDB1.sql
+          - create_ExampleDB2.sql
       when: mssql_ha_replica_type == 'primary'
 
     - name: Run on all hosts to configure HA cluster
@@ -167,6 +161,7 @@
     mssql_ha_virtual_ip: 192.168.122.148
     mssql_ha_cluster_run_role: false
   tasks:
+    - meta: end_play
     - name: Testing templates only supported for primary replicas
       meta: end_host
       when: mssql_ha_replica_type | d('primary') != 'primary'

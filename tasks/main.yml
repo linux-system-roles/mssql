@@ -314,7 +314,7 @@
       notify: Restart the mssql-server service
 
 # Keep this task after setting password
-- name: Pre-input the {{ mssql_pre_input_sql_file }} sql file to SQL Server
+- name: Pre-input SQL scripts to SQL Server
   vars:
     __mssql_input_sql_file: "{{ item }}"
   include_tasks: input_sql_file.yml
@@ -782,7 +782,7 @@
     insertbefore: BOF
 
 # Keep this task at the bottom, it must be run at the end of the role
-- name: Post-input the {{ mssql_post_input_sql_file }} sql file to SQL Server
+- name: Post-input SQL scripts to SQL Server
   vars:
     __mssql_input_sql_file: "{{ item }}"
   include_tasks: input_sql_file.yml
