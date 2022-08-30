@@ -781,7 +781,10 @@
     block: "{{ __lsr_ansible_managed }}"
     insertbefore: BOF
 
-# Keep this task at the bottom, it must be run at the end of the role
+# Keep these 2 tasks at the bottom, they must run at the end of the role
+- name: Flush handlers prior to inputting post SQL scripts
+  meta: flush_handlers
+
 - name: Post-input SQL scripts to SQL Server
   vars:
     __mssql_input_sql_file: "{{ item }}"

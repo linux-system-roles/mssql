@@ -87,3 +87,19 @@
             that: >-
               'You must define the mssql_password variable' in
               ansible_failed_result.msg
+
+    - name: Enable FTS and verify that it works when inputting post script
+      include_role:
+        name: linux-system-roles.mssql
+      vars:
+        mssql_install_fts: true
+        mssql_post_input_sql_file:
+          - verify_fts.sql
+        mssql_password: "p@55w0rD"
+
+    - name: Assert the latest script invocation resulted in no changes
+      assert:
+        that:
+          - >-
+            'Full-Text Search is enabled'
+            in __mssql_sqlcmd_input_file.stdout
