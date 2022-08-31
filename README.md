@@ -448,7 +448,9 @@ This is an optional variable.
 You can set this variable to the list of names of one or more existing SQL databases to replicate these database in the cluster.
 The role backs up databases provided if no back up newer than 3 hours exists to the `/var/opt/mssql/data/` directory.
 
-If you do not provide this variable, the role creates a cluster without replicating databases in it.
+If you do not provide this variable when configuring new SQL Server, the role creates a cluster without replicating databases in it.
+
+The role does not remove databases not listed with this variable from existing SQL Server clusters.
 
 You can write a T-SQL script that creates database and feed it into the role with the [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable.
 This way, the role runs your script to create databases after ensuring that SQL Server is running and then replicate these databases for high availability.
