@@ -1,6 +1,28 @@
 Changelog
 =========
 
+[1.2.4] - 2022-09-01
+--------------------
+
+### New Features
+
+- none
+
+### Bug Fixes
+
+- Replicate all provided databases (#110)
+  - This change fixes the bug where only the first database provided with
+mssql_ha_db_names got replicated
+  - Clarify that the role does not remove not listed databases
+- Input multiple sql scripts (#109)
+  - Allow _input_sql_file vars to accept list of files
+  - Flush handlers prior to inputting post sql script
+- Note that ha_cluster is not idempotent (#111)
+
+### Other Changes
+
+- none
+
 [1.2.3] - 2022-08-25
 --------------------
 
