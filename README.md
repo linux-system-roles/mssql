@@ -495,10 +495,9 @@ Whether to run the `fedora.linux_system_roles.ha_cluster` role from this role.
 
 Note that the `fedora.linux_system_roles.ha_cluster` role has the following limitation:
 
-**The role replaces the configuration of HA Cluster on specified nodes.
-Any settings not specified in the role variables will be lost.**
-
-It means that the `microsoft.sql.server` role cannot run the `fedora.linux_system_roles.ha_cluster` role to avoid overwriting any existing Pacemaker configuration.
+* This role replaces the configuration of HA Cluster on specified nodes.
+  Any settings not specified in the role variables will be lost.
+* This role is not idempotent - it always returns changed state.
 
 To work around this limitation, the `microsoft.sql.server` role does not set any variables for the `fedora.linux_system_roles.ha_cluster` role to ensure that any existing Pacemaker configuration is not re-written.
 
