@@ -55,6 +55,7 @@ IF NOT EXISTS (
   LEFT OUTER JOIN master.sys.dm_hadr_database_replica_states AS dbrs
     ON dbcs.replica_id = dbrs.replica_id
     AND dbcs.group_database_id = dbrs.group_database_id
+  WHERE dbcs.database_name = '{{ item }}'
 )
 BEGIN
   PRINT 'Adding the {{ item }} database to the \
