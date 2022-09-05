@@ -634,7 +634,8 @@
         __mssql_input_sql_file: create_ha_login.j2
       include_tasks: input_sql_file.yml
 
-    # Required for configure_ag.j2 to set WRITE_LEASE_VALIDITY based on RHEL ver
+    # Required for configure_ag.j2 to set WRITE_LEASE_VALIDITY based on
+    # mssql-server version
     - name: Get mssql-server version to see if WRITE_LEASE_VALIDITY is available
       package_facts:
         manager: auto

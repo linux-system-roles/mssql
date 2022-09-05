@@ -67,6 +67,8 @@
           - attrs:
               - name: notify
                 value: true
+              - name: on_fail
+                value: demote
     ha_cluster_constraints_colocation:
       - resource_leader:
           id: ag_cluster-clone

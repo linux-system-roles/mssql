@@ -216,9 +216,9 @@ IF NOT EXISTS (
 BEGIN
   PRINT 'Creating the {{ mssql_ha_ag_name }} availability group';
   CREATE AVAILABILITY GROUP {{ mssql_ha_ag_name }}
-{% if ansible_os_family == 'RedHat' and
-  ansible_distribution_version is version('8.3', '<') %}
-    WITH (DB_FAILOVER = ON, CLUSTER_TYPE = EXTERNAL)
+{% if ansible_facts.packages['mssql-server'][0]['version']
+   is version('15.0.4153.1', '>=') %}
+    WITH (DB_FAILOVER = ON, CLUSTER_TYPE = EXTERNAL, WRITE_LEASE_VALIDITY=20)
 {% else %}
     WITH (DB_FAILOVER = ON, CLUSTER_TYPE = EXTERNAL)
 {% endif %}
