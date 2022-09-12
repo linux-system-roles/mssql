@@ -16,7 +16,7 @@
   template:
     src: "{{ item }}"
     dest: "{{ __mssql_sql_tempfile.path }}"
-    mode: 0664
+    mode: preserve
   when: item is search(".*\.j2$")
   changed_when: false
 
