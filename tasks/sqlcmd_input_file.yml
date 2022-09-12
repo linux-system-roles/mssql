@@ -9,7 +9,7 @@
     src: "{{ item }}"
     dest: "{{ __mssql_sql_tempfile.path }}"
     mode: preserve
-  when: item is not search(".*\.j2")
+  when: item is not search(".*\.j2$")
   changed_when: false
 
 - name: Generate the {{ item }} template on the host
@@ -17,7 +17,7 @@
     src: "{{ item }}"
     dest: "{{ __mssql_sql_tempfile.path }}"
     mode: 0664
-  when: item is search(".*\.j2")
+  when: item is search(".*\.j2$")
   changed_when: false
 
 - name: Input {{ item }} with the sqlcmd command
