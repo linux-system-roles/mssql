@@ -1,13 +1,14 @@
 # SPDX-License-Identifier: MIT
 # This task files inputs sql files into MSSQL.
+# This task takes a list of files.
 # If you feed a file with .j2 extension, it generates a template from it.
 # If you feed a file with other extension, it just copies the file and runs it.
 ---
 # This is required because in the case when a task that precedes the input
 # task fails, the print task prints a previous result
-- name: Unset the __mssql_sqlcmd_input_file variable
+- name: Unset the __mssql_sqlcmd_input variable
   set_fact:
-    __mssql_sqlcmd_input_file: []
+    __mssql_sqlcmd_input: []
 
 - name: Verify that the mssql_password variable is defined
   assert:
@@ -38,4 +39,4 @@
 
 - name: Input SQL files to MSSQL
   include_tasks: sqlcmd_input_file.yml
-  loop: "{{ __mssql_input_sql_file }}"
+  loop: "{{ __mssql_sql_files_to_input }}"
