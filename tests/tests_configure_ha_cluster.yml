@@ -176,7 +176,8 @@
     # enable_alwayson.j2 template test
     - name: Enable AlwaysOn event session when it's enabled
       vars:
-        __mssql_sql_files_to_input: enable_alwayson.j2
+        __mssql_sql_files_to_input:
+          - enable_alwayson.j2
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_files.yml
@@ -190,14 +191,16 @@
 
     - name: Disable AlwaysOn event session
       vars:
-        __mssql_sql_files_to_input: disable_alwayson.j2
+        __mssql_sql_files_to_input:
+          - disable_alwayson.j2
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_files.yml
 
     - name: Enable AlwaysOn event session
       vars:
-        __mssql_sql_files_to_input: enable_alwayson.j2
+        __mssql_sql_files_to_input:
+          - enable_alwayson.j2
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_files.yml
@@ -211,7 +214,8 @@
     # configure_endpoint.j2 template test
     - name: Create endpoint when it exists
       vars:
-        __mssql_sql_files_to_input: configure_endpoint.j2
+        __mssql_sql_files_to_input:
+          - configure_endpoint.j2
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_files.yml
@@ -244,14 +248,16 @@
 
     - name: Alter endpoint to test how template handles incorrect endpoint
       vars:
-        __mssql_sql_files_to_input: alter_endpoint.j2
+        __mssql_sql_files_to_input:
+          - alter_endpoint.j2
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_files.yml
 
     - name: Configure endpoint correctly
       vars:
-        __mssql_sql_files_to_input: configure_endpoint.j2
+        __mssql_sql_files_to_input:
+          - configure_endpoint.j2
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_files.yml
@@ -284,7 +290,8 @@
 
     - name: Drop the test_cert certificate
       vars:
-        __mssql_sql_files_to_input: drop_cert.j2
+        __mssql_sql_files_to_input:
+          - drop_cert.j2
         mssql_ha_cert_name: test_cert
       include_role:
         name: linux-system-roles.mssql
@@ -293,21 +300,24 @@
     # configure_listener.j2 template test
     - name: Remove a listener for test purposes
       vars:
-        __mssql_sql_files_to_input: remove_listener.j2
+        __mssql_sql_files_to_input:
+          - remove_listener.j2
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_files.yml
 
     - name: Add a listener with a different name
       vars:
-        __mssql_sql_files_to_input: add_test_listener.j2
+        __mssql_sql_files_to_input:
+          - add_test_listener.j2
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_files.yml
 
     - name: Modify a listener
       vars:
-        __mssql_sql_files_to_input: configure_listener.j2
+        __mssql_sql_files_to_input:
+          - configure_listener.j2
         mssql_tcp_port: 1434
         mssql_ha_virtual_ip: 192.168.122.149
       include_role:
@@ -336,7 +346,8 @@
 
     - name: Remove a listener to re-create with default values
       vars:
-        __mssql_sql_files_to_input: remove_listener.j2
+        __mssql_sql_files_to_input:
+          - remove_listener.j2
         mssql_listener_name: TEST
       include_role:
         name: linux-system-roles.mssql
@@ -344,7 +355,8 @@
 
     - name: Add a listener with previous settings
       vars:
-        __mssql_sql_files_to_input: configure_listener.j2
+        __mssql_sql_files_to_input:
+          - configure_listener.j2
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_files.yml
@@ -362,7 +374,8 @@
 
     - name: Add a listener when it exists
       vars:
-        __mssql_sql_files_to_input: configure_listener.j2
+        __mssql_sql_files_to_input:
+          - configure_listener.j2
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_files.yml
@@ -383,7 +396,8 @@
     # create_master_key_encryption.j2 template test
     - name: Create a master key when it exists
       vars:
-        __mssql_sql_files_to_input: create_master_key_encryption.j2
+        __mssql_sql_files_to_input:
+          - create_master_key_encryption.j2
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_files.yml
@@ -398,7 +412,8 @@
       block:
         - name: Try creating master key with incorrect password
           vars:
-            __mssql_sql_files_to_input: create_master_key_encryption.j2
+            __mssql_sql_files_to_input:
+              - create_master_key_encryption.j2
             mssql_ha_master_key_password: "p@55w0rD11"
           include_role:
             name: linux-system-roles.mssql
@@ -415,14 +430,16 @@
 
     - name: Drop endpoint
       vars:
-        __mssql_sql_files_to_input: create_master_key_encryption.j2
+        __mssql_sql_files_to_input:
+          - create_master_key_encryption.j2
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_files.yml
 
     - name: Remove certificate from SQL Server to verify re-creating master key
       vars:
-        __mssql_sql_files_to_input: drop_cert.j2
+        __mssql_sql_files_to_input:
+          - drop_cert.j2
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_files.yml
@@ -439,7 +456,8 @@
         Verify creating master key with incorrect password and
         mssql_ha_reset_cert set to true
       vars:
-        __mssql_sql_files_to_input: create_master_key_encryption.j2
+        __mssql_sql_files_to_input:
+          - create_master_key_encryption.j2
         mssql_ha_master_key_password: "p@55w0rD11"
         mssql_ha_reset_cert: true
       include_role:
@@ -465,7 +483,8 @@
     #   block:
     #     - name: Input restore_cert.j2
     #       vars:
-    #         __mssql_sql_files_to_input: restore_cert.j2
+    #         __mssql_sql_files_to_input:
+    #           - restore_cert.j2
     #       include_role:
     #         name: linux-system-roles.mssql
     #         tasks_from: input_sql_files.yml
@@ -482,7 +501,8 @@
       block:
         - name: Input create_and_back_up_cert.j2 to create cert
           vars:
-            __mssql_sql_files_to_input: create_and_back_up_cert.j2
+            __mssql_sql_files_to_input:
+              - create_and_back_up_cert.j2
           include_role:
             name: linux-system-roles.mssql
             tasks_from: input_sql_files.yml
@@ -500,7 +520,8 @@
 
         - name: Input create_and_back_up_cert.j2 when cert exists
           vars:
-            __mssql_sql_files_to_input: create_and_back_up_cert.j2
+            __mssql_sql_files_to_input:
+              - create_and_back_up_cert.j2
           include_role:
             name: linux-system-roles.mssql
             tasks_from: input_sql_files.yml
@@ -532,7 +553,8 @@
 
         - name: Input create_and_back_up_cert.j2
           vars:
-            __mssql_sql_files_to_input: create_and_back_up_cert.j2
+            __mssql_sql_files_to_input:
+              - create_and_back_up_cert.j2
           include_role:
             name: linux-system-roles.mssql
             tasks_from: input_sql_files.yml
@@ -561,7 +583,8 @@
 
         - name: Input create_and_back_up_cert.j2
           vars:
-            __mssql_sql_files_to_input: create_and_back_up_cert.j2
+            __mssql_sql_files_to_input:
+              - create_and_back_up_cert.j2
           include_role:
             name: linux-system-roles.mssql
             tasks_from: input_sql_files.yml
@@ -585,7 +608,8 @@
 
         - name: Drop certificate from SQL Server
           vars:
-            __mssql_sql_files_to_input: drop_cert.j2
+            __mssql_sql_files_to_input:
+              - drop_cert.j2
           include_role:
             name: linux-system-roles.mssql
             tasks_from: input_sql_files.yml
@@ -594,7 +618,8 @@
           block:
             - name: Input create_and_back_up_cert.j2
               vars:
-                __mssql_sql_files_to_input: create_and_back_up_cert.j2
+                __mssql_sql_files_to_input:
+                  - create_and_back_up_cert.j2
               include_role:
                 name: linux-system-roles.mssql
                 tasks_from: input_sql_files.yml
@@ -622,7 +647,8 @@
 
         - name: Ensure that certificates exist
           vars:
-            __mssql_sql_files_to_input: create_and_back_up_cert.j2
+            __mssql_sql_files_to_input:
+              - create_and_back_up_cert.j2
           include_role:
             name: linux-system-roles.mssql
             tasks_from: input_sql_files.yml
@@ -636,7 +662,8 @@
     # create_ha_login.j2 template test
     - name: Create a {{ mssql_ha_login }} login when it already exists
       vars:
-        __mssql_sql_files_to_input: create_ha_login.j2
+        __mssql_sql_files_to_input:
+          - create_ha_login.j2
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_files.yml
@@ -657,7 +684,8 @@
       block:
         - name: Input replicate_db.j2
           vars:
-            __mssql_sql_files_to_input: replicate_db.j2
+            __mssql_sql_files_to_input:
+              - replicate_db.j2
           include_role:
             name: linux-system-roles.mssql
             tasks_from: input_sql_files.yml
@@ -689,7 +717,8 @@
     # configure_ag.yml template test
     - name: Ensure endpoint exists
       vars:
-        __mssql_sql_files_to_input: configure_endpoint.j2
+        __mssql_sql_files_to_input:
+          - configure_endpoint.j2
       include_role:
         name: linux-system-roles.mssql
         tasks_from: input_sql_files.yml
@@ -699,7 +728,8 @@
       block:
         - name: Input configure_ag.yml when AG exists
           vars:
-            __mssql_sql_files_to_input: configure_ag.j2
+            __mssql_sql_files_to_input:
+              - configure_ag.j2
           include_role:
             name: linux-system-roles.mssql
             tasks_from: input_sql_files.yml
@@ -731,7 +761,8 @@
         # with "Replica not Primary"
         - name: Verify configuration of a new ag2
           vars:
-            __mssql_sql_files_to_input: configure_ag_cluster_type_none.j2
+            __mssql_sql_files_to_input:
+              - configure_ag_cluster_type_none.j2
             mssql_ha_ag_name: ag2
           block:
             - name: Configure AG with CLUSTER_TYPE = NONE
@@ -741,7 +772,8 @@
 
             - name: Input configure_ag.yml with CLUSTER_TYPE = NONE
               vars:
-                __mssql_sql_files_to_input: configure_ag.j2
+                __mssql_sql_files_to_input:
+                  - configure_ag.j2
               include_role:
                 name: linux-system-roles.mssql
                 tasks_from: input_sql_files.yml
@@ -765,14 +797,16 @@
 
             - name: Alter AG
               vars:
-                __mssql_sql_files_to_input: alter_ag.j2
+                __mssql_sql_files_to_input:
+                  - alter_ag.j2
               include_role:
                 name: linux-system-roles.mssql
                 tasks_from: input_sql_files.yml
 
             - name: Input configure_ag.yml to configure ag properly
               vars:
-                __mssql_sql_files_to_input: configure_ag.j2
+                __mssql_sql_files_to_input:
+                  - configure_ag.j2
               include_role:
                 name: linux-system-roles.mssql
                 tasks_from: input_sql_files.yml
