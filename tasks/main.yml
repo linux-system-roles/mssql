@@ -597,11 +597,20 @@
             - "{{ __mssql_ha_cert_dest }}"
             - "{{ __mssql_ha_private_key_dest }}"
 
-    - name: Create master key encryption and back up certificates
+    # Required for configure_ag.j2 to set WRITE_LEASE_VALIDITY based on RHEL ver
+    - name: Get mssql-server version to see if WRITE_LEASE_VALIDITY is available
+      package_facts:
+        manager: auto
+      no_log: true
+
+    - name: Configure SQL entities on the primary replica
       vars:
         __mssql_sql_files_to_input:
           - create_master_key_encryption.j2
           - create_and_back_up_cert.j2
+          - enable_alwayson.j2
+          - configure_endpoint.j2
+          - create_ha_login.j2
       include_tasks: input_sql_files.yml
 
     # changed_when: false because the role removes cert files after using them
@@ -616,20 +625,6 @@
         cert: "{{ __mssql_ha_cert_dest }}"
         key: "{{ __mssql_ha_private_key_dest }}"
       changed_when: false
-
-    # Required for configure_ag.j2 to set WRITE_LEASE_VALIDITY based on RHEL ver
-    - name: Get mssql-server version to see if WRITE_LEASE_VALIDITY is available
-      package_facts:
-        manager: auto
-      no_log: true
-
-    - name: Configure SQL entities on the primary replica
-      vars:
-        __mssql_sql_files_to_input:
-          - enable_alwayson.j2
-          - configure_endpoint.j2
-          - create_ha_login.j2
-      include_tasks: input_sql_files.yml
 
 # In the case of fail over the primary replica moves to a different server.
 # This block identifies the current primary replica and works on it.
@@ -660,7 +655,7 @@
           {% endfor %}
           {{ hadr_curr_primary }}
 
-    - name: Configure {{ mssql_ha_ag_name }} and grant permissions to login
+    - name: Configure ag, grant permissions to login, replicate DBs
       when: >-
         (__mssql_ha_curr_primary | length == 1
         and
@@ -674,14 +669,8 @@
         __mssql_sql_files_to_input:
           - configure_ag.j2
           - grant_permissions_to_ha_login.j2
-      include_tasks: input_sql_file.yml
-
-    - name: Back up and replicate databases
-      vars:
-        __mssql_sql_files_to_input:
           - replicate_db.j2
       include_tasks: input_sql_files.yml
-      when: mssql_ha_db_names is not none
 
 - name: Configure availability group on replicas
   when:
