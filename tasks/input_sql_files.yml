@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: MIT
+# This task files inputs sql files into MSSQL.
+# This task takes a list of files.
+# If you feed a file with .j2 extension, it generates a template from it.
+# If you feed a file with other extension, it just copies the file and runs it.
+---
+# This is required because in the case when a task that precedes the input
+# task fails, the print task prints a previous result
+- name: Unset the __mssql_sqlcmd_input variable
+  set_fact:
+    __mssql_sqlcmd_input: []
+
+- name: Verify that the mssql_password variable is defined
+  assert:
+    that:
+      - mssql_password is not none
+    fail_msg: >-
+      You must define the mssql_password variable because MSSQL requires
+      the sa user to authenticate to input SQL files.
+
+- name: Ensure that the mssql-server service is started
+  service:
+    name: mssql-server
+    state: started
+
+- name: Wait for mssql-server to prepare for client connections
+  wait_for:
+    path: /var/opt/mssql/log/errorlog
+    search_regex: SQL Server is now ready for client connections
+    timeout: 10
+
+- name: Prepare MSSQL and facts for logging in
+  include_tasks: verify_password.yml
+  vars:
+    __mssql_password: "{{ mssql_password }}"
+  when: >-
+    (__mssql_sqlcmd_login_cmd is none) or
+    (__mssql_sqlcmd_login_cmd is not defined)
+
+- name: Input SQL files to MSSQL
+  include_tasks: sqlcmd_input_file.yml
+  loop: "{{ __mssql_sql_files_to_input }}"

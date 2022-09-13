@@ -24,10 +24,10 @@
         that:
           - >-
             'The ExampleDB1 database already exists, skipping' in
-            __mssql_sqlcmd_input_file.stdout
+            __mssql_sqlcmd_input.stdout
           - >-
             'The Inventory table already exists, skipping' in
-            __mssql_sqlcmd_input_file.stdout
+            __mssql_sqlcmd_input.stdout
 
     - name: Set up MSSQL and input sql files with post_input
       include_role:
@@ -43,10 +43,10 @@
         that:
           - >-
             'The MyLogin login already exists, skipping'
-            in __mssql_sqlcmd_input_file.stdout
+            in __mssql_sqlcmd_input.stdout
           - >-
             'The MyUser user already exists, skipping'
-            in __mssql_sqlcmd_input_file.stdout
+            in __mssql_sqlcmd_input.stdout
 
     - name: Verify the failure when the mssql_password var is not specified
       block:
@@ -102,4 +102,4 @@
         that:
           - >-
             'Full-Text Search is enabled'
-            in __mssql_sqlcmd_input_file.stdout
+            in __mssql_sqlcmd_input.stdout

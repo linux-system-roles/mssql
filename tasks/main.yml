@@ -316,10 +316,9 @@
 # Keep this task after setting password
 - name: Pre-input SQL scripts to SQL Server
   vars:
-    __mssql_input_sql_file: "{{ item }}"
-  include_tasks: input_sql_file.yml
+    __mssql_sql_files_to_input: "{{ mssql_pre_input_sql_file }}"
+  include_tasks: input_sql_files.yml
   when: mssql_pre_input_sql_file | length > 0
-  loop: "{{ mssql_pre_input_sql_file }}"
 
 - name: Set a new edition for MSSQL
   when:
@@ -581,35 +580,29 @@
         (__mssql_server_ha_packages_install is changed)
       register: __mssql_primary_restarted
 
-    - name: Enable AlwaysOn Health events
-      vars:
-        __mssql_input_sql_file: enable_alwayson.j2
-      include_tasks: input_sql_file.yml
-
-    - name: Remove certificate from SQL Server
-      vars:
-        __mssql_input_sql_file: drop_cert.j2
-      include_tasks: input_sql_file.yml
+    - name: Remove certificates
       when: mssql_ha_reset_cert | bool
+      block:
+        - name: Remove certificate from SQL Server
+          vars:
+            __mssql_sql_files_to_input:
+              - drop_cert.j2
+          include_tasks: input_sql_files.yml
 
-    - name: Remove certificate and private key files
-      file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - "{{ __mssql_ha_cert_dest }}"
-        - "{{ __mssql_ha_private_key_dest }}"
-      when: mssql_ha_reset_cert | bool
+        - name: Remove certificate and private key files
+          file:
+            path: "{{ item }}"
+            state: absent
+          loop:
+            - "{{ __mssql_ha_cert_dest }}"
+            - "{{ __mssql_ha_private_key_dest }}"
 
-    - name: Create master key encryption
+    - name: Create master key encryption and back up certificates
       vars:
-        __mssql_input_sql_file: create_master_key_encryption.j2
-      include_tasks: input_sql_file.yml
-
-    - name: Create and back up certificate
-      vars:
-        __mssql_input_sql_file: create_and_back_up_cert.j2
-      include_tasks: input_sql_file.yml
+        __mssql_sql_files_to_input:
+          - create_master_key_encryption.j2
+          - create_and_back_up_cert.j2
+      include_tasks: input_sql_files.yml
 
     # changed_when: false because the role removes cert files after using them
     - name: >-
@@ -624,36 +617,27 @@
         key: "{{ __mssql_ha_private_key_dest }}"
       changed_when: false
 
-    - name: Configure database mirroring endpoints
-      vars:
-        __mssql_input_sql_file: configure_endpoint.j2
-      include_tasks: input_sql_file.yml
-
-    - name: Create the {{ mssql_ha_login }}
-      vars:
-        __mssql_input_sql_file: create_ha_login.j2
-      include_tasks: input_sql_file.yml
-
     # Required for configure_ag.j2 to set WRITE_LEASE_VALIDITY based on RHEL ver
     - name: Get mssql-server version to see if WRITE_LEASE_VALIDITY is available
       package_facts:
         manager: auto
       no_log: true
 
-    - name: Configure the {{ mssql_ha_ag_name }} availability group
+    - name: Configure SQL entities on the primary replica
       vars:
-        __mssql_input_sql_file: configure_ag.j2
-      include_tasks: input_sql_file.yml
-
-    - name: Grant permissions to the {{ mssql_ha_login }} login
-      vars:
-        __mssql_input_sql_file: grant_permissions_to_ha_login.j2
-      include_tasks: input_sql_file.yml
+        __mssql_sql_files_to_input:
+          - enable_alwayson.j2
+          - configure_endpoint.j2
+          - create_ha_login.j2
+          - configure_ag.j2
+          - grant_permissions_to_ha_login.j2
+      include_tasks: input_sql_files.yml
 
     - name: Back up and replicate databases
       vars:
-        __mssql_input_sql_file: replicate_db.j2
-      include_tasks: input_sql_file.yml
+        __mssql_sql_files_to_input:
+          - replicate_db.j2
+      include_tasks: input_sql_files.yml
       when: mssql_ha_db_names is not none
 
 - name: Configure availability group on replicas
@@ -682,15 +666,12 @@
         (__mssql_server_ha_packages_install is changed)
       register: __mssql_replica_restarted
 
-    - name: Enable AlwaysOn Health events
+    - name: Remove certificate from SQL Server
       vars:
-        __mssql_input_sql_file: enable_alwayson.j2
-      include_tasks: input_sql_file.yml
-
-    - name: Create master key encryption
-      vars:
-        __mssql_input_sql_file: create_master_key_encryption.j2
-      include_tasks: input_sql_file.yml
+        __mssql_sql_files_to_input:
+          - drop_cert.j2
+      include_tasks: input_sql_files.yml
+      when: mssql_ha_reset_cert | bool
 
     - name: Distribute certificate and private key to managed nodes
       copy:
@@ -704,36 +685,17 @@
         cert: "{{ __mssql_ha_cert_dest }}"
         key: "{{ __mssql_ha_private_key_dest }}"
 
-    - name: Remove certificate from SQL Server
+    - name: Configure SQL entities on not primary replicas
       vars:
-        __mssql_input_sql_file: drop_cert.j2
-      include_tasks: input_sql_file.yml
-      when: mssql_ha_reset_cert | bool
-
-    - name: Restore certificate
-      vars:
-        __mssql_input_sql_file: restore_cert.j2
-      include_tasks: input_sql_file.yml
-
-    - name: Configure database mirroring endpoints
-      vars:
-        __mssql_input_sql_file: configure_endpoint.j2
-      include_tasks: input_sql_file.yml
-
-    - name: Create the {{ mssql_ha_login }} login
-      vars:
-        __mssql_input_sql_file: create_ha_login.j2
-      include_tasks: input_sql_file.yml
-
-    - name: Join synchronous and witness servers to the availability group
-      vars:
-        __mssql_input_sql_file: join_to_ag.j2
-      include_tasks: input_sql_file.yml
-
-    - name: Grant permissions to the {{ mssql_ha_login }} login
-      vars:
-        __mssql_input_sql_file: grant_permissions_to_ha_login.j2
-      include_tasks: input_sql_file.yml
+        __mssql_sql_files_to_input:
+          - enable_alwayson.j2
+          - create_master_key_encryption.j2
+          - restore_cert.j2
+          - configure_endpoint.j2
+          - create_ha_login.j2
+          - join_to_ag.j2
+          - grant_permissions_to_ha_login.j2
+      include_tasks: input_sql_files.yml
   always:
     # changed_when: false because this task removes unused remnant of cert files
     - name: Remove certificate and private key from the control node
@@ -767,8 +729,9 @@
 
 - name: Configure a listener for the {{ mssql_ha_ag_name }} availability group
   vars:
-    __mssql_input_sql_file: configure_listener.j2
-  include_tasks: input_sql_file.yml
+    __mssql_sql_files_to_input:
+      - configure_listener.j2
+  include_tasks: input_sql_files.yml
   when:
     - mssql_ha_configure | bool
     - mssql_ha_replica_type == 'primary'
@@ -787,7 +750,6 @@
 
 - name: Post-input SQL scripts to SQL Server
   vars:
-    __mssql_input_sql_file: "{{ item }}"
-  include_tasks: input_sql_file.yml
+    __mssql_sql_files_to_input: "{{ mssql_post_input_sql_file }}"
+  include_tasks: input_sql_files.yml
   when: mssql_post_input_sql_file | length > 0
-  loop: "{{ mssql_post_input_sql_file }}"

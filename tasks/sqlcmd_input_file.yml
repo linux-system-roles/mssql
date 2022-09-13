@@ -1,0 +1,49 @@
+- name: Create a tempfile for the SQL file on the host
+  tempfile:
+    state: file
+  register: __mssql_sql_tempfile
+  changed_when: false
+
+- name: Copy the {{ item }} file to the host
+  copy:
+    src: "{{ item }}"
+    dest: "{{ __mssql_sql_tempfile.path }}"
+    mode: preserve
+  when: item is not search(".*\.j2$")
+  changed_when: false
+
+- name: Generate the {{ item }} template on the host
+  template:
+    src: "{{ item }}"
+    dest: "{{ __mssql_sql_tempfile.path }}"
+    mode: preserve
+  when: item is search(".*\.j2$")
+  changed_when: false
+
+- name: Input {{ item }} with the sqlcmd command
+  command: >-
+    {{ __mssql_sqlcmd_login_cmd }} -i {{ __mssql_sql_tempfile.path }} -b
+  register: __mssql_sqlcmd_input
+  changed_when: '"successfully" in __mssql_sqlcmd_input.stdout'
+
+# Role prints the output if the input succeeds, otherwise Ansible prints the
+# output from the failed input tasks
+- name: >-
+    Print the output of the sqlcmd command for {{ item }}
+    if not empty
+  debug:
+    var: __mssql_sqlcmd_input.stdout_lines
+  changed_when: false
+  when:
+    - __mssql_sqlcmd_input.stdout_lines | length > 0
+    - mssql_debug | bool
+
+# Role keeps the file if the input failed
+- name: Remove the tempfile
+  file:
+    path: "{{ __mssql_sql_tempfile.path }}"
+    state: absent
+  when:
+    - __mssql_sqlcmd_input is succeeded
+    - not mssql_debug
+  changed_when: false
