@@ -639,8 +639,9 @@
   block:
     - name: Get the current primary replica in SQL
       vars:
-        __mssql_input_sql_file: ha_is_primary.sql
-      include_tasks: input_sql_file.yml
+        __mssql_sql_files_to_input:
+          - ha_is_primary.sql
+      include_tasks: input_sql_files.yml
 
     # [2] because ha_is_primary.sql returns required value on this line
     - name: Set fact with the current primary replica
@@ -649,7 +650,7 @@
           {% set hadr_curr_primary = [] %}
           {% for item in ansible_play_hosts %}
           {%  if
-              hostvars[item]['__mssql_sqlcmd_input_file']['stdout_lines'][2]
+              hostvars[item]['__mssql_sqlcmd_input']['stdout_lines'][2]
               | int
               ==
               1
@@ -659,29 +660,20 @@
           {% endfor %}
           {{ hadr_curr_primary }}
 
-    - name: Configure the {{ mssql_ha_ag_name }} availability group
-      vars:
-        __mssql_input_sql_file: configure_ag.j2
-      include_tasks: input_sql_file.yml
+    - name: Configure {{ mssql_ha_ag_name }} and grant permissions to login
       when: >-
         (__mssql_ha_curr_primary | length == 1
         and
-        __mssql_sqlcmd_input_file.stdout_lines[2] | int == 1
+        __mssql_ha_curr_primary[0] == ansible_hostname
         )
         or
         (__mssql_ha_curr_primary | length == 0
         and
         mssql_ha_replica_type == 'primary')
-
-- name: Finish configuration on the primary replica
-  any_errors_fatal: true
-  when:
-    - mssql_ha_configure | bool
-    - mssql_ha_replica_type == 'primary'
-  block:
-    - name: Grant permissions to the {{ mssql_ha_login }} login
       vars:
-        __mssql_input_sql_file: grant_permissions_to_ha_login.j2
+        __mssql_sql_files_to_input:
+          - configure_ag.j2
+          - grant_permissions_to_ha_login.j2
       include_tasks: input_sql_file.yml
 
     - name: Back up and replicate databases
