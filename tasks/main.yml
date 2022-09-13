@@ -759,6 +759,7 @@
         name: fedora.linux_system_roles.ha_cluster
       when: mssql_ha_cluster_run_role | bool
 
+# Configure on a current primary identified above
 - name: Configure a listener for the {{ mssql_ha_ag_name }} availability group
   vars:
     __mssql_sql_files_to_input:
@@ -766,7 +767,15 @@
   include_tasks: input_sql_files.yml
   when:
     - mssql_ha_configure | bool
-    - mssql_ha_replica_type == 'primary'
+    - >-
+      (__mssql_ha_curr_primary | length == 1
+      and
+      __mssql_ha_curr_primary[0] == ansible_hostname
+      )
+      or
+      (__mssql_ha_curr_primary | length == 0
+      and
+      mssql_ha_replica_type == 'primary')
 
 - name: Ensure the ansible_managed header in {{ __mssql_conf_path }}
   vars:
