@@ -623,12 +623,7 @@
         manager: auto
       no_log: true
 
-    - name: >-
-        Enable AlwaysOn Health events
-        Configure database mirroring endpoints
-        Create the {{ mssql_ha_login }} login
-        Configure the {{ mssql_ha_ag_name }} availability group
-        Grant permissions to the {{ mssql_ha_login }} login
+    - name: Configure SQL entities on the primary replica
       vars:
         __mssql_sql_files_to_input:
           - enable_alwayson.j2
@@ -690,14 +685,7 @@
         cert: "{{ __mssql_ha_cert_dest }}"
         key: "{{ __mssql_ha_private_key_dest }}"
 
-    - name: >-
-        Enable AlwaysOn Health events
-        Create master key encryption
-        Restore certificate
-        Configure database mirroring endpoints
-        Create the {{ mssql_ha_login }} login
-        Join synchronous and witness servers to the availability group
-        Grant permissions to the {{ mssql_ha_login }} login
+    - name: Configure SQL entities on not primary replicas
       vars:
         __mssql_sql_files_to_input:
           - enable_alwayson.j2
