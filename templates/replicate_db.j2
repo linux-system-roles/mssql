@@ -1,4 +1,4 @@
-{% if mssql_ha_db_names | length > 0 %}
+{% if mssql_ha_db_names | d([]) | length > 0 %}
 {%   for item in mssql_ha_db_names %}
 {%     set db_backup_path = "/var/opt/mssql/data/" + item %}
 IF NOT EXISTS (

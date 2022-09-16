@@ -641,36 +641,45 @@
     # [2] because ha_is_primary.sql returns required value on this line
     - name: Set fact with the current primary replica
       set_fact:
-        __mssql_ha_curr_primary: |
+        __mssql_ha_is_primary: |-
           {% set hadr_curr_primary = [] %}
           {% for item in ansible_play_hosts %}
-          {%  if
-              hostvars[item]['__mssql_sqlcmd_input']['stdout_lines'][2]
-              | int
-              ==
-              1
-          %}
+          {%   if hostvars[item]['__mssql_sqlcmd_input']['stdout'] | int == 1 %}
           {{ hadr_curr_primary.append(item) -}}
-          {%  endif %}
+          {%   endif %}
           {% endfor %}
-          {{ hadr_curr_primary }}
+          {%- if hadr_curr_primary | length > 0
+             and
+             hadr_curr_primary[0] == ansible_hostname %}
+          true
+          {%- elif hadr_curr_primary | length == 0
+             and
+             mssql_ha_replica_type == 'primary' %}
+          true
+          {%- else %}
+          false
+          {%- endif %}
 
     - name: Configure ag, grant permissions to login, replicate DBs
-      when: >-
-        (__mssql_ha_curr_primary | length == 1
-        and
-        __mssql_ha_curr_primary[0] == ansible_hostname
-        )
-        or
-        (__mssql_ha_curr_primary | length == 0
-        and
-        mssql_ha_replica_type == 'primary')
+      when: __mssql_ha_is_primary | bool
       vars:
         __mssql_sql_files_to_input:
           - configure_ag.j2
           - grant_permissions_to_ha_login.j2
           - replicate_db.j2
       include_tasks: input_sql_files.yml
+
+# In the case of fail over when primary is moved grant permission task above is
+# not run on primary above hence we need to run it separately
+- name: Grant permissions to ha login
+  vars:
+    __mssql_sql_files_to_input:
+      - grant_permissions_to_ha_login.j2
+  include_tasks: input_sql_files.yml
+  when:
+    - mssql_ha_configure | bool
+    - not __mssql_ha_is_primary
+    - mssql_ha_replica_type == 'primary'
 
 - name: Configure availability group on replicas
   when:
@@ -767,15 +776,7 @@
   include_tasks: input_sql_files.yml
   when:
     - mssql_ha_configure | bool
-    - >-
-      (__mssql_ha_curr_primary | length == 1
-      and
-      __mssql_ha_curr_primary[0] == ansible_hostname
-      )
-      or
-      (__mssql_ha_curr_primary | length == 0
-      and
-      mssql_ha_replica_type == 'primary')
+    - __mssql_ha_is_primary | bool
 
 - name: Ensure the ansible_managed header in {{ __mssql_conf_path }}
   vars:
