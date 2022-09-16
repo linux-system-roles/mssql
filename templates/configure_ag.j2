@@ -40,22 +40,23 @@ BEGIN
 {# Configure witness next-to-last to ensure that previous witness replica is #}
 {# removed beforehand. Otherwise, the script fails with 'only supports one #}
 {# replica which has configuration-only availability mode.' #}
-{% set ag_replicas_sorted = [] %}
+{% set ag_replicas_primary_last = [] %}
 {# In the first loop, add primaries at the end and witness at the beginning #}
 {% for item in ansible_play_hosts %}
 {%   if hostvars[item]['mssql_ha_replica_type'] == 'primary' %}
-{{ ag_replicas_sorted.append(item) -}}
+{{ ag_replicas_primary_last.append(item) -}}
 {%   elif hostvars[item]['mssql_ha_replica_type'] == 'witness' %}
-{{ ag_replicas_sorted.insert(0, item) -}}
+{{ ag_replicas_primary_last.insert(0, item) -}}
 {%   endif %}
 {% endfor %}
 {# In the second loop, add others at the beginning #}
 {% for item in ansible_play_hosts %}
-{%   if hostvars[item]['mssql_ha_replica_type'] not in ag_replicas_sorted %}
-{{ ag_replicas_sorted.insert(0, item) -}}
+{%   if hostvars[item]['mssql_ha_replica_type']
+     not in ag_replicas_primary_last %}
+{{ ag_replicas_primary_last.insert(0, item) -}}
 {%   endif %}
 {% endfor %}
-{% for item in ag_replicas_sorted %}
+{% for item in ag_replicas_primary_last %}
 {%   if hostvars[item]['mssql_ha_replica_type'] != 'absent' %}
   IF EXISTS (
     SELECT replica_server_name, availability_mode_desc
@@ -223,14 +224,32 @@ BEGIN
     WITH (DB_FAILOVER = ON, CLUSTER_TYPE = EXTERNAL)
 {% endif %}
     FOR REPLICA ON
-      N'{{ ansible_hostname }}' WITH (
-        ENDPOINT_URL = N'tcp://{{ ansible_fqdn }}:{{ mssql_ha_listener_port }}',
-        AVAILABILITY_MODE = {{ __mssql_ha_availability_mode }},
-        FAILOVER_MODE = {{ __mssql_ha_failover_mode }},
-        SEEDING_MODE = {{ __mssql_ha_seeding_mode }},
-        SECONDARY_ROLE (ALLOW_CONNECTIONS = ALL)
+{# Sort ansible_play_hosts #}
+{# Sort primary replica as the first in the list #}
+{# Configure AG with primary replica first because SQL Server requires this #}
+{% set ag_replicas_primary_first = [] %}
+{# In the first loop, add not primaries to a new list #}
 {% for item in ansible_play_hosts %}
-{%   if hostvars[item]['mssql_ha_replica_type'] == 'synchronous' %}
+{%   if hostvars[item]['mssql_ha_replica_type'] != 'primary' %}
+{{ ag_replicas_primary_first.append(item) -}}
+{%   endif %}
+{% endfor %}
+{# In the second loop, add primary at the beginning #}
+{% for item in ansible_play_hosts %}
+{%   if hostvars[item]['mssql_ha_replica_type'] == 'primary' %}
+{{ ag_replicas_primary_first.insert(0, item) -}}
+{%   endif %}
+{% endfor %}
+{% for item in ag_replicas_primary_first %}
+{%   if hostvars[item]['mssql_ha_replica_type'] == 'primary' %}
+      N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
+        ENDPOINT_URL = N'tcp://{{
+          hostvars[item]['ansible_fqdn'] }}:{{ mssql_ha_listener_port }}',
+        AVAILABILITY_MODE = {{ hostvars[item]['__mssql_ha_availability_mode'] }},
+        FAILOVER_MODE = {{ hostvars[item]['__mssql_ha_failover_mode'] }},
+        SEEDING_MODE = {{ hostvars[item]['__mssql_ha_seeding_mode'] }},
+        SECONDARY_ROLE (ALLOW_CONNECTIONS = ALL)
+{%   elif hostvars[item]['mssql_ha_replica_type'] == 'synchronous' %}
       ),
       N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
         ENDPOINT_URL = N'tcp://{{

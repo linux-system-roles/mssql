@@ -1,5 +1,6 @@
-{% for item in mssql_ha_db_names %}
-{%   set db_backup_path = "/var/opt/mssql/data/" + item %}
+{% if mssql_ha_db_names | d([]) | length > 0 %}
+{%   for item in mssql_ha_db_names %}
+{%     set db_backup_path = "/var/opt/mssql/data/" + item %}
 IF NOT EXISTS (
   SELECT name, recovery_model_desc
   FROM sys.databases
@@ -70,4 +71,5 @@ BEGIN
   PRINT 'The {{ item }} database is already added to the \
 {{ mssql_ha_ag_name }} availability group, skipping';
 END
-{% endfor %}
+{%   endfor %}
+{% endif %}
