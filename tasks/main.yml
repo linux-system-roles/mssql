@@ -524,6 +524,20 @@
         __mssql_conf_setting: "network forceencryption"
         __mssql_conf_setting_value: "{{ '1' if mssql_tls_enable else 'unset' }}"
 
+- name: Verify that hosts with 'mssql_ha_replica_type = primary' is available
+  when: mssql_ha_configure | bool
+  assert:
+    that: ansible_play_hosts |
+        map('extract', hostvars, 'mssql_ha_replica_type') |
+        select('match', '^primary$') |
+        list |
+        length == 1
+    fail_msg:
+      - Host with mssql_ha_replica_type=primary failed earlier in the play.
+      - Therefore, it is not possible to configure for high availability.
+      - Fix the above error on the primary replica and re-run the role.
+  run_once: true
+
 - name: Open required firewall ports and set required facts
   when:
     - mssql_ha_configure | bool
