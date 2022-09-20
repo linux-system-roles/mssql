@@ -16,8 +16,6 @@
 
 - name: Reload service daemon
   systemd:  # noqa no-handler
-    name: mssql-server
-    state: restarted
     daemon_reload: yes
   when: >
     (__mssql_modify_limit_interval is changed) or
