@@ -13,7 +13,7 @@ __mssql_powershell_packages: powershell
 __mssql_conf_path: /var/opt/mssql/mssql.conf
 __mssql_conf_cli: /opt/mssql/bin/mssql-conf
 __mssql_ha_endpoint_role: >-
-  {%- if mssql_ha_replica_type in ['primary', 'synchronous'] -%}
+  {%- if mssql_ha_replica_type in ['primary', 'synchronous', 'asynchronous'] -%}
   ALL
   {%- elif mssql_ha_replica_type == 'witness' -%}
   WITNESS
@@ -23,13 +23,15 @@ __mssql_ha_endpoint_role: >-
 __mssql_ha_availability_mode: >-
   {%- if mssql_ha_replica_type in ['primary', 'synchronous'] -%}
   SYNCHRONOUS_COMMIT
+  {%- elif mssql_ha_replica_type == 'asynchronous' -%}
+  ASYNCHRONOUS_COMMIT
   {%- elif mssql_ha_replica_type == 'witness' -%}
   CONFIGURATION_ONLY
   {%- else -%}
   null
   {%- endif -%}
 __mssql_ha_failover_mode: >-
-  {%- if mssql_ha_replica_type in ['primary', 'synchronous'] -%}
+  {%- if mssql_ha_replica_type in ['primary', 'synchronous', 'asynchronous'] -%}
   EXTERNAL
   {%- elif mssql_ha_replica_type == 'witness' -%}
   MANUAL
@@ -37,7 +39,7 @@ __mssql_ha_failover_mode: >-
   null
   {%- endif -%}
 __mssql_ha_seeding_mode: >-
-  {%- if mssql_ha_replica_type in ['primary', 'synchronous'] -%}
+  {%- if mssql_ha_replica_type in ['primary', 'synchronous', 'asynchronous'] -%}
   AUTOMATIC
   {%- elif mssql_ha_replica_type == 'witness' -%}
   MANUAL

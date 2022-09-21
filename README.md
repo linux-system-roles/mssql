@@ -370,7 +370,7 @@ A host variable that specifies the type of the replica to be configured on this 
 
 See [`Setting Up SQL Server and Configuring for High Availability`](#Setting-Up-SQL-Server-and-Configuring-for-High-Availability) for an example inventory.
 
-The available values are: `primary`, `synchronous`, `witness`.
+The available values are: `primary`, `synchronous`, `asynchronous`, `witness`.
 
 You must set this variable to `primary` for exactly one host.
 
@@ -636,14 +636,19 @@ all:
     # There is no need to specify ha_cluster names explicitly
     host1:
       mssql_ha_replica_type: primary
-    # host2 is defined by FQDN
+    # host2 and host3 is defined by FQDN
     # You must define ha_cluster names to be in the short name format
     host2.example.com:
       mssql_ha_replica_type: synchronous
       ha_cluster:
         node_name: host2
         pcs_address: host2
-    # host3 is defined by an ip address
+    host3.example.com:
+      mssql_ha_replica_type: asynchronous
+      ha_cluster:
+        node_name: host3
+        pcs_address: host3
+    # host4 is defined by an ip address
     # You must define ha_cluster names to be in the short name format
     # In the case where the default host's IP address differs from the IP
     # address that Pacemaker must use to set up cluster, you must define
@@ -651,8 +656,8 @@ all:
     192.XXX.XXX.333:
       mssql_ha_replica_type: witness
       ha_cluster:
-        node_name: host3
-        pcs_address: host3
+        node_name: host4
+        pcs_address: host4
         corosync_addresses:
           - 10.XXX.XXX.333
 ```
