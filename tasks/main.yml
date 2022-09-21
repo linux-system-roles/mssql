@@ -298,6 +298,7 @@
       ignore_errors: true
       changed_when: false
       register: __mssql_password_query
+      no_log: true
 
     - name: Ensure that the mssql-server service is stopped
       service:
@@ -769,6 +770,7 @@
             group: root
             mode: 0400
             force: true
+          no_log: true
 
         - name: Run ha_cluster to configure pacemaker
           include_role:

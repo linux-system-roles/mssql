@@ -74,6 +74,7 @@
       ignore_errors: true
       changed_when: false
       register: __mssql_password_query
+      no_log: true
 
     - name: Verify if the password matched
       assert:
