@@ -111,7 +111,7 @@ removing this replica re-create it';
   ELSE
   BEGIN
     PRINT 'Verifying the existing replica {{ hostvars[item]['ansible_hostname'] }}';
-{%     if hostvars[item]['mssql_ha_replica_type'] in ['primary', 'synchronous', 'asynchronous' ] %}
+{%     if hostvars[item]['mssql_ha_replica_type'] in __mssql_ha_replica_types_external %}
 {%       set ag_replica_settings = ({
 "endpoint_url":{
   "sql_setting_name":"ENDPOINT_URL",
