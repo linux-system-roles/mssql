@@ -12,23 +12,20 @@ __mssql_server_ha_packages: mssql-server-ha
 __mssql_powershell_packages: powershell
 __mssql_conf_path: /var/opt/mssql/mssql.conf
 __mssql_conf_cli: /opt/mssql/bin/mssql-conf
-__mssql_ha_replica_types_all: [
-  'primary',
-  'synchronous',
-  'asynchronous',
-  'witness',
-  'absent'
-]
-__mssql_ha_replica_types_secondary: [
-  'synchronous',
-  'asynchronous',
-  'witness',
-]
-__mssql_ha_replica_types_external: [
-  'primary',
-  'synchronous',
-  'asynchronous',
-]
+__mssql_ha_replica_types_all:
+  - primary
+  - synchronous
+  - asynchronous
+  - witness
+  - absent
+__mssql_ha_replica_types_secondary:
+  - synchronous
+  - asynchronous
+  - witness
+__mssql_ha_replica_types_external:
+  - primary
+  - synchronous
+  - asynchronous
 __mssql_ha_endpoint_role: >-
   {%- if mssql_ha_replica_type in __mssql_ha_replica_types_external -%}
   ALL
