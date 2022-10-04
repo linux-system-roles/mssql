@@ -7,7 +7,7 @@ galaxy_info:
   platforms:
     - name: Fedora
       versions:
-        - all
+        - 35
     - name: EL
       versions:
         - 8
@@ -17,4 +17,7 @@ galaxy_info:
     - fedora
     - centos
     - mssql
+    - sql
+    - microsoft
+    - database
 dependencies: []
