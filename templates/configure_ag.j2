@@ -89,7 +89,7 @@ removing this replica re-create it';
   BEGIN
     PRINT 'Adding the {{ hostvars[item]['ansible_hostname'] }} \
 {{ hostvars[item]['mssql_ha_replica_type'] }} replica';
-{%     if hostvars[item]['mssql_ha_replica_type'] == 'synchronous' %}
+{%     if hostvars[item]['mssql_ha_replica_type'] in ['synchronous', 'asynchronous'] %}
     ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} ADD REPLICA ON
       N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
         ENDPOINT_URL = N'tcp://{{
@@ -111,8 +111,7 @@ removing this replica re-create it';
   ELSE
   BEGIN
     PRINT 'Verifying the existing replica {{ hostvars[item]['ansible_hostname'] }}';
-{%     if (hostvars[item]['mssql_ha_replica_type'] == 'primary') or
-          (hostvars[item]['mssql_ha_replica_type'] == 'synchronous') %}
+{%     if hostvars[item]['mssql_ha_replica_type'] in __mssql_ha_replica_types_external %}
 {%       set ag_replica_settings = ({
 "endpoint_url":{
   "sql_setting_name":"ENDPOINT_URL",
@@ -249,7 +248,7 @@ BEGIN
         FAILOVER_MODE = {{ hostvars[item]['__mssql_ha_failover_mode'] }},
         SEEDING_MODE = {{ hostvars[item]['__mssql_ha_seeding_mode'] }},
         SECONDARY_ROLE (ALLOW_CONNECTIONS = ALL)
-{%   elif hostvars[item]['mssql_ha_replica_type'] == 'synchronous' %}
+{%   elif hostvars[item]['mssql_ha_replica_type'] in ['synchronous', 'asynchronous'] %}
       ),
       N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
         ENDPOINT_URL = N'tcp://{{

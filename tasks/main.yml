@@ -83,11 +83,10 @@
 
 - name: Verify if the mssql_ha_replica_type variable is provided correctly
   assert:
-    that: mssql_ha_replica_type in
-      ['primary', 'synchronous', 'witness', 'absent']
+    that: mssql_ha_replica_type in __mssql_ha_replica_types_all
     fail_msg: >-
-      You must set the mssql_ha_replica_type variable to one of 'primary',
-      'synchronous', 'witness', 'absent'
+      You must set the mssql_ha_replica_type variable to one of
+      {{ __mssql_ha_replica_types_all | join (', ') }}
   when: mssql_ha_configure | bool
 
 - name: Verify that 'mssql_ha_replica_type = primary' is provided once
@@ -692,8 +691,8 @@
         - not __mssql_ha_is_primary
         - mssql_ha_replica_type == 'primary'
 
-    - name: Configure availability group on replicas
-      when: mssql_ha_replica_type in ['synchronous', 'witness']
+    - name: Configure availability group on not primary replicas
+      when: mssql_ha_replica_type in __mssql_ha_replica_types_secondary
       block:
         - name: Ensure the {{ __mssql_server_ha_packages }} package
           package:
