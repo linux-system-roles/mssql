@@ -164,7 +164,7 @@
         public: true
       vars:
         mssql_tls_enable: true
-        mssql_certificates:
+        mssql_tls_certificates:
           - name: mssql_2019_cert
             common_name: "{{ ansible_default_ipv4.address }}"
             ca: self-sign

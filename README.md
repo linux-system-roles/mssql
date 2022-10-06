@@ -257,6 +257,31 @@ Default: `null`
 
 Type: `bool`
 
+#### `mssql_tls_certificates`
+
+A certificate and a key for TLS encryption are created using the `certificate` role
+from the `fedora.linux_system_roles` collection.
+
+The value of `mssql_tls_certificates` is set to the variable `certificate_requests`
+in the `certificate` role.
+Please see the `certificate_requests` section in the `certificate` role documentation
+for details.
+
+With this example, a certificate FILENAME.crt is created in `/etc/pki/tls/certs` and
+a key FILENAME.key is in `/etc/pki/tls/private`.
+```yaml
+mssql_tls_certificates:
+  - name: FILENAME
+    dns: *.example.com
+    ca: self-sign
+```
+When `mssql_tls_certificates` is specified, `mssql_tls_cert` and `mssql_tls_private_key`
+are not needed to set.
+
+Default: `[]`
+
+Type: `list of dictionary`
+
 #### `mssql_tls_cert`
 
 Path to the certificate file to copy to SQL Server.
@@ -522,30 +547,6 @@ The role creates an availability group listener using the following values:
 Default: `null`
 
 Type: `string`
-
-#### `mssql_certificates`
-
-A certificate and a key for TLS encryption are created using the `certificate` role.
-
-The value of `mssql_certificates` is set to the variable `certificate_requests` for
-the `certificate` role.
-Please see the `certificate_requests` section in the `certificate` role documentation
-for details.
-
-With this example, a certificate FILENAME.crt is created in `/etc/pki/tls/certs` and
-a key FILENAME.key is in `/etc/pki/tls/private`.
-```yaml
-mssql_certificates:
-  - name: FILENAME
-    dns: *.example.com
-    ca: self-sign
-```
-When `mssql_certificates` is specified, `mssql_tls_cert` and `mssql_tls_private_key`
-are not needed to set.
-
-Default: `[]`
-
-Type: `list of dictionary`
 
 ## Example Playbooks
 
@@ -1064,10 +1065,9 @@ This example playbooks sets the `firewall` variables for the `fedora.linux_syste
     - name: Test with certs created by the certificate role
       include_role:
         name: linux-system-roles.mssql
-        public: true
       vars:
         mssql_tls_enable: true
-        mssql_certificates:
+        mssql_tls_certificates:
           - name: cert_name
             dns: *.example.com
             ca: self-sign

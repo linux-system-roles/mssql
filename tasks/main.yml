@@ -477,27 +477,34 @@
   when:
     - mssql_tls_enable is not none
   block:
-    - block:
-        - name: Generate certificates using the certificate role
+    - name: >-
+        Create certificate and private_key files and set mssql_tls_cert
+        and _private_key
+      when:
+        - mssql_tls_enable | bool
+        - mssql_tls_certificates | length > 0
+      block:
+        - name: Create certificates using the certificate role
           include_role:
             name: fedora.linux_system_roles.certificate
           vars:
             certificate_requests: |
-              {% for _cert in mssql_certificates %}
+              {% for _cert in mssql_tls_certificates %}
               {%   set _ = _cert.__setitem__('owner', 'mssql') %}
               {%   set _ = _cert.__setitem__('group', 'mssql') %}
               {%   set _ = _cert.__setitem__('mode', '0600') %}
               {% endfor %}
-              {{ mssql_certificates }}
+              {{ mssql_tls_certificates }}
 
-        - name: Generate certificates using the certificate role
+        - name: Set mssql_tls_cert and _private_key based on the cert name
           set_fact:
-            mssql_tls_cert: "{{ mssql_certificates.0.name }}.crt"
-            mssql_tls_private_key: "{{ mssql_certificates.0.name }}.key"
-
-      when: mssql_certificates | length > 0
+            mssql_tls_cert: "{{ mssql_tls_certificates.0.name }}.crt"
+            mssql_tls_private_key: "{{ mssql_tls_certificates.0.name }}.key"
 
     - name: Copy certificate and private_key files to the host
+      when:
+        - mssql_tls_enable | bool
+        - mssql_tls_certificates | length == 0
       copy:
         src: "{{ item }}"
         remote_src: "{{ mssql_tls_remote_src }}"
@@ -511,9 +518,6 @@
       with_items:
         - "{{ mssql_tls_cert }}"
         - "{{ mssql_tls_private_key }}"
-      when:
-        - mssql_tls_enable | bool
-        - mssql_certificates | length == 0
 
     - name: Configure the tlscert setting
       include_tasks: mssql_conf_setting.yml

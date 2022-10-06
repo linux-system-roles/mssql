@@ -43,4 +43,4 @@ mssql_ha_login: null
 mssql_ha_login_password: null
 mssql_ha_virtual_ip: null
 mssql_ha_cluster_run_role: false
-mssql_certificates: []
+mssql_tls_certificates: []
