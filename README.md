@@ -162,9 +162,19 @@ Note that this task is not idempotent, the role always inputs an SQL file if any
 
 You can find an example of an SQL file at `tests/sql_script.sql` at the role directory.
 
+You can set these variables to a list of files, or to a string containing single file.
+For example:
+
+```yaml
+mssql_pre_input_sql_file: script0.sql
+mssql_post_input_sql_file:
+  - script1.sql
+  - script2.sql
+```
+
 Default: `null`
 
-Type: `str`
+Type: `string` or `list`
 
 ### `mssql_debug`
 

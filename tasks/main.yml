@@ -313,12 +313,18 @@
       when: __mssql_password_query is failed
       notify: Restart the mssql-server service
 
+# Input files var as list even when provided as sting
 # Keep this task after setting password
 - name: Pre-input SQL scripts to SQL Server
   vars:
-    __mssql_sql_files_to_input: "{{ mssql_pre_input_sql_file }}"
+    __mssql_sql_files_to_input: "{{
+      mssql_pre_input_sql_file
+      if mssql_pre_input_sql_file | type_debug == 'list'
+      else
+      [mssql_pre_input_sql_file]
+    }}"
   include_tasks: input_sql_files.yml
-  when: mssql_pre_input_sql_file | length > 0
+  when: mssql_pre_input_sql_file != []
 
 - name: Set a new edition for MSSQL
   when:
@@ -796,8 +802,14 @@
 - name: Flush handlers prior to inputting post SQL scripts
   meta: flush_handlers
 
+# Input files var as list even when provided as sting
 - name: Post-input SQL scripts to SQL Server
   vars:
-    __mssql_sql_files_to_input: "{{ mssql_post_input_sql_file }}"
+    __mssql_sql_files_to_input: "{{
+      mssql_post_input_sql_file
+      if mssql_post_input_sql_file | type_debug == 'list'
+      else
+      [mssql_post_input_sql_file]
+    }}"
   include_tasks: input_sql_files.yml
-  when: mssql_post_input_sql_file | length > 0
+  when: mssql_post_input_sql_file != []
