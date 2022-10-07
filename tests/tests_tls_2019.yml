@@ -75,8 +75,8 @@
           delegate_to: localhost
           run_once: true
 
-    - name: Flush handlers
-      meta: flush_handlers
+    - name: Configure the mssql-server service start limit interval and burst
+      include_tasks: tasks/mssql-sever-increase-start-limit.yml
 
     - name: Verify connectivity and settings
       include_tasks: tasks/verify_settings.yml
@@ -91,9 +91,6 @@
         public: true
       vars:
         mssql_tls_enable: false
-
-    - name: Flush handlers
-      meta: flush_handlers
 
     - name: Verify connectivity and settings
       include_tasks: tasks/verify_settings.yml
@@ -129,9 +126,6 @@
         mssql_tls_private_key: "{{ __mssql_pvk_tempfile.path }}"
         mssql_tls_remote_src: true
 
-    - name: Flush handlers
-      meta: flush_handlers
-
     - name: Verify connectivity and settings
       include_tasks: tasks/verify_settings.yml
       vars:
@@ -145,12 +139,8 @@
     - name: Disable TLS encryption
       include_role:
         name: linux-system-roles.mssql
-        public: true
       vars:
         mssql_tls_enable: false
-
-    - name: Flush handlers
-      meta: flush_handlers
 
     - name: Verify connectivity and settings
       include_tasks: tasks/verify_settings.yml
@@ -158,6 +148,7 @@
         __verify_mssql_password: "p@55w0rD"
         __verify_mssql_is_tls_encrypted: false
 
+    # Test mssql_tls_certificates
     - name: Test with certs created by the certificate role
       include_role:
         name: linux-system-roles.mssql
