@@ -490,6 +490,8 @@
           vars:
             certificate_requests: |
               {% for _cert in mssql_tls_certificates %}
+              {%   set _basename = _cert.name | basename %}
+              {%   set _ = _cert.__setitem__('name', _basename) %}
               {%   set _ = _cert.__setitem__('owner', 'mssql') %}
               {%   set _ = _cert.__setitem__('group', 'mssql') %}
               {%   set _ = _cert.__setitem__('mode', '0600') %}
