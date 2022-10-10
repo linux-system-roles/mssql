@@ -235,20 +235,14 @@ Type: `bool`
 
 Use the variables starting with the `mssql_tls_` prefix to configure SQL Server to encrypt connections using TLS certificates.
 
-You are responsible for creating and securing TLS certificate and private key files.
-It is assumed you have a CA that can issue these files.
-If not, you can use the `openssl` command to create these files.
-
-You must have TLS certificate and private key files on the Ansible control node.
-
-When you use this variable, the role copies TLS cert and private key files to SQL Server and configures SQL Server to use these files to encrypt connections.
+You can either use existing TLS certificate and private key files by providing them with [`mssql_tls_cert` and `mssql_tls_private_key`](#mssql_tls_cert-and-mssql_tls_private_key), or use the role to create certificates by providing [`mssql_tls_certificates`](#mssql_tls_certificates).
 
 Set to `true` or `false` to enable or disable TLS encryption.
 
 When set to `true`, the role performs the following tasks:
 
-1. Copies TLS certificate and private key files to SQL Server to the `/etc/pki/tls/certs/` and `/etc/pki/tls/private/` directories respectively
-2. Configures SQL Server to encrypt connections using the copied TLS certificate and private key
+1. Copies or generates TLS certificate and private key files in `/etc/pki/tls/certs/` and `/etc/pki/tls/private/` directories respectively
+2. Configures SQL Server to encrypt connections using TLS certificate and private key
 
 When set to `false`, the role configures SQL Server to not use TLS encryption.
 The role does not remove the existing certificate and private key files if this variable is set to `false`.
@@ -257,22 +251,43 @@ Default: `null`
 
 Type: `bool`
 
-#### `mssql_tls_cert`
+#### `mssql_tls_certificates`
 
-Path to the certificate file to copy to SQL Server.
+Use this variable to generate certificate and private key for TLS encryption using the `fedora.linux_system_roles.certificate`.
+
+The value of `mssql_tls_certificates` is set to the variable `certificate_requests`
+in the `certificate` role.
+For more information, see the `certificate_requests` section in the `certificate` role documentation.
+
+The following example generates a certificate FILENAME.crt in `/etc/pki/tls/certs` and a key FILENAME.key in `/etc/pki/tls/private`.
+```yaml
+mssql_tls_certificates:
+  - name: FILENAME
+    dns: *.example.com
+    ca: self-sign
+```
+When you set this variable, you must not set `mssql_tls_cert` and `mssql_tls_private_key` variables.
+
+Default: `[]`
+
+Type: `list of dictionaries`
+
+#### `mssql_tls_cert` and `mssql_tls_private_key`
+
+Paths to the certificate and private key files to copy to SQL Server.
+
+You are responsible for creating and securing TLS certificate and private key files.
+It is assumed you have a CA that can issue these files.
+
+When you use these variables, the role copies TLS cert and private key files to SQL Server and configures SQL Server to use these files to encrypt connections.
 
 Default: `null`
 
-Type: `str`
-
-#### `mssql_tls_private_key`
-
-Path to the private key file to copy to SQL Server.
-
-Default: `null`
 Type: `str`
 
 #### `mssql_tls_remote_src`
+
+Only applicable when using [`mssql_tls_cert` and `mssql_tls_private_key`](#mssql_tls_cert-and-mssql_tls_private_key).
 
 Influence whether files provided with `mssql_tls_cert` and `mssql_tls_private_key` need to be transferred or already are present remotely.
 
@@ -594,6 +609,7 @@ This example shows how to use the role to set up SQL Server and enable the follo
 ### Setting Up SQL Server with TLS Encryption
 
 This example shows how to use the role to set up SQL Server and configure it to use TLS encryption.
+Certificate files `mycert.pem` and `mykey.key` must exist on the primary node.
 
 ```yaml
 - hosts: all
@@ -612,6 +628,27 @@ This example shows how to use the role to set up SQL Server and configure it to 
   roles:
     - microsoft.sql.server
 ```
+
+This example shows how to use the role to set up SQL Server and configure it with TLS encryption using self-signed certificate and key created by the certificate role.
+
+```yaml
+- hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
+    mssql_manage_firewall: true
+    mssql_tls_enable: true
+    mssql_tls_certificates:
+      - name: cert_name
+        dns: *.example.com
+        ca: self-sign
+  roles:
+    - microsoft.sql.server
+```
+
 
 ### Setting Up SQL Server and Configuring for High Availability
 
