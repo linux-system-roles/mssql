@@ -279,7 +279,7 @@ Paths to the certificate and private key files to copy to SQL Server.
 You are responsible for creating and securing TLS certificate and private key files.
 It is assumed you have a CA that can issue these files.
 
-When you use this variable, the role copies TLS cert and private key files to SQL Server and configures SQL Server to use these files to encrypt connections.
+When you use these variables, the role copies TLS cert and private key files to SQL Server and configures SQL Server to use these files to encrypt connections.
 
 Default: `null`
 
