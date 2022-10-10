@@ -54,8 +54,7 @@
           include_role:
             name: linux-system-roles.mssql
           vars:
-            mssql_pre_input_sql_file:
-              - sql_script.sql
+            mssql_pre_input_sql_file: sql_script.sql
 
         - name: Unreachable task
           fail:
@@ -74,8 +73,7 @@
           include_role:
             name: linux-system-roles.mssql
           vars:
-            mssql_post_input_sql_file:
-              - sql_script.sql
+            mssql_post_input_sql_file: sql_script.sql
 
         - name: Unreachable task
           fail:
@@ -93,8 +91,7 @@
         name: linux-system-roles.mssql
       vars:
         mssql_install_fts: true
-        mssql_post_input_sql_file:
-          - verify_fts.sql
+        mssql_post_input_sql_file: verify_fts.sql
         mssql_password: "p@55w0rD"
 
     - name: Assert the latest script invocation resulted in no changes
