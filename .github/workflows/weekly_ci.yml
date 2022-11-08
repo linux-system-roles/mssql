@@ -16,17 +16,19 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const { BRANCH_NAME, COMMIT_MESSAGE } = process.env
-            const branch = github.rest.repos.getBranchProtection({
+            const branches = github.rest.repos.listBranches({
               owner: context.repo.owner,
               repo: context.repo.repo,
               branch: '${BRANCH_NAME}',
             });
-            if ( branch ){
-              github.rest.git.deleteRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: 'heads/${BRANCH_NAME}',
-              });
+            for (branch in branches){
+              if (branches[branch].name == '${BRANCH_NAME}'){
+                github.rest.git.deleteRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: 'heads/${BRANCH_NAME}',
+                });
+              }
             }
       - name: Create new branch
         uses: actions/github-script@v6
