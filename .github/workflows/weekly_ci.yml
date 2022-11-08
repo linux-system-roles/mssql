@@ -1,0 +1,69 @@
+# yamllint disable rule:line-length
+name: Weekly CI trigger
+on:  # yamllint disable-line rule:truthy
+  schedule:
+    - cron: '0 0 * * 6'
+env:
+  BRANCH_NAME: "weekly-ci"
+  COMMIT_MESSAGE: "Weekly CI check"
+jobs:
+  weekly_ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete the previous branch if exists
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { BRANCH_NAME, COMMIT_MESSAGE } = process.env
+            const branches = github.rest.repos.listBranches({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              branch: '${BRANCH_NAME}',
+            });
+            for (branch in branches){
+              if (branches[branch].name == '${BRANCH_NAME}'){
+                github.rest.git.deleteRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: 'heads/${BRANCH_NAME}',
+                });
+              }
+            }
+      - name: Create new branch
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { BRANCH_NAME, COMMIT_MESSAGE } = process.env
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'ref/head/${BRANCH_NAME}',
+              sha: context.sha
+            })
+      - name: Checkout created branch
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ env.BRANCH_NAME }}
+      - name: Create and push empty commit
+        shell: bash
+        run: |
+          set -euxo pipefail
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "$COMMIT_MESSAGE"
+          git push
+      - name: Create pull request
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { BRANCH_NAME, COMMIT_MESSAGE } = process.env
+            github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '${COMMIT_MESSAGE}',
+              head: '${BRANCH_NAME}',
+              base: context.ref
+            })
