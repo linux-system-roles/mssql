@@ -77,7 +77,7 @@ When running this role on a host that has SQL Server installed, the `mssql_passw
 
 Default: `null`
 
-Type: `str`
+Type: `string`
 
 ### `mssql_edition`
 
@@ -98,7 +98,7 @@ Use one of the following values:
 
 Default: `null`
 
-Type: `str`
+Type: `string`
 
 ### `mssql_tcp_port`
 
@@ -139,7 +139,7 @@ If you do not define this variable when configuring running SQL Server, the role
 
 Default: `null`
 
-Type: `str`
+Type: `string`
 
 ### `mssql_input_sql_file`
 
@@ -293,7 +293,7 @@ When you use these variables, the role copies TLS cert and private key files to 
 
 Default: `null`
 
-Type: `str`
+Type: `string`
 
 #### `mssql_tls_remote_src`
 
@@ -315,7 +315,7 @@ TLS version to use.
 
 Default: `1.2`
 
-Type: `str`
+Type: `string`
 
 #### `mssql_tls_force`
 
@@ -403,7 +403,7 @@ You can set this variable to `witness` for maximum one host.
 
 Default: no default
 
-Type: `str`
+Type: `string`
 
 #### `mssql_ha_listener_port`
 
@@ -424,7 +424,7 @@ The name of the certificate used to secure transactions between members of an Al
 
 Default: `null`
 
-Type: `str`
+Type: `string`
 
 #### `mssql_ha_master_key_password`
 
@@ -432,7 +432,7 @@ The password to set for the master key used with the certificate.
 
 Default: `null`
 
-Type: `str`
+Type: `string`
 
 #### `mssql_ha_private_key_password`
 
@@ -440,7 +440,7 @@ The password to set for the private key used with the certificate.
 
 Default: `null`
 
-Type: `str`
+Type: `string`
 
 #### `mssql_ha_reset_cert`
 

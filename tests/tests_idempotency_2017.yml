@@ -25,9 +25,6 @@
     - name: Configure the mssql-server service start limit interval and burst
       include_tasks: tasks/mssql-sever-increase-start-limit.yml
 
-    - name: Flush handlers
-      meta: flush_handlers
-
     - name: Run again with the same settings - should report not changed
       include_role:
         name: linux-system-roles.mssql
@@ -66,9 +63,6 @@
         mssql_install_fts: false
         mssql_enable_ha: false
         mssql_tune_for_fua_storage: false
-
-    - name: Flush handlers
-      meta: flush_handlers
 
     - name: Run with the edited settings again - should report not changed
       include_role:
