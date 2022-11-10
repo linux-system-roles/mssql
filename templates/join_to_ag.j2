@@ -9,6 +9,7 @@ AND NOT EXISTS (
   JOIN sys.availability_replicas replica
   ON ag.group_id = replica.group_id
   WHERE ag.name = '{{ mssql_ha_ag_name }}' AND
+        ag.cluster_type_desc = '{{ mssql_ha_ag_cluster_type }}' AND
         replica.replica_server_name = '{{ ansible_hostname }}' AND
         replica.availability_mode_desc = '{{ __mssql_ha_availability_mode }}'
 )
@@ -46,7 +47,7 @@ IF NOT EXISTS(
 BEGIN
   PRINT 'Joining to the {{ mssql_ha_ag_name }} availability group';
   ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }}
-    JOIN WITH (CLUSTER_TYPE = EXTERNAL);
+    JOIN WITH (CLUSTER_TYPE = {{ mssql_ha_ag_cluster_type }});
   PRINT 'Joined to the {{ mssql_ha_ag_name }} availability group successfully';
 END
 

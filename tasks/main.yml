@@ -85,8 +85,8 @@
   assert:
     that: mssql_ha_replica_type in __mssql_ha_replica_types_all
     fail_msg: >-
-      You must set the mssql_ha_replica_type variable to one of
-      {{ __mssql_ha_replica_types_all | join (', ') }}
+      You must set the mssql_ha_replica_type variable to one of {{
+      __mssql_ha_replica_types_all | join (', ') }}
   when: mssql_ha_configure | bool
 
 - name: Verify that 'mssql_ha_replica_type = primary' is provided once
@@ -238,8 +238,8 @@
   block:
     - name: Attempt to add mssql to the list of Tuned profiles
       command: >-
-        tuned-adm profile {{ __mssql_tuned_active_profiles.stdout |
-        regex_replace( '^Current active profile: ', '' ) }} mssql
+        tuned-adm profile {{ __mssql_tuned_active_profiles.stdout
+        | regex_replace( '^Current active profile: ', '' ) }} mssql
       register: __mssql_tuned_adm_profile
       changed_when: __mssql_tuned_adm_profile.stderr | length == 0
       failed_when: false
@@ -593,13 +593,54 @@
                 permanent: true
                 runtime: true
 
-        # This is required because by default variables in vars/main.yml are
-        # mapped into global variables and the role needs them in host variables
+        # This is required because variables in vars/main.yml are mapped into
+        # global variables and the configure_ag.j2 needs them in host variables
         - name: Set host variables
           set_fact:
-            __mssql_ha_availability_mode: "{{ __mssql_ha_availability_mode }}"
-            __mssql_ha_failover_mode: "{{ __mssql_ha_failover_mode }}"
-            __mssql_ha_seeding_mode: "{{ __mssql_ha_seeding_mode }}"
+            __mssql_ha_availability_mode: >-
+              {%- if mssql_ha_ag_cluster_type | lower == 'external' -%}
+              {%-   if mssql_ha_replica_type in ['primary', 'synchronous'] -%}
+              SYNCHRONOUS_COMMIT
+              {%-   elif mssql_ha_replica_type == 'asynchronous' -%}
+              ASYNCHRONOUS_COMMIT
+              {%-   elif mssql_ha_replica_type == 'witness' -%}
+              CONFIGURATION_ONLY
+              {%-   else -%}
+              null
+              {%-   endif -%}
+              {%- elif mssql_ha_ag_cluster_type | lower == 'none' -%}
+              {%-   if mssql_ha_replica_type in __mssql_ha_replica_types_external -%}
+              ASYNCHRONOUS_COMMIT
+              {%-   elif mssql_ha_replica_type == 'witness' -%}
+              CONFIGURATION_ONLY
+              {%-   else -%}
+              null
+              {%-   endif -%}
+              {%- else -%}
+              null
+              {%- endif -%}
+            __mssql_ha_failover_mode: >-
+              {%- if mssql_ha_ag_cluster_type | lower == 'external' -%}
+              {%-   if mssql_ha_replica_type in __mssql_ha_replica_types_external -%}
+              EXTERNAL
+              {%-   elif mssql_ha_replica_type == 'witness' -%}
+              MANUAL
+              {%-   else -%}
+              null
+              {%-   endif -%}
+              {%- elif mssql_ha_ag_cluster_type | lower == 'none' -%}
+              MANUAL
+              {%- else -%}
+              null
+              {%- endif -%}
+            __mssql_ha_seeding_mode: >-
+              {%- if mssql_ha_replica_type in __mssql_ha_replica_types_external -%}
+              AUTOMATIC
+              {%- elif mssql_ha_replica_type == 'witness' -%}
+              MANUAL
+              {%- else -%}
+              null
+              {%- endif -%}
 
     - name: Configure availability group on the primary node
       any_errors_fatal: true
@@ -728,6 +769,19 @@
     - name: Configure availability group on not primary replicas
       when: mssql_ha_replica_type in __mssql_ha_replica_types_secondary
       block:
+        - name: Verify that hosts with replica_type=primary is available
+          assert:
+            that: ansible_play_hosts |
+                map('extract', hostvars, 'mssql_ha_replica_type') |
+                select('match', '^primary$') |
+                list |
+                length == 1
+            fail_msg:
+              - Host with mssql_ha_replica_type=primary failed earlier
+              - Therefore, it is not possible to configure for high availability
+              - Fix the above error on the primary replica and re-run the role
+          run_once: true
+
         - name: Ensure the {{ __mssql_server_ha_packages }} package
           package:
             name: "{{ __mssql_server_ha_packages }}"
@@ -792,6 +846,7 @@
           changed_when: false
 
     - name: Configure pacemaker
+      when: mssql_ha_ag_cluster_type | lower == 'external'
       block:
         - name: Save credentials for the {{ mssql_ha_login }} SQL Server login
           copy:
