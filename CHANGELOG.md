@@ -1,6 +1,79 @@
 Changelog
 =========
 
+[1.2.5] - 2022-11-22
+--------------------
+
+### New Features
+
+- Imrpove performance by intputting multiple SQL files with loop internaly (#116)
+  - Make it possible to input multiple file with loop internally
+  - Rename task file and vars for clarity
+  - Make regex for files extension search more strict
+  - Make mode consistent between template and copy tasks
+
+- Add support for configuring asynchronous replicas (#121)
+  - Add support for configuring asynchronous replicas
+  - Add __mssql_ha_replica_types variables for code readability
+  - Add test for error when primary is not defined
+
+- Use the certificate role to create the cert and the key (#125)
+  - Introduce a variable mssql_tls_certificates to set the certificate_requests.
+  - Add the test case to test_tls_2019.yml
+  - Apply basename to mssql_tls_certificates.name
+    In case a full path of a relative path is set to mssql_tls_certificates.name,
+    just get the basename part of the name and pass it to certificate_requests
+    to create the private key and the cert in /etc/pki/tls where the setype is
+    cert_t and the certificate role has the permission to create the files.
+
+- Allow *_input_sql_files vars to take lists and strings (#124)
+
+- Add support for read-scale always on clusters (#134)
+  - Add support for read-scale always on clusters
+  - Improve tmp file names and logging for sqlcmd_input_file
+  - Add __mssql_single_node_test as a workaround for single-node tests
+  
+### Bug Fixes
+
+- Identify the current primary replica and configure ag on it (#113)
+  Previously, the role configured AG on the server that has the
+  `mssql_ha_replica_type: primary` variable set.
+  However, in the case of fail over the primary replica moves to a
+  different server.
+  With this change, the role identifies the current primary server and
+  configures AG on it.
+  - Group input_sql_file.yml tasks to improve performance
+  - Make test work in CI and when testing against multiple hosts manually
+
+- Check if primary is available prior to configuring HA (#117)
+  - Previously, in the case that the primary node failed before the role run tasks to configure for high availability, the role failed unexpectedly. Now, the role fails with an error message that primary node is not available.
+
+- Add no_log true to tasks listing credentials on output (#119)
+  For sqlcmd_input_sql_file add tasks to block to print the output of
+  sqlcmd in case it fails. It is now required because the task itself has
+  no_log true.
+
+### Other Changes
+
+- Move all ha-related tasks under a single block to clear code (#118)
+
+- Add support for CI testing with ansible_vault
+  Excluding tests that re-define variables because CI provides encrypted
+  variables with env var and they take the highest precedence
+
+- Fix Reload service daemon task taking 30 min (#120)
+
+- Remove support for Fedora 36 (#123)
+  mssql-server package does not support Fedora at all but it works on
+  Fedora <36. Once Microsoft adds mssql-server package for RHEL 9 it
+  should work on Fedora 36 too.
+
+- Clean up role code (#126)
+  - Replace `str` with `string` in README for consistency
+  - Remove flush_handlers from tests because role does it each invocation
+
+- add github action for weekly ci (#127)
+
 [1.2.4] - 2022-09-01
 --------------------
 
