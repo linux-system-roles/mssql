@@ -2,7 +2,7 @@ IF EXISTS (
   SELECT name, cluster_type_desc
   FROM sys.availability_groups
   WHERE name = '{{ mssql_ha_ag_name }}' AND
-        cluster_type_desc != 'external'
+        cluster_type_desc != '{{ mssql_ha_ag_cluster_type }}'
 )
 BEGIN
   PRINT 'The existing {{ mssql_ha_ag_name }} availability group has \
@@ -22,10 +22,11 @@ BEGIN
     SELECT name, db_failover
     FROM sys.availability_groups
     WHERE name = '{{ mssql_ha_ag_name }}' AND
-          db_failover = 1
+          db_failover = {{ 1 if __mssql_ha_db_failover == 'ON' else 0 }}
   )
   BEGIN
-    ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} SET (DB_FAILOVER = ON)
+    ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }}
+      SET (DB_FAILOVER = {{ __mssql_ha_db_failover }})
     PRINT 'Set DB_FAILOVER to ON succesfully'
   END
   ELSE
@@ -216,12 +217,10 @@ IF NOT EXISTS (
 BEGIN
   PRINT 'Creating the {{ mssql_ha_ag_name }} availability group';
   CREATE AVAILABILITY GROUP {{ mssql_ha_ag_name }}
-{% if ansible_os_family == 'RedHat' and
-  ansible_distribution_version is version('8.3', '<') %}
-    WITH (DB_FAILOVER = ON, CLUSTER_TYPE = EXTERNAL)
-{% else %}
-    WITH (DB_FAILOVER = ON, CLUSTER_TYPE = EXTERNAL)
-{% endif %}
+    WITH (
+      DB_FAILOVER = {{ __mssql_ha_db_failover }},
+      CLUSTER_TYPE = {{ mssql_ha_ag_cluster_type }}
+    )
     FOR REPLICA ON
 {# Sort ansible_play_hosts #}
 {# Sort primary replica as the first in the list #}

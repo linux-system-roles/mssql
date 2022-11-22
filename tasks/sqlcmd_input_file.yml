@@ -1,8 +1,10 @@
 - name: Input {{ item }} with sqlcmd
   block:
-    - name: Create a tempfile for the SQL file on the host
+    - name: Create a tempfile for {{ item }} on the host
       tempfile:
         state: file
+        prefix: "{{ item | splitext | first }}_"
+        suffix: .sql
       register: __mssql_sql_tempfile
       changed_when: false
 
@@ -31,21 +33,26 @@
   always:
     # Role prints the output if the input succeeds, otherwise Ansible prints the
     # output from the failed input tasks
-    - name: >-
-        Print the output of the sqlcmd command for {{ item }}
-        if not empty
-      debug:
-        var: __mssql_sqlcmd_input.stdout_lines
-      changed_when: false
+    - name: Print debug info for {{ item }}
       when: >-
         (__mssql_sqlcmd_input.stdout_lines | length > 0
         and
         mssql_debug | bool)
         or
         (__mssql_sqlcmd_input is failed)
+      block:
+        - name: >-
+            Print the output of the sqlcmd command for {{ item }}
+            if not empty
+          debug:
+            var: __mssql_sqlcmd_input.stdout_lines
+
+        - name: Print the file where script is stored
+          debug:
+            var: __mssql_sql_tempfile.path
 
     # Role keeps the file if the input failed
-    - name: Remove the tempfile
+    - name: Remove the {{ item }} tempfile
       file:
         path: "{{ __mssql_sql_tempfile.path }}"
         state: absent

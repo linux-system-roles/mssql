@@ -389,6 +389,19 @@ Default: `false`
 
 Type: `bool`
 
+#### `mssql_ha_ag_cluster_type`
+
+With this variable, provide a cluster type that you want to configure.
+
+You can set this variable to either `external` or `none`:
+
+* When set to `external`, role configures Always On availability group for high availability with Pacemaker as described in [Configure SQL Server Always On Availability Group for high availability on Linux](https://learn.microsoft.com/en-us/sql/linux/)
+* When set to `none`, role configures Always On availability group for read-scale without Pacemaker as described in [Configure a SQL Server Availability Group for read-scale on Linux](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-availability-group-configure-rs?view=sql-server-ver15)
+
+Default: `external`
+
+Type: `string`
+
 #### `mssql_ha_replica_type`
 
 A host variable that specifies the type of the replica to be configured on this host.
@@ -535,6 +548,8 @@ Default: `false`
 Type: `bool`
 
 #### `mssql_ha_virtual_ip`
+
+Only applicable when you set `mssql_ha_ag_cluster_type` to `external`.
 
 The virtual IP address to be configured for the SQL cluster.
 
@@ -709,11 +724,10 @@ all:
           - 10.XXX.XXX.333
 ```
 
-#### Configuring SQL Server HA without Pacemaker
+#### Configuring SQL Server with a `none` Cluster Type for Read-scale without Pacemaker
 
-If you want to configure Pacemaker independently, you can set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `false` to not include the `fedora.linux_system_roles.ha_cluster` role.
-
-Note that production environments require Pacemaker configured with fencing agents.
+Use the following example to configure SQL Server Always On for read-scale.
+In this case the role does not configure Pacemaker.
 
 ```yaml
 - hosts: all
@@ -725,6 +739,7 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_edition: Evaluation
     mssql_manage_firewall: true
     mssql_ha_configure: true
+    mssql_ha_ag_cluster_type: none
     mssql_ha_listener_port: 5022
     mssql_ha_cert_name: ExampleCert
     mssql_ha_master_key_password: "p@55w0rD1"
@@ -737,8 +752,6 @@ Note that production environments require Pacemaker configured with fencing agen
       - ExampleDB2
     mssql_ha_login: ExamleLogin
     mssql_ha_login_password: "p@55w0rD3"
-    mssql_ha_virtual_ip: 192.XXX.XXX.XXX
-    mssql_ha_cluster_run_role: false
   roles:
     - microsoft.sql.server
 ```
@@ -762,6 +775,7 @@ For more information, see the `fedora.linux_system_roles.ha_cluster` role docume
     mssql_edition: Evaluation
     mssql_manage_firewall: true
     mssql_ha_configure: true
+    mssql_ha_ag_cluster_type: external
     mssql_ha_listener_port: 5022
     mssql_ha_cert_name: ExampleCert
     mssql_ha_master_key_password: "p@55w0rD1"
@@ -855,6 +869,7 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_edition: Evaluation
     mssql_manage_firewall: true
     mssql_ha_configure: true
+    mssql_ha_ag_cluster_type: external
     mssql_ha_listener_port: 5022
     mssql_ha_cert_name: ExampleCert
     mssql_ha_master_key_password: "p@55w0rD1"
@@ -966,6 +981,7 @@ This example playbooks sets the `firewall` variables for the `fedora.linux_syste
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_ha_configure: true
+    mssql_ha_ag_cluster_type: external
     mssql_ha_listener_port: 5022
     mssql_ha_cert_name: ExampleCert
     mssql_ha_master_key_password: "p@55w0rD1"

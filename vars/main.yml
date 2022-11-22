@@ -34,29 +34,11 @@ __mssql_ha_endpoint_role: >-
   {%- else -%}
   null
   {%- endif -%}
-__mssql_ha_availability_mode: >-
-  {%- if mssql_ha_replica_type in ['primary', 'synchronous'] -%}
-  SYNCHRONOUS_COMMIT
-  {%- elif mssql_ha_replica_type == 'asynchronous' -%}
-  ASYNCHRONOUS_COMMIT
-  {%- elif mssql_ha_replica_type == 'witness' -%}
-  CONFIGURATION_ONLY
-  {%- else -%}
-  null
-  {%- endif -%}
-__mssql_ha_failover_mode: >-
-  {%- if mssql_ha_replica_type in __mssql_ha_replica_types_external -%}
-  EXTERNAL
-  {%- elif mssql_ha_replica_type == 'witness' -%}
-  MANUAL
-  {%- else -%}
-  null
-  {%- endif -%}
-__mssql_ha_seeding_mode: >-
-  {%- if mssql_ha_replica_type in __mssql_ha_replica_types_external -%}
-  AUTOMATIC
-  {%- elif mssql_ha_replica_type == 'witness' -%}
-  MANUAL
+__mssql_ha_db_failover: >-
+  {%- if mssql_ha_ag_cluster_type | lower == 'external' -%}
+  ON
+  {%- elif mssql_ha_ag_cluster_type | lower == 'none' -%}
+  OFF
   {%- else -%}
   null
   {%- endif -%}
