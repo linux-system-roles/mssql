@@ -626,6 +626,193 @@
         __mssql_conf_setting: "network forceencryption"
         __mssql_conf_setting_value: "{{ '1' if mssql_tls_enable else 'unset' }}"
 
+- name: Configure Active Directory authentication
+  vars:
+    __mssql_kinit_user: >-
+      {{ ad_integration_user }}@{{ ad_integration_realm
+      | upper }}
+  when: mssql_ad_configure | bool
+  block:
+    - name: Join to {{ ad_integration_realm }} realm
+      vars:
+        ad_integration_realm: "{{ ad_integration_realm }}"
+        ad_integration_password: "{{ ad_integration_password }}"
+      include_role:
+        name: linux-system-roles.ad_integration
+
+    - name: Ensure the adutil package
+      package:
+        name: adutil
+        state: present
+
+    - name: List valid kerberos tickets
+      shell: klist || true
+      register: __mssql_klist
+      ignore_errors: true
+      changed_when: false
+
+    - name: kinit as the {{ ad_integration_user }} priviledged user
+      shell: >-
+        echo {{ ad_integration_password | quote }}
+        | kinit {{ __mssql_kinit_user }}
+      when: >-
+        __mssql_kinit_user not in __mssql_klist.stdout
+      no_log: true
+      changed_when: false
+
+    - name: Check if {{ mssql_ad_sql_username }} SQL user exists
+      shell: >-
+        adutil account exists
+        --name {{ mssql_ad_sql_username }}
+        --accept-eula || true
+      register: __mssql_adutil_account_exists
+      changed_when: false
+
+    - name: Verify provided {{ mssql_ad_sql_username }} SQL user password
+      environment:
+        SSHPASS: "{{ mssql_ad_sql_password }}"
+      command: >-
+        sshpass -e
+        ssh -o StrictHostKeyChecking=no
+        -l {{ mssql_ad_sql_username }}@{{ ad_integration_realm }}
+        {{ ansible_fqdn }} id
+      register: __mssql_sql_user_ssh
+      ignore_errors: true
+      changed_when: false
+      when: __mssql_adutil_account_exists.stdout | bool
+
+    - name: Update password for the {{ mssql_ad_sql_username }} SQL user
+      environment:
+        ADUTIL_ACCOUNT_PWD: "{{ mssql_ad_sql_password }}"
+      command: adutil account setpassword --name {{ mssql_ad_sql_username }}
+      when: __mssql_sql_user_ssh is failed
+
+    - name: Create the {{ mssql_ad_sql_username }} user in AD server
+      environment:
+        ADUTIL_ACCOUNT_PWD: "{{ mssql_ad_sql_password }}"
+      command: >-
+        adutil user create
+        --name {{ mssql_ad_sql_username }}
+        --distname
+        CN={{ mssql_ad_sql_username }},CN=Users,DC={{
+        ad_integration_realm.split('.') | first | upper
+        }},DC=COM
+        --debug
+      register: __mssql_adutil_user_create
+      when: not __mssql_adutil_account_exists.stdout | bool
+
+    - name: Get SPNs for the {{ mssql_ad_sql_username }} principal
+      command: adutil spn show --name {{ mssql_ad_sql_username }}
+      register: __mssql_adutil_spn_show
+      changed_when: false
+
+    - name: Register SPNs to the {{ mssql_ad_sql_username }} principal
+      command: >-
+        adutil spn addauto
+        --name {{ mssql_ad_sql_username }}
+        --spn-service MSSQLSvc
+        --spn-host {{ ansible_fqdn }}
+        --spn-port {{ mssql_tcp_port }}
+        --yes
+        --debug
+      register: __mssql_adutil_spn_addauto
+      changed_when: >-
+        not "Type or value exists"
+        in __mssql_adutil_spn_addauto.stdout
+      when: >-
+        not "MSSQLSvc/" ~ ansible_fqdn ~ ":" ~ mssql_tcp_port
+        in __mssql_adutil_spn_show.stdout
+
+    - name: Get kvno of the SPN host
+      command: adutil account kvno {{ mssql_ad_sql_username }}
+      register: __mssql_kvno
+      changed_when: false
+
+    - name: Get stats of the keytab file
+      stat:
+        path: "{{ __mssql_keytab_path }}"
+      register: __mssql_keytab_stat
+
+    - name: Get keytab properties
+      command: klist -edk {{ __mssql_keytab_path }}
+      changed_when: false
+      when: __mssql_keytab_stat.stat.exists | bool
+      register: __mssql_keytab_properties
+
+    - name: Create keytab
+      environment:
+        ADUTIL_ACCOUNT_PWD: "{{ mssql_ad_sql_password }}"
+      command: >-
+        adutil keytab createauto
+        --path {{ __mssql_keytab_path }}
+        --spn-port {{ mssql_tcp_port }}
+        --spn-host {{ ansible_fqdn }}
+        --spn-service MSSQLSvc
+        --kvno {{ __mssql_kvno.stdout }}
+        --enctype aes256-cts-hmac-sha1-96,aes128-cts-hmac-sha1-96
+        --yes
+      when:
+        - >-
+          not __mssql_kvno.stdout ~ " MSSQLSvc/" ~ ansible_fqdn ~ ":"
+          ~ mssql_tcp_port ~ "@" ~ ad_integration_realm | upper
+          ~ " (aes256-cts-hmac-sha1-96)"
+          in __mssql_keytab_properties.stdout | d()
+        - >-
+          not __mssql_kvno.stdout ~ " MSSQLSvc/" ~ ansible_fqdn ~ ":"
+          ~ mssql_tcp_port ~ "@" ~ ad_integration_realm | upper
+          ~ " (aes128-cts-hmac-sha1-96)"
+          in __mssql_keytab_properties.stdout | d()
+      notify: Restart the mssql-server service
+
+    - name: Add an entry in the keytab for the principal name and password
+      environment:
+        ADUTIL_ACCOUNT_PWD: "{{ mssql_ad_sql_password }}"
+      command: >-
+        adutil keytab create
+        --path {{ __mssql_keytab_path }}
+        --principal {{ mssql_ad_sql_username }}
+        --kvno {{ __mssql_kvno.stdout }}
+        --enctype aes256-cts-hmac-sha1-96,aes128-cts-hmac-sha1-96
+      when:
+        - >-
+          not __mssql_kvno.stdout ~ " " ~ mssql_ad_sql_username ~ "@"
+          ~ ad_integration_realm | upper ~ " (aes256-cts-hmac-sha1-96)"
+          in __mssql_keytab_properties.stdout | d()
+        - >-
+          not __mssql_kvno.stdout ~ " " ~ mssql_ad_sql_username ~ "@"
+          ~ ad_integration_realm | upper ~ " (aes128-cts-hmac-sha1-96)"
+          in __mssql_keytab_properties.stdout | d()
+      notify: Restart the mssql-server service
+
+    - name: Ensure correct permissions and ownership on the keytab
+      file:
+        path: "{{ __mssql_keytab_path }}"
+        owner: mssql
+        group: mssql
+        mode: 0440
+      notify: Restart the mssql-server service
+
+    - name: Configure the network.kerberoskeytabfile setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: network kerberoskeytabfile
+        __mssql_conf_setting_value: "{{ __mssql_keytab_path }}"
+
+    - name: Configure the network.kerberoskeytabfile setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: network privilegedadaccount
+        __mssql_conf_setting_value: "{{ mssql_ad_sql_username }}"
+
+    - name: Create the priviledged account login
+      vars:
+        __mssql_sql_files_to_input:
+          - ad_create_login.j2
+        __mssql_ad_user: >-
+          {{ ad_integration_realm.split('.')
+          | first }}\{{ ad_integration_user }}
+      include_tasks: input_sql_files.yml
+
 - name: Configure for high availability
   when: mssql_ha_configure | bool
   block:

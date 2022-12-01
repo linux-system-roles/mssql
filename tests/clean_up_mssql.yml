@@ -2,12 +2,12 @@
 - name: Purge cluster and mssql configuration
   hosts: all
   tasks:
-    - name: Purge cluster configuration
-      vars:
-        ha_cluster_cluster_present: no
-        ha_cluster_enable_repos: false
-      include_role:
-        name: fedora.linux_system_roles.ha_cluster
+    # - name: Purge cluster configuration
+    #   vars:
+    #     ha_cluster_cluster_present: no
+    #     ha_cluster_enable_repos: false
+    #   include_role:
+    #     name: fedora.linux_system_roles.ha_cluster
 
     - name: Purge firewall configuration
       vars:
@@ -16,9 +16,18 @@
       include_role:
         name: fedora.linux_system_roles.firewall
 
-    - name: Remove mssql-server
+    - name: Leave realm
+      command: realm leave
+      ignore_errors: true
+
+    - name: Destroy Kerberos tickets
+      command: kdestroy -A
+
+    - name: Remove related packages
       package:
-        name: mssql-server
+        name:
+          - mssql-server
+          - adutil
         state: absent
 
     - name: Remove related files

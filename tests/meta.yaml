@@ -1,0 +1,166 @@
+domains:
+  - name: domain.com
+    type: sssd
+    hosts:
+      - name: client
+        external_hostname: client
+        # Default to get flavour with 2GB RAM that is required for mssql-server
+        group: default
+        role: client
+        os: rhel-8.7
+  - name: domain.com
+    type: ad
+    hosts:
+      - name: ad1
+        role: ad
+        group: ad_root
+        netbios: DOMAIN
+        host_type: 'windows'
+        os: win-2022-latest
+        # Without this image chosen Kerberos auth doesn't work due to
+        # https://www.bleepingcomputer.com/news/microsoft/
+        # windows-kerberos-authentication-breaks-after-november-updates/
+        image: win-2022-x86_64-sssd-latest
+phases:
+  - name: init
+    steps:
+      - playbook: init/testrunner-dir.yaml
+
+  - name: provision
+    steps:
+      - playbook: provision/mrack-up.yaml
+      - playbook: provision/wait.yaml
+
+  - name: prep
+    steps:
+      - playbook: prep/redhat-base.yaml
+      - playbook: prep/repos.yaml
+      - playbook: prep/enable-passwd-ssh.yaml
+      - playbook: prep/win-domain-setup.yaml
+      - playbook: prep/win-get-ad-cert.yaml
+      - playbook: prep/config-abrt.yaml
+
+  - name: prep2
+    steps:
+
+      - playbook: |
+
+          - hosts: client
+            vars:
+              contents: "{{ lookup('file', inventory_file) }}"
+            become: true
+            tasks:
+
+            # yamllint disable-line rule:line-length
+            - name: Add Ansible Yum Repository
+              yum_repository:
+                name: ansible
+                description: ansible
+                gpgcheck: no
+                baseurl: http://download.devel.redhat.com/rhel-8/nightly/Ansible/latest-Ansible-Automation-Platform-2.3-RHEL-8/compose/Base/x86_64/os/
+
+            - name: Install base rpms
+              package:
+                name:
+                - git
+                - wget
+                - net-tools
+                - bind-utils
+                - ansible
+                - python3-pip
+                - krb5-workstation
+
+            - name: Install python packages
+              command: pip3.9 install --user pywinrm
+
+            - name: Setup client to use AD as dns
+              ansible.builtin.lineinfile:
+                path: /etc/resolv.conf
+                insertbefore: BOF
+                line: "nameserver {{ hostvars['ad1']['meta_ip']}}"
+
+            - name: Get linux_system_roles/ad_integration from github
+              git:
+                repo: https://github.com/linux-system-roles/ad_integration
+                version: main
+                dest: /usr/share/ansible/roles/linux-system-roles.ad_integration
+
+            - name: Get linux_system_roles/mssql from github
+              git:
+                repo: https://github.com/spetrosi/mssql
+                version: ad-integration
+                dest: /usr/share/ansible/roles/linux-system-roles.mssql
+
+            #windows to run win_shell in mssql/tests/ad_integration_tests.yml
+            #linux_system_roles to run firewall roll for manage_firewall: true
+            - name: Get ansible.windows and linux_system_roles collection
+              command:
+                cmd: ansible-galaxy collection install {{ item }}
+              loop:
+                - ansible.windows
+                - fedora.linux_system_roles
+
+            # yamllint disable-line rule:line-length
+            - name: Create inventory for integration tests
+              copy:
+                content: |
+                  all:
+                    hosts:
+                      client:
+                        ansible_connection: local
+                        ansible_host: 127.0.0.1
+                      ad:
+                        ansible_host: {{ hostvars['ad1']['meta_ip']}}
+                        ad_fqdn: {{ hostvars['ad1']['meta_fqdn'] }}
+                        ansible_connection: winrm
+                        ansible_password: Secret123
+                        ansible_port: 5986
+                        ansible_user: Administrator
+                        ansible_winrm_server_cert_validation: ignore
+                dest: /usr/share/ansible/roles/linux-system-roles.mssql/tests/inventory.yml
+
+      - playbook: |
+
+          - hosts: ad
+            tasks:
+              # yamllint disable-line rule:line-length
+              - name: Get Reverse DNS PTR records
+                win_shell: >-
+                  Get-DnsServerResourceRecord
+                  -ZoneName "{{ meta_ip.split('.')[2] }}.{{ meta_ip.split('.')[1] }}.{{ meta_ip.split('.')[0] }}.in-addr.arpa"
+                  -RRType PTR
+                  | Where-Object {$_.HostName -like '{{ meta_ip.split('.')[-1] }}'}
+                register: get_dnsserverecord
+
+              # yamllint disable-line rule:line-length
+              - name: Add Revers DNS PTR Record for AD server IP address
+                win_shell: >-
+                  Add-DnsServerResourceRecordPtr
+                  -ZoneName "{{ meta_ip.split('.')[2] }}.{{ meta_ip.split('.')[1] }}.{{ meta_ip.split('.')[0] }}.in-addr.arpa"
+                  -Name {{ meta_ip.split('.')[-1] }}
+                  -PtrDomainName {{ meta_fqdn }}
+                when: not meta_fqdn in get_dnsserverecord.stdout
+
+  - name: test
+    steps:
+      - playbook: |
+
+          - hosts: client
+            become: true
+            tasks:
+            - name: Run tests
+              block:
+              - name: tests_ad_integration.yml
+                command: >-
+                  ansible-playbook -i inventory.yml ad_integration_tests.yml -v
+                args:
+                  chdir: /usr/share/ansible/roles/linux-system-roles.mssql/tests
+                register: tests_ad_integration
+
+              - debug:
+                  var: tests_ad_integration.stdout_lines
+
+  - name: teardown
+    steps:
+      - playbook: teardown/check-rpm-version.yaml
+      - playbook: teardown/mrack-destroy.yaml
