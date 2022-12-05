@@ -74,4 +74,3 @@ jobs:
               issue_number: pr_number,
               body: "${{ env.COMMENT }}",
             });
-
