@@ -1,6 +1,35 @@
 Changelog
 =========
 
+[1.3.1] - 2022-12-05
+--------------------
+
+### New Features
+
+- none
+
+### Bug Fixes
+
+- Set __mssql_single_node_test to be false when not set (#143)
+  Remove redundant empty line in weekly CI job
+
+### Other Changes
+
+- weekly-ci: do not create a new PR every time
+
+- python version depends on platform; upgrade checkout, setup-python; support py311 [citest skip] (#142)
+  The python version used now requires a corresponding os version e.g. python 2.7 and
+  python 3.6 are no longer supported on ubuntu-latest - must use 20.04.  Update
+  the python matrix to include the os to use as well.
+
+  - Use checkout@v3 and setup-python@v4
+
+  - python 3.11 stable is now supported by setup-python
+
+  - Add `push` action for status reporting on role main page if missing
+
+  - Use `docker` for ansible-test if not already doing that
+
 [1.3.0] - 2022-11-22
 --------------------
 
