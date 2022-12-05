@@ -755,7 +755,7 @@
         - name: Configure ag, grant permissions to login, replicate DBs
           when: >-
             (__mssql_ha_is_primary | bool)
-            or (__mssql_single_node_test | bool)
+            or (__mssql_single_node_test | d(false) | bool)
           vars:
             __mssql_sql_files_to_input:
               - configure_ag.j2
