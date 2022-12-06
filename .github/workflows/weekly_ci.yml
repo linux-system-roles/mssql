@@ -6,7 +6,8 @@ on:  # yamllint disable-line rule:truthy
     - cron: '0 0 * * 6'
 env:
   BRANCH_NAME: "weekly-ci"
-  COMMIT_MESSAGE: "Weekly CI check"
+  COMMIT_MESSAGE: "This PR is to trigger periodic CI testing"
+  BODY_MESSAGE: "This PR is for the purpose of triggering periodic CI testing. We don't currently have a way to trigger CI without a PR, so this PR serves that purpose."
   COMMENT: "[citest]"
 jobs:
   weekly_ci:
@@ -61,8 +62,10 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 title: "${{ env.COMMIT_MESSAGE }}",
+                body: "${{ env.BODY_MESSAGE }}",
                 head: "${{ env.BRANCH_NAME }}",
-                base: context.ref
+                base: context.ref,
+                draft: true
               });
               var pr_number = response.data.number;
             } else {
