@@ -53,22 +53,6 @@
       - "mssql_accept_microsoft_cli_utilities_for_sql_server_eula"
       - "mssql_accept_microsoft_sql_server_standard_eula"
 
-- name: Verify if the mssql_version variable is provided correctly
-  assert:
-    that: mssql_version | int == 2017 or mssql_version | int == 2019
-    fail_msg: "The mssql_version variable must be set to either 2017 or 2019."
-
-- name: Verify if the mssql_upgrade variable is provided correctly
-  fail:
-    msg:
-      - "You set mssql_upgrade to true and mssql_version to 2017."
-      - "If you want to upgrade, set the variables as such:"
-      - "mssql_version: 2019"
-      - "mssql_upgrade: true"
-  when:
-    - mssql_upgrade | bool
-    - mssql_version | int == 2017
-
 - name: Verify that EL < 8 is not used with mssql_ha_configure=true
   fail:
     msg: mssql_ha_configure=true does not support running against EL 7 hosts
@@ -103,39 +87,80 @@
     manager: auto
   no_log: true
 
+- name: Verify if the mssql_version variable is provided correctly
+  assert:
+    that: mssql_version | int in __mssql_supported_versions
+    fail_msg: >-
+      You must set the mssql_version variable to one of
+      {{ __mssql_supported_versions | join(", ") }}
+
+- name: Verify that version 2022 is not used with RHEL 7
+  fail:
+    msg: >-
+      SQL Server 2022 does not support EL 7 hosts
+  when:
+    - mssql_version | int == 2022
+    - ansible_distribution in ['CentOS', 'RedHat']
+    - ansible_distribution_major_version is version('8', '<')
+
 - name: >-
     Verify if mssql_version is not smaller then the existing SQL Server version
   fail:
     msg:
-      - "You set mssql_version to 2017, but your SQL Server is version 2019."
-      - "The role does not support downgrading SQL Server."
-  when:
-    - mssql_version | int == 2017
-    - ansible_facts.packages["mssql-server"][0]["version"] is defined
-    - ansible_facts.packages["mssql-server"][0]["version"] is search("^15.*")
+      - >-
+        "You set mssql_version to {{ mssql_version }}, but your SQL Server is
+        of higher version"
+      - "The role does not support downgrading SQL Server"
+  when: >-
+    (mssql_version | int in [2017, 2019]
+    and
+    ansible_facts.packages["mssql-server"][0]["version"]
+    | d('0') is version('16', '>'))
+    or
+    (mssql_version | int == 2017
+    and
+    ansible_facts.packages["mssql-server"][0]["version"]
+    | d('0') is version('15', '>'))
 
 - name: Deploy the GPG key for Microsoft repositories
   rpm_key:
     key: "{{ mssql_rpm_key }}"
     state: present
 
-# This works only on systems that use yum or dnf
-- name: Update all packages from SQL Server 2017 repo
-  package:
-    name: "*"
-    disablerepo: "*"
-    enablerepo: packages-microsoft-com-mssql-server-2017
-    state: latest  # noqa package-latest
-  when:
-    - mssql_upgrade | bool
-    - ansible_facts.packages["mssql-server"][0]["version"] is defined
-    - ansible_facts.packages["mssql-server"][0]["version"] is search("^14.*")
-
-- name: Remove the Microsoft SQL Server 2017 repository to upgrade to 2019
-  yum_repository:
-    name: packages-microsoft-com-mssql-server-2017
-    state: absent
+- name: Prepare for the upgrade
   when: mssql_upgrade | bool
+  block:
+    # This works only on systems that use yum or dnf
+    - name: Update all packages from SQL Server {{ item.key }} repo
+      package:
+        name: "*"
+        disablerepo: "*"
+        enablerepo: packages-microsoft-com-mssql-server-{{ item.key }}
+        state: latest  # noqa package-latest
+      when:
+        - ansible_facts.packages["mssql-server"][0]["version"] is defined
+        - ansible_facts.packages["mssql-server"][0]["version"]
+          is version('{{ item.value }}', '=')
+      with_dict:
+        - 2017: 14
+        - 2019: 15
+
+    - name: Get yum repositories  # noqa command-instead-of-module
+      shell: yum repolist --enabled
+        | grep packages-microsoft-com-mssql-server-
+        | grep -v packages-microsoft-com-mssql-server-{{ mssql_version }}
+        | cut -d" " -f 1
+        || true
+      register: __mssql_curr_repo
+      changed_when: false
+
+    - name: >-
+        Remove the current Microsoft SQL Server repository to upgrade to
+        {{ mssql_version }}
+      yum_repository:
+        name: "{{ __mssql_curr_repo.stdout }}"
+        state: absent
+      when: __mssql_curr_repo.stdout | length > 0
 
 - name: Configure the Microsoft SQL Server {{ mssql_version }} repository
   yum_repository:
@@ -286,6 +311,13 @@
     - name: Prepare MSSQL and facts for logging in
       include_tasks: verify_password.yml
 
+    # Upgrading to SQL Server 2022 takes ~20 seconds more
+    - name: Wait for mssql-server to prepare for client connections
+      wait_for:
+        path: /var/opt/mssql/log/errorlog
+        search_regex: SQL Server is now ready for client connections
+        timeout: 40
+
     - name: Check if the set password matches the existing password
       command: "{{ __mssql_sqlcmd_login_cmd }} -Q 'SELECT @@VERSION'"
       environment:
@@ -301,12 +333,29 @@
       when: __mssql_password_query is failed
       notify: Restart the mssql-server service
 
+    - name: Gather package facts
+      package_facts:
+        manager: auto
+      no_log: true
+
     - name: Change the password of the sa user
-      command: "{{ __mssql_conf_cli }} set-sa-password"
-      environment:
-        - MSSQL_SA_PASSWORD: "{{ mssql_password }}"
-      when: __mssql_password_query is failed
-      notify: Restart the mssql-server service
+      block:
+        - name: Change the password of the sa user
+          command: "{{ __mssql_conf_cli }} set-sa-password"
+          environment:
+            - MSSQL_SA_PASSWORD: "{{ mssql_password }}"
+          when: __mssql_password_query is failed
+          notify: Restart the mssql-server service
+          register: __mssql_set_ha_password
+      rescue:
+        - name: Workaround for expected error on version 2022
+          fail:
+          when:
+            - not ansible_facts.packages["mssql-server"][0]["version"]
+              | d('0') is version('16', '>')
+            - >-
+              not "Unable to set the system administrator password. Please
+              consult the ERRORLOG" in __mssql_set_ha_password.stdout
 
 # Input files var as list even when provided as sting
 # Keep this task after setting password
@@ -346,14 +395,30 @@
       when: not __mssql_edition_matches.stdout | bool
       notify: Restart the mssql-server service
 
+    - name: Gather package facts
+      package_facts:
+        manager: auto
+      no_log: true
+
     - name: Change the edition of MSSQL
-      command: "{{ __mssql_conf_cli }} set-edition"
-      environment:
-        MSSQL_PID: "{{ mssql_edition }}"
-      register: __mssql_conf_set_edition
-      changed_when: '"The new edition is" in __mssql_conf_set_edition.stdout'
-      when: not __mssql_edition_matches.stdout | bool
-      notify: Restart the mssql-server service
+      block:
+        - name: Change the edition of MSSQL
+          command: "{{ __mssql_conf_cli }} set-edition"
+          environment:
+            MSSQL_PID: "{{ mssql_edition }}"
+          register: __mssql_conf_set_edition
+          changed_when: '"The new edition" in __mssql_conf_set_edition.stdout'
+          when: not __mssql_edition_matches.stdout | bool
+          notify: Restart the mssql-server service
+      rescue:
+        - name: Workaround for expected error on version 2022
+          fail:
+          when:
+            - not ansible_facts.packages["mssql-server"][0]["version"]
+              | d('0') is version('16', '>')
+            - >-
+              not "\nThe licensing PID was successfully processed."
+              in __mssql_conf_set_edition.stdout
 
 - name: Configure the IP address setting
   include_tasks: mssql_conf_setting.yml

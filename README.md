@@ -6,7 +6,8 @@ This role installs, configures, and starts Microsoft SQL Server.
 
 The role also optimizes the operating system to improve performance and throughput for SQL Server by applying the `mssql` Tuned profile.
 
-The role currently works with SQL Server 2017 and 2019.
+The role currently supports SQL Server 2017, 2019, and 2022.
+Note that SQL Server 2022 does not support EL 7 hosts
 
 ## Requirements
 
@@ -49,7 +50,8 @@ Type: `bool`
 ### `mssql_version`
 
 The version of the SQL Server to configure.
-The role currently supports versions 2017 and 2019.
+The role currently supports versions 2017, 2019, and 2022.
+Note that RHEL 7 does not support SQL Server 2022.
 
 Default: `2019`
 
@@ -57,7 +59,7 @@ Type: `int`
 
 ### `mssql_upgrade`
 
-If you want to upgrade your SQL Server 2017 to 2019, set the `mssql_version` variable to `2019` and this variable to `true`.
+If you want to upgrade your SQL Server, set this variable to `true` and the `mssql_version` variable to the version to which you wish to upgrade.
 
 Note that the role does not support downgrading SQL Server.
 

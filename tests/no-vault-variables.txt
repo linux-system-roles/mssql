@@ -1,7 +1,10 @@
 tests_configure_ha_cluster.yml
 tests_idempotency_2017.yml
 tests_idempotency_2019.yml
+tests_idempotency_2022.yml
 tests_input_sql_file_2017.yml
 tests_input_sql_file_2019.yml
+tests_input_sql_file_2022.yml
 tests_password_2017.yml
 tests_password_2019.yml
+tests_password_2022.yml
