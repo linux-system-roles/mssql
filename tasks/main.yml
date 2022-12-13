@@ -9,10 +9,6 @@
   set_fact:
     __mssql_sqlcmd_login_cmd: null
 
-- name: Unset the __mssql_sqlcmd_login_cmd fact
-  set_fact:
-    __mssql_sqlcmd_login_cmd: null
-
 - name: Link the deprecated accept_microsoft_sql_server_2019_standard_eula fact
   when: mssql_accept_microsoft_sql_server_2019_standard_eula is defined
   block:
