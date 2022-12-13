@@ -1,0 +1,103 @@
+# SPDX-License-Identifier: MIT
+---
+- name: Ensure that the role can input sql files to MSSQL
+  hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_debug: true
+    mssql_version: 2017
+  tasks:
+    - name: Set up MSSQL and input sql files with pre_input
+      include_role:
+        name: linux-system-roles.mssql
+      vars:
+        mssql_pre_input_sql_file:
+          - create_example_db.j2
+          - create_example_db.j2
+        mssql_password: "p@55w0rD"
+        mssql_edition: Evaluation
+        __mssql_test_db_name: ExampleDB1
+
+    - name: Assert the latest script invocation resulted in no changes
+      assert:
+        that:
+          - >-
+            'The ExampleDB1 database already exists, skipping' in
+            __mssql_sqlcmd_input.stdout
+          - >-
+            'The Inventory table already exists, skipping' in
+            __mssql_sqlcmd_input.stdout
+
+    - name: Set up MSSQL and input sql files with post_input
+      include_role:
+        name: linux-system-roles.mssql
+      vars:
+        mssql_post_input_sql_file:
+          - sql_script.sql
+          - sql_script.sql
+        mssql_password: "p@55w0rD"
+
+    - name: Assert the latest script invocation resulted in no changes
+      assert:
+        that:
+          - >-
+            'The MyLogin login already exists, skipping'
+            in __mssql_sqlcmd_input.stdout
+          - >-
+            'The MyUser user already exists, skipping'
+            in __mssql_sqlcmd_input.stdout
+
+    - name: Verify the failure when the mssql_password var is not specified
+      block:
+        - name: Input the sql file without the mssql_password variable
+          include_role:
+            name: linux-system-roles.mssql
+          vars:
+            mssql_pre_input_sql_file: sql_script.sql
+
+        - name: Unreachable task
+          fail:
+            msg: The above task must fail
+
+      rescue:
+        - name: Assert that the role failed with mssql_password not defined
+          assert:
+            that: >-
+              'You must define the mssql_password variable' in
+              ansible_failed_result.msg
+
+    - name: Verify the failure when the mssql_password var is not specified
+      block:
+        - name: Input the sql file without the mssql_password variable
+          include_role:
+            name: linux-system-roles.mssql
+          vars:
+            mssql_post_input_sql_file: sql_script.sql
+
+        - name: Unreachable task
+          fail:
+            msg: The above task must fail
+
+      rescue:
+        - name: Assert that the role failed with mssql_password not defined
+          assert:
+            that: >-
+              'You must define the mssql_password variable' in
+              ansible_failed_result.msg
+
+    - name: Enable FTS and verify that it works when inputting post script
+      include_role:
+        name: linux-system-roles.mssql
+      vars:
+        mssql_install_fts: true
+        mssql_post_input_sql_file: verify_fts.sql
+        mssql_password: "p@55w0rD"
+
+    - name: Assert the latest script invocation resulted in no changes
+      assert:
+        that:
+          - >-
+            'Full-Text Search is enabled'
+            in __mssql_sqlcmd_input.stdout

@@ -9,10 +9,6 @@
   set_fact:
     __mssql_sqlcmd_login_cmd: null
 
-- name: Unset the __mssql_sqlcmd_login_cmd fact
-  set_fact:
-    __mssql_sqlcmd_login_cmd: null
-
 - name: Link the deprecated accept_microsoft_sql_server_2019_standard_eula fact
   when: mssql_accept_microsoft_sql_server_2019_standard_eula is defined
   block:
@@ -129,7 +125,7 @@
     name: "*"
     disablerepo: "*"
     enablerepo: packages-microsoft-com-mssql-server-2017
-    state: latest  # noqa 403
+    state: latest  # noqa package-latest
   when:
     - mssql_upgrade | bool
     - ansible_facts.packages["mssql-server"][0]["version"] is defined

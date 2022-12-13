@@ -27,4 +27,5 @@
         /opt/mssql
         /tmp/ansible.*
         /var/log/pacemaker/pacemaker.log
+        /etc/yum.repos.d/packages-microsoft-com-*
       changed_when: true
