@@ -506,9 +506,9 @@ For example, you can write a `create_example_db.sql` SQL script that creates a t
     name: microsoft.sql.server
 ```
 
-Default: `null`
+Default: `[]`
 
-Type: `string`
+Type: `list`
 
 #### `mssql_ha_login`
 
