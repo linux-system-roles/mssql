@@ -125,7 +125,7 @@
     name: "*"
     disablerepo: "*"
     enablerepo: packages-microsoft-com-mssql-server-2017
-    state: latest  # noqa 403
+    state: latest  # noqa package-latest
   when:
     - mssql_upgrade | bool
     - ansible_facts.packages["mssql-server"][0]["version"] is defined
