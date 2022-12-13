@@ -53,7 +53,7 @@
       include_role:
         name: linux-system-roles.mssql
       vars:
-        mssql_password: "p@55w0rd"
+        mssql_password: "p@55w0rD1"
         mssql_edition: Standard
         mssql_tcp_port: 1435
         mssql_ip_address: 127.0.0.1
@@ -66,7 +66,7 @@
       include_role:
         name: linux-system-roles.mssql
       vars:
-        mssql_password: "p@55w0rd"
+        mssql_password: "p@55w0rD1"
         mssql_edition: Standard
         mssql_tcp_port: 1435
         mssql_ip_address: 127.0.0.1
@@ -78,7 +78,7 @@
     - name: Verify disabled settings
       include_tasks: tasks/verify_settings.yml
       vars:
-        __verify_mssql_password: "p@55w0rd"
+        __verify_mssql_password: "p@55w0rD1"
         __verify_mssql_edition: Standard
         __verify_mssql_tcp_port: 1435
         __verify_mssql_ip_address: 127.0.0.1
