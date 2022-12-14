@@ -285,11 +285,11 @@
   block:
     - name: Prepare MSSQL and facts for logging in
       include_tasks: verify_password.yml
-      vars:
-        __mssql_password: "{{ mssql_password }}"
 
     - name: Check if the set password matches the existing password
       command: "{{ __mssql_sqlcmd_login_cmd }} -Q 'SELECT @@VERSION'"
+      environment:
+        - SQLCMDPASSWORD: "{{ mssql_password | quote }}"
       ignore_errors: true
       changed_when: false
       register: __mssql_password_query

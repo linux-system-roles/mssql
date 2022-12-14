@@ -31,8 +31,6 @@
 
 - name: Prepare MSSQL and facts for logging in
   include_tasks: verify_password.yml
-  vars:
-    __mssql_password: "{{ mssql_password }}"
   when: >-
     (__mssql_sqlcmd_login_cmd is none) or
     (__mssql_sqlcmd_login_cmd is not defined)
