@@ -140,10 +140,10 @@
       when:
         - ansible_facts.packages["mssql-server"][0]["version"] is defined
         - ansible_facts.packages["mssql-server"][0]["version"]
-          is version('{{ item.value }}', '=')
-      with_dict:
-        - 2017: 14
-        - 2019: 15
+          is version({{ item.value }}, '>')
+        - ansible_facts.packages["mssql-server"][0]["version"]
+          is version({{ item.value }} + 1, '<')
+      with_dict: "{{__mssql_version_package_mapping }}"
 
     - name: Get yum repositories  # noqa command-instead-of-module
       shell: yum repolist --enabled

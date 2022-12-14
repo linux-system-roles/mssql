@@ -14,6 +14,10 @@ __mssql_supported_versions:
   - 2017
   - 2019
   - 2022
+__mssql_version_package_mapping:
+  - 2017: 14
+  - 2019: 15
+  - 2022: 16
 __mssql_conf_path: /var/opt/mssql/mssql.conf
 __mssql_conf_cli: /opt/mssql/bin/mssql-conf
 __mssql_ha_replica_types_all:
