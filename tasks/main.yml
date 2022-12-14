@@ -750,8 +750,8 @@
         # does not report the single node as primary because it needs more nodes
         - name: Configure ag, grant permissions to login, replicate DBs
           when: >-
-            (__mssql_ha_is_primary | bool)
-            or (__mssql_single_node_test | d(false) | bool)
+            __mssql_ha_is_primary | bool
+            or __mssql_single_node_test | d(false) | bool
           vars:
             __mssql_sql_files_to_input:
               - configure_ag.j2
@@ -875,7 +875,9 @@
         __mssql_sql_files_to_input:
           - configure_listener.j2
       include_tasks: input_sql_files.yml
-      when: __mssql_ha_is_primary | bool
+      when:
+        - mssql_ha_ag_cluster_type | lower == 'external'
+        - __mssql_ha_is_primary | bool
 
 - name: Ensure the ansible_managed header in {{ __mssql_conf_path }}
   vars:
