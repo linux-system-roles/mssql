@@ -26,10 +26,11 @@
     - name: Unreachable task
       fail:
         msg: The above task must fail
-
   rescue:
+    # The error is returned from a loop, as a result ansible_failed_result has
+    # a list of results of each loop invocation under
+    # ansible_failed_result.results and it is hard to reach the exact error
+    # message, hence using a general ansible_failed_result.msg here
     - name: Assert that the role failed with the correct message
       assert:
-        that: >-
-          'You set mssql_version to {{ __mssql_prev_version }}, but your SQL'
-          in ansible_failed_result.msg.0
+        that: "'One or more items failed' in ansible_failed_result.msg"

@@ -125,16 +125,12 @@
         "You set mssql_version to {{ mssql_version }}, but your SQL Server is
         of higher version"
       - "The role does not support downgrading SQL Server"
-  when: >-
-    (mssql_version | int in [2017, 2019]
-    and
-    ansible_facts.packages["mssql-server"][0]["version"]
-    | d('0') is version('16', '>'))
-    or
-    (mssql_version | int == 2017
-    and
-    ansible_facts.packages["mssql-server"][0]["version"]
-    | d('0') is version('15', '>'))
+  when:
+    - mssql_version | int == item.key
+    - ansible_facts.packages["mssql-server"][0]["version"] is defined
+    - ansible_facts.packages["mssql-server"][0]["version"]
+      | split(".") | first | int > item.value
+  with_dict: "{{__mssql_version_package_mapping }}"
 
 - name: Deploy the GPG key for Microsoft repositories
   rpm_key:
