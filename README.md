@@ -51,9 +51,12 @@ Type: `bool`
 
 The version of the SQL Server to configure.
 The role currently supports versions 2017, 2019, and 2022.
+
+If unset, the role sets the variable to the currently installed SQL Server version.
+
 Note that RHEL 7 does not support SQL Server 2022.
 
-Default: `2019`
+Default: `null`
 
 Type: `int`
 
@@ -579,6 +582,7 @@ This example shows how to use the role to set up SQL Server with the minimum req
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2019
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
   roles:
@@ -595,6 +599,7 @@ This example shows how to use the role to set up SQL Server, configure it with a
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2019
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_tcp_port: 1433
@@ -620,6 +625,7 @@ This example shows how to use the role to set up SQL Server and enable the follo
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2019
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_manage_firewall: true
@@ -644,6 +650,7 @@ Certificate files `mycert.pem` and `mykey.key` must exist on the primary node.
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2019
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_manage_firewall: true
@@ -664,6 +671,7 @@ This example shows how to use the role to set up SQL Server and configure it wit
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2019
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_manage_firewall: true
@@ -737,6 +745,7 @@ In this case the role does not configure Pacemaker.
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2019
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_manage_firewall: true
@@ -773,6 +782,7 @@ For more information, see the `fedora.linux_system_roles.ha_cluster` role docume
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2019
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_manage_firewall: true
@@ -867,6 +877,7 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2019
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_manage_firewall: true
@@ -979,6 +990,7 @@ This example playbooks sets the `firewall` variables for the `fedora.linux_syste
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2019
     mssql_manage_firewall: true
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation

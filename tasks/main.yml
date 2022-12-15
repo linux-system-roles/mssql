@@ -87,6 +87,20 @@
     manager: auto
   no_log: true
 
+- name: Set fact with the currently installed SQL Server version if any
+  set_fact:
+    __mssql_current_version: "{{ item.key }}"
+  when:
+    - ansible_facts.packages["mssql-server"][0]["version"] is defined
+    - ansible_facts.packages["mssql-server"][0]["version"]
+      | split(".") | first | int == item.value
+  with_dict: "{{__mssql_version_package_mapping }}"
+
+- name: Set mssql_version variable if user does not define it
+  set_fact:
+    mssql_version: "{{ __mssql_current_version }}"
+  when: mssql_version is none
+
 - name: Verify if the mssql_version variable is provided correctly
   assert:
     that: mssql_version | int in __mssql_supported_versions
@@ -131,19 +145,14 @@
   when: mssql_upgrade | bool
   block:
     # This works only on systems that use yum or dnf
-    - name: Update all packages from SQL Server {{ item.key }} repo
+    - name: >-
+        Update all packages from SQL Server {{ __mssql_current_version }} repo
       package:
         name: "*"
         disablerepo: "*"
-        enablerepo: packages-microsoft-com-mssql-server-{{ item.key }}
+        enablerepo: >-
+          packages-microsoft-com-mssql-server-{{ __mssql_current_version }}
         state: latest  # noqa package-latest
-      when:
-        - ansible_facts.packages["mssql-server"][0]["version"] is defined
-        - ansible_facts.packages["mssql-server"][0]["version"]
-          is version({{ item.value }}, '>')
-        - ansible_facts.packages["mssql-server"][0]["version"]
-          is version({{ item.value }} + 1, '<')
-      with_dict: "{{__mssql_version_package_mapping }}"
 
     - name: Get yum repositories  # noqa command-instead-of-module
       shell: yum repolist --enabled
