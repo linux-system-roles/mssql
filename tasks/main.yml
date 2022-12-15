@@ -356,8 +356,8 @@
         - name: Workaround for expected error on version 2022
           fail:
           when:
-            - not ansible_facts.packages["mssql-server"][0]["version"]
-              | d('0') is version('16', '>')
+            - ansible_facts.packages["mssql-server"][0]["version"].split(".")
+              | first | int != 16
             - >-
               not "Unable to set the system administrator password. Please
               consult the ERRORLOG" in __mssql_set_ha_password.stdout
@@ -419,8 +419,8 @@
         - name: Workaround for expected error on version 2022
           fail:
           when:
-            - not ansible_facts.packages["mssql-server"][0]["version"]
-              | d('0') is version('16', '>')
+            - ansible_facts.packages["mssql-server"][0]["version"].split(".")
+              | first | int != 16
             - >-
               not "\nThe licensing PID was successfully processed."
               in __mssql_conf_set_edition.stdout
