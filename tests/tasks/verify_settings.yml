@@ -70,7 +70,7 @@
     - name: Check if the set password matches the existing password
       command: "{{ __mssql_sqlcmd_login_cmd }} -Q 'SELECT @@VERSION'"
       environment:
-        - SQLCMDPASSWORD: "{{ __verify_mssql_password | quote }}"
+        - SQLCMDPASSWORD: "{{ __verify_mssql_password }}"
       ignore_errors: true
       changed_when: false
       register: __mssql_password_query

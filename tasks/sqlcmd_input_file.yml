@@ -28,7 +28,7 @@
       command: >-
         {{ __mssql_sqlcmd_login_cmd }} -i {{ __mssql_sql_tempfile.path }} -b
       environment:
-        - SQLCMDPASSWORD: "{{ mssql_password | quote }}"
+        - SQLCMDPASSWORD: "{{ mssql_password }}"
       register: __mssql_sqlcmd_input
       changed_when: '"successfully" in __mssql_sqlcmd_input.stdout'
   always:

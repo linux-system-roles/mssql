@@ -289,11 +289,10 @@
     - name: Check if the set password matches the existing password
       command: "{{ __mssql_sqlcmd_login_cmd }} -Q 'SELECT @@VERSION'"
       environment:
-        - SQLCMDPASSWORD: "{{ mssql_password | quote }}"
+        - SQLCMDPASSWORD: "{{ mssql_password }}"
       ignore_errors: true
       changed_when: false
       register: __mssql_password_query
-      no_log: true
 
     - name: Ensure that the mssql-server service is stopped
       service:
