@@ -59,8 +59,6 @@
         name: linux-system-roles.mssql
         tasks_from: verify_password
         public: true
-      vars:
-        __mssql_password: "{{ __verify_mssql_password }}"
 
     - name: Wait for mssql-server to start and prepare for client connections
       wait_for:
@@ -71,6 +69,8 @@
 
     - name: Check if the set password matches the existing password
       command: "{{ __mssql_sqlcmd_login_cmd }} -Q 'SELECT @@VERSION'"
+      environment:
+        - SQLCMDPASSWORD: "{{ __verify_mssql_password }}"
       ignore_errors: true
       changed_when: false
       register: __mssql_password_query
