@@ -94,7 +94,7 @@
     - ansible_facts.packages["mssql-server"][0]["version"] is defined
     - ansible_facts.packages["mssql-server"][0]["version"]
       | split(".") | first | int == item.value
-  with_dict: "{{__mssql_version_package_mapping }}"
+  with_dict: "{{ __mssql_version_package_mapping }}"
 
 - name: Set mssql_version variable if user does not define it
   set_fact:
@@ -130,7 +130,7 @@
     - ansible_facts.packages["mssql-server"][0]["version"] is defined
     - ansible_facts.packages["mssql-server"][0]["version"]
       | split(".") | first | int > item.value
-  with_dict: "{{__mssql_version_package_mapping }}"
+  with_dict: "{{ __mssql_version_package_mapping }}"
 
 - name: Deploy the GPG key for Microsoft repositories
   rpm_key:
