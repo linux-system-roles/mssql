@@ -92,8 +92,8 @@
     __mssql_current_version: "{{ item.key }}"
   when:
     - ansible_facts.packages["mssql-server"][0]["version"] is defined
-    - ansible_facts.packages["mssql-server"][0]["version"]
-      | split(".") | first | int == item.value
+    - ansible_facts.packages["mssql-server"][0]["version"].split(".")
+      | first | int == item.value
   with_dict: "{{ __mssql_version_package_mapping }}"
 
 - name: Set mssql_version variable if user does not define it
@@ -128,8 +128,8 @@
   when:
     - mssql_version | int == item.key
     - ansible_facts.packages["mssql-server"][0]["version"] is defined
-    - ansible_facts.packages["mssql-server"][0]["version"]
-      | split(".") | first | int > item.value
+    - ansible_facts.packages["mssql-server"][0]["version"].split(".")
+      | first | int > item.value
   with_dict: "{{ __mssql_version_package_mapping }}"
 
 - name: Deploy the GPG key for Microsoft repositories

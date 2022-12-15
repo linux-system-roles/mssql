@@ -27,10 +27,17 @@
       fail:
         msg: The above task must fail
   rescue:
-    # The error is returned from a loop, as a result ansible_failed_result has
-    # a list of results of each loop invocation under
-    # ansible_failed_result.results and it is hard to reach the exact error
-    # message, hence using a general ansible_failed_result.msg here
+    # Verify the error message
+    # Verify that the error is returned only once in ansible_failed_result
     - name: Assert that the role failed with the correct message
       assert:
-        that: "'One or more items failed' in ansible_failed_result.msg"
+        that:
+          - >-
+            'You set mssql_version to {{ __mssql_prev_version }}, but your SQL'
+            in ansible_failed_result.results
+            | selectattr('msg', 'defined')
+            | map(attribute='msg')
+            | join(' ')
+          - ansible_failed_result.results | selectattr('msg', 'defined')
+            | list
+            | length == 1
