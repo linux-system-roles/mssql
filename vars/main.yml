@@ -14,7 +14,7 @@ __mssql_supported_versions:
   - 2017
   - 2019
   - 2022
-# Dicst define SQL Server version and the corresponding mssql-server version
+# Dicts define SQL Server version and the corresponding mssql-server version
 __mssql_version_package_mapping:
   - 2017: 14
   - 2019: 15

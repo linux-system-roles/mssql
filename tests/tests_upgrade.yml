@@ -28,6 +28,25 @@
               {{ __mssql_supported_versions | join(", ") }}'
               in ansible_failed_result.msg
 
+    - name: Verify the failure when mssql_version is not provided
+      block:
+        - name: Run the role with incorrect mssql_version
+          include_role:
+            name: linux-system-roles.mssql
+            public: true
+
+        - name: Unreachable task
+          fail:
+            msg: The above task must fail
+
+      rescue:
+        - name: Assert that the role failed with the correct message
+          assert:
+            that: >-
+              'You must set the mssql_version variable to one of
+              {{ __mssql_supported_versions | join(", ") }}'
+              in ansible_failed_result.msg
+
     - name: Set up MSSQL 2017
       include_role:
         name: linux-system-roles.mssql

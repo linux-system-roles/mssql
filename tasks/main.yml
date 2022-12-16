@@ -99,7 +99,9 @@
 - name: Set mssql_version variable if user does not define it
   set_fact:
     mssql_version: "{{ __mssql_current_version }}"
-  when: mssql_version is none
+  when:
+    - mssql_version is none
+    - __mssql_current_version is defined
 
 - name: Verify if the mssql_version variable is provided correctly
   assert:
