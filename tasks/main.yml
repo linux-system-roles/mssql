@@ -321,6 +321,7 @@
       wait_for:
         path: /var/opt/mssql/log/errorlog
         search_regex: SQL Server is now ready for client connections
+        delay: 3
         timeout: 40
 
     - name: Check if the set password matches the existing password
