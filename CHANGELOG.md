@@ -1,10 +1,16 @@
 Changelog
 =========
 
-[1.3.0] - 2022-12-05
+[1.3.0] - 2022-12-21
 --------------------
-
 ### New Features
+
+- Add support for SQL Server 2022 (#148)
+  - Set mssql_version to null by default and require users to specify it
+  - Set mssql_version if user didn't and if SQL Server package exists
+  - Set mssql_version to none if it is not set and no current ver exists
+  - Add workarounds for known issues in SQL Server 2022
+  - Use delay=3 timeout=40 in wait_for module to avoid unreachable server
 
 - Imrpove performance by intputting multiple SQL files with loop internaly (#116)
   - Make it possible to input multiple file with loop internally
@@ -35,6 +41,12 @@ Changelog
   
 ### Bug Fixes
 
+- Fix creating a read-only cluster and setting db_names to empty list (#152)
+  - Fix a bug when listener were created on mssql_ha_ag_cluster_type=none
+  - Fix a bug when setting mssql_ha_db_names to empty list didn't work
+
+- With sqlcmd, set password with env variable instead of -P for security (#153)
+
 - Identify the current primary replica and configure ag on it (#113)
   Previously, the role configured AG on the server that has the
   `mssql_ha_replica_type: primary` variable set.
@@ -57,6 +69,30 @@ Changelog
   Remove redundant empty line in weekly CI job
 
 ### Other Changes
+
+- weekly-ci: do not create a new PR every time
+
+- python version depends on platform; upgrade checkout, setup-python; support py311 [citest skip] (#142)
+  - The python version used now requires a corresponding os version e.g. python 2.7 and
+    python 3.6 are no longer supported on ubuntu-latest - must use 20.04.  Update
+    the python matrix to include the os to use as well.
+  - Use checkout@v3 and setup-python@v4
+  - python 3.11 stable is now supported by setup-python
+  - Add `push` action for status reporting on role main page if missing
+  - Use `docker` for ansible-test if not already doing that
+
+- Set __mssql_single_node_test to be false when not set (#143)
+
+- Cleanup tests for vault (#151)
+  - delete a repeating task added by mistake
+  - use the string name instead of the number for noqa
+  - In clean up playbook also remove repo files
+  - Add tests_idempotency_* to no-vault-variables.txt
+  - Define different test passwords consistently
+  - Incorporate tests_powershell to tests_idempotency
+  - Add tests_input_sql_file_2017
+  - Remove redundant no_log in tests/tasks/
+  - Add missing input_sql_file_2017 to no-vault-variables
 
 - Move all ha-related tasks under a single block to clear code (#118)
 
