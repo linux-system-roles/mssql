@@ -1,0 +1,26 @@
+- name: Assert fail on RHEL 7 when upgrading to 2022
+  when:
+    - ansible_distribution in ['CentOS', 'RedHat']
+    - ansible_distribution_version is version('8', '<')
+  block:
+    - name: Run the role
+      vars:
+        mssql_version: 2022
+        mssql_password: "p@55w0rD"
+        mssql_edition: Evaluation
+      include_role:
+        name: linux-system-roles.mssql
+
+    - name: Unreachable task
+      fail:
+        msg: The above task must fail
+  rescue:
+    - name: Assert that the role failed with EL < 8 not supported
+      assert:
+        that: >-
+          'SQL Server 2022 does not support EL 7 hosts'
+          in ansible_failed_result.msg
+  always:
+    # Putting end_host into a rescue block results in a failed task
+    - name: End EL < 8 host
+      meta: end_host

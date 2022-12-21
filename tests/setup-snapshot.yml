@@ -28,9 +28,7 @@
           - "{{ __mssql_powershell_packages }}"
         mssql_version: "{{ item }}"
       include_tasks: tasks/snapshot_install_packages.yml
-      loop:
-        - 2017
-        - 2019
+      loop: "{{ __mssql_supported_versions }}"
 
     - name: Remove the Microsoft SQL Server Tools repository
       yum_repository:

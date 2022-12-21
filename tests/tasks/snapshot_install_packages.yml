@@ -1,25 +1,31 @@
 # SPDX-License-Identifier: MIT
 ---
-- name: Configure the Microsoft SQL Server {{ mssql_version }} repository
-  yum_repository:
-    name: packages-microsoft-com-mssql-server-{{ mssql_version | int }}
-    description: Microsoft SQL Server {{ mssql_version }}
-    baseurl: "{{ mssql_server_repository }}"
-    gpgcheck: true
+- name: Install packages but avoid installing sql-server 2022 on RHEL < 8
+  when:
+    - not mssql_version | int != 2022
+    - not ansible_distribution in ['CentOS', 'RedHat']
+    - not ansible_distribution_version is version('8', '<')
+  block:
+    - name: Configure the Microsoft SQL Server {{ mssql_version }} repository
+      yum_repository:
+        name: packages-microsoft-com-mssql-server-{{ mssql_version | int }}
+        description: Microsoft SQL Server {{ mssql_version }}
+        baseurl: "{{ mssql_server_repository }}"
+        gpgcheck: true
 
-- name: Install required packages
-  package:
-    name: "{{ __mssql_packages }}"
-    state: present
+    - name: Install required packages
+      package:
+        name: "{{ __mssql_packages }}"
+        state: present
 
-# NOTE: Removed packages will still be in the local package cache
-# and when installed will be installed from the local disk
-- name: Remove mssql packages to keep them in cache only
-  package:
-    name: "{{ __mssql_packages }}"
-    state: absent
+    # NOTE: Removed packages will still be in the local package cache
+    # and when installed will be installed from the local disk
+    - name: Remove mssql packages to keep them in cache only
+      package:
+        name: "{{ __mssql_packages }}"
+        state: absent
 
-- name: Remove the Microsoft SQL Server {{ mssql_version }} repository
-  yum_repository:
-    name: packages-microsoft-com-mssql-server-{{ mssql_version | int }}
-    state: absent
+    - name: Remove the Microsoft SQL Server {{ mssql_version }} repository
+      yum_repository:
+        name: packages-microsoft-com-mssql-server-{{ mssql_version | int }}
+        state: absent

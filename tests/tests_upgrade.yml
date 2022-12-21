@@ -12,6 +12,7 @@
         - name: Run the role with incorrect mssql_version
           include_role:
             name: linux-system-roles.mssql
+            public: true
           vars:
             mssql_version: 2018
 
@@ -23,17 +24,16 @@
         - name: Assert that the role failed with the correct message
           assert:
             that: >-
-              'The mssql_version variable must be set to either 2017 or 2019' in
-              ansible_failed_result.msg
+              'You must set the mssql_version variable to one of
+              {{ __mssql_supported_versions | join(", ") }}'
+              in ansible_failed_result.msg
 
-    - name: Verify the failure when mssql_upgrade is provided with version 2017
+    - name: Verify the failure when mssql_version is not provided
       block:
-        - name: Run the role with mssql_version 2017 and mssql_upgrade true
+        - name: Run the role with incorrect mssql_version
           include_role:
             name: linux-system-roles.mssql
-          vars:
-            mssql_version: 2017
-            mssql_upgrade: true
+            public: true
 
         - name: Unreachable task
           fail:
@@ -43,8 +43,9 @@
         - name: Assert that the role failed with the correct message
           assert:
             that: >-
-              'You set mssql_upgrade to true and mssql_version to 2017.' in
-              ansible_failed_result.msg.0
+              'You must set the mssql_version variable to one of
+              {{ __mssql_supported_versions | join(", ") }}'
+              in ansible_failed_result.msg
 
     - name: Set up MSSQL 2017
       include_role:
@@ -54,40 +55,42 @@
         mssql_password: "p@55w0rD"
         mssql_edition: Evaluation
 
-    - name: Upgrade to 2019
-      include_role:
-        name: linux-system-roles.mssql
+    - name: Upgrade to 2019 and assert expected results
+      include_tasks: tasks/upgrade_and_assert.yml
       vars:
-        mssql_version: 2019
-        mssql_upgrade: yes
+        __mssql_version: 2019
+        __mssql_prev_version: 2017
 
-    - name: Upgrade again to test idempotency - should report not changed
-      include_role:
-        name: linux-system-roles.mssql
-      vars:
-        mssql_upgrade: true
-        mssql_version: 2019
-
-    - name: >-
-        Verify the failure when mssql_version is set to 2017 when SQL Server has
-        version 2019
+    - name: Assert fail on RHEL 7 when upgrading to 2022
+      when:
+        - ansible_distribution in ['CentOS', 'RedHat']
+        - ansible_distribution_version is version('8', '<')
       block:
-        - name: Run the role with mssql_version 2017 on SQL Server 2019
+        - name: Run the role
+          vars:
+            mssql_version: 2022
           include_role:
             name: linux-system-roles.mssql
-          vars:
-            mssql_version: "2017"
 
         - name: Unreachable task
           fail:
             msg: The above task must fail
-
       rescue:
-        - name: Assert that the role failed with the correct message
+        - name: Assert that the role failed with EL < 8 not supported
           assert:
             that: >-
-              'set mssql_version to 2017, but your SQL Server is version 2019.'
-              in ansible_failed_result.msg.0
+              'SQL Server 2022 does not support EL 7 hosts'
+              in ansible_failed_result.msg
+      always:
+        # Putting end_host into a rescue block results in a failed task
+        - name: End EL < 8 host
+          meta: end_host
+
+    - name: Upgrade to 2022 and assert expected results
+      include_tasks: tasks/upgrade_and_assert.yml
+      vars:
+        __mssql_version: 2022
+        __mssql_prev_version: 2019
 
     - name: Check the ansible_managed header in the configuration file
       include_tasks: tasks/check_header.yml

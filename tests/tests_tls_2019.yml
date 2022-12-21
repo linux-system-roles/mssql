@@ -9,6 +9,7 @@
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_tcp_port: 1433
+    mssql_version: 2019
   tasks:
     - name: Ensure the openssl package
       package:

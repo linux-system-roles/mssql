@@ -1,0 +1,43 @@
+# With __mssql_version provide the version to upgrade to
+# With __mssql_prev_version provide the current version of SQL Server
+- name: Upgrade to a new version
+  vars:
+    mssql_upgrade: true
+    mssql_version: "{{ __mssql_version }}"
+  block:
+    - name: Upgrade to "{{ __mssql_version }}"
+      include_role:
+        name: linux-system-roles.mssql
+
+    - name: Upgrade again to test idempotency - should report not changed
+      include_role:
+        name: linux-system-roles.mssql
+
+- name: >-
+    Verify the failure when mssql_version < current version
+  block:
+    - name: >-
+        Upgrade to {{ __mssql_prev_version }} on mssql {{ __mssql_version }}
+      include_role:
+        name: linux-system-roles.mssql
+      vars:
+        mssql_version: "{{ __mssql_prev_version }}"
+
+    - name: Unreachable task
+      fail:
+        msg: The above task must fail
+  rescue:
+    # Verify the error message
+    # Verify that the error is returned only once in ansible_failed_result
+    - name: Assert that the role failed with the correct message
+      assert:
+        that:
+          - >-
+            'You set mssql_version to {{ __mssql_prev_version }}, but your SQL'
+            in ansible_failed_result.results
+            | selectattr('msg', 'defined')
+            | map(attribute='msg')
+            | join(' ')
+          - ansible_failed_result.results | selectattr('msg', 'defined')
+            | list
+            | length == 1

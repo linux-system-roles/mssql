@@ -27,7 +27,8 @@
   wait_for:
     path: /var/opt/mssql/log/errorlog
     search_regex: SQL Server is now ready for client connections
-    timeout: 10
+    delay: 3
+    timeout: 40
 
 - name: Prepare MSSQL and facts for logging in
   include_tasks: verify_password.yml
