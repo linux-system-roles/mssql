@@ -24,7 +24,7 @@ Please see the [Using Ansible collections documentation](https://docs.ansible.co
 
 ## Documentation
 
-You can find the documentation for the microsoft.sql.server role in its repository in [README.md](https://github.com/linux-system-roles/mssql/blob/master/README.md).
+You can find the documentation for the microsoft.sql.server role in its repository in [README.md](https://github.com/linux-system-roles/mssql/blob/main/README.md).
 
 ## Supported Ansible Versions
 

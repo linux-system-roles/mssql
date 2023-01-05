@@ -283,9 +283,6 @@ mssql_ha_db_names got replicated
 
 - Use GITHUB_REF_NAME as name of push branch; fix error in branch detection [citest skip]
   - We need to get the name of the branch to which CHANGELOG.md was pushed.
-    For now, it looks as though `GITHUB_REF_NAME` is that name.  But don't
-    trust it - first, check that it is `main` or `master`.  If not, then use
-    a couple of other methods to determine what is the push branch.
     Signed-off-by: Rich Megginson <rmeggins@redhat.com>
 
 - tests_tls: generate certs on managed nodes to avoid installing local RPM (#82)
