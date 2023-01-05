@@ -64,7 +64,11 @@ Type: `int`
 
 If you want to upgrade your SQL Server, set this variable to `true` and the `mssql_version` variable to the version to which you wish to upgrade.
 
-Note that the role does not support downgrading SQL Server.
+Considerations:
+
+* The role does not support downgrading SQL Server.
+* SQL Server does not support a direct upgrade from 2017 to 2022.
+  To upgrade from 2017 to 2022, you must perform the upgrade in two steps - upgrade 2017 to 2019 and then 2019 to 2022.
 
 Default: `false`
 
