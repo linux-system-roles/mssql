@@ -15,7 +15,7 @@ The role also optimizes the operating system to improve performance and throughp
 
 ### Configuring General SQL Server Settings
 
-These variables apply to general SQL Server set up.
+These variables apply to general SQL Server configuration.
 
 #### Variables
 
@@ -129,7 +129,7 @@ Type: `bool`
 
 ##### Configuring Basic SQL Server
 
-This example playbook shows how to use the role to set up SQL Server with the minimum required variables.
+This example playbook shows how to use the role to configure SQL Server with the minimum required variables.
 
 ```yaml
 - hosts: all
@@ -213,7 +213,7 @@ Type: `string` or `list`
 
 ##### `mssql_debug`
 
-Whether or not to print the output of sqlcmd commands.
+Whether to print the output of sqlcmd commands.
 The role inputs SQL scripts with the sqlcmd command to configure SQL Server for HA or to input users' SQL scripts when you define a [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) or [`mssql_post_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable.
 
 Default: `false`
@@ -341,7 +341,7 @@ Type: `bool`
 
 ##### Configuring SQL Server with Custom Network Parameters
 
-This example shows how to use the role to set up SQL Server, configure it with a custom IP address and TCP port, and open the TCP port in firewall.
+This example shows how to use the role to configure SQL Server, configure it with a custom IP address and TCP port, and open the TCP port in firewall.
 
 ```yaml
 - hosts: all
@@ -451,7 +451,7 @@ Type: `bool`
 
 ##### Configuring SQL Server with TLS Encryption with Certificate Files
 
-This example shows how to use the role to set up SQL Server and configure it to use TLS encryption.
+This example shows how to use the role to configure SQL Server and configure it to use TLS encryption.
 Certificate files `mycert.pem` and `mykey.key` must exist on the primary node.
 
 ```yaml
@@ -475,7 +475,7 @@ Certificate files `mycert.pem` and `mykey.key` must exist on the primary node.
 
 ##### Configuring SQL Server with TLS Encryption with the Certificate Role
 
-This example shows how to use the role to set up SQL Server and configure it with TLS encryption using self-signed certificate and key created by the certificate role.
+This example shows how to use the role to configure SQL Server and configure it with TLS encryption using self-signed certificate and key created by the certificate role.
 
 ```yaml
 - hosts: all
@@ -726,7 +726,7 @@ Type: `string`
 
 ### Example Playbooks
 
-Examples in this section shows how to use the role to set up SQL Server and configure it for high availability in different environments.
+Examples in this section show how to use the role to configure SQL Server and configure it for high availability in different environments.
 
 #### Example Inventory for HA Configuration
 
@@ -754,7 +754,7 @@ all:
     # host4 is defined by an ip address
     # You must define ha_cluster names to be in the short name format
     # In the case where the default host's IP address differs from the IP
-    # address that Pacemaker must use to set up cluster, you must define
+    # address that Pacemaker must use to configure up cluster, you must define
     # ha_cluster corosync_addresses
     192.XXX.XXX.333:
       mssql_ha_replica_type: witness
@@ -1004,12 +1004,12 @@ Note that production environments require Pacemaker configured with fencing agen
 If you want to configure Pacemaker from this role, you can set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true` and provide variables required by the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker for your environment properly.
 See the `fedora.linux_system_roles.ha_cluster` role documentation for more information.
 
-**Prerequisites**
-You must configure all required resources in Azure.
-For more information, see the following articles in Microsoft documentation:
+##### Prerequisites
+* You must configure all required resources in Azure.
+  For more information, see the following articles in Microsoft documentation:
 
-* [Setting up Pacemaker on Red Hat Enterprise Linux in Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-pacemaker#1-create-the-stonith-devices)
-* [Tutorial: Configure availability groups for SQL Server on RHEL virtual machines in Azure](https://docs.microsoft.com/en-us/azure/azure-sql/virtual-machines/linux/rhel-high-availability-stonith-tutorial?view=azuresql)
+  * [Setting up Pacemaker on Red Hat Enterprise Linux in Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-pacemaker#1-create-the-stonith-devices)
+  * [Tutorial: Configure availability groups for SQL Server on RHEL virtual machines in Azure](https://docs.microsoft.com/en-us/azure/azure-sql/virtual-machines/linux/rhel-high-availability-stonith-tutorial?view=azuresql)
 
 Note that production environments require Pacemaker configured with fencing agents, this example playbook configures the `stonith:fence_azure_arm` agent.
 
