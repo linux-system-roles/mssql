@@ -6,17 +6,20 @@ This role installs, configures, and starts Microsoft SQL Server.
 
 The role also optimizes the operating system to improve performance and throughput for SQL Server by applying the `mssql` Tuned profile.
 
-The role currently supports SQL Server 2017, 2019, and 2022.
-Note that SQL Server 2022 does not support EL 7 hosts
-
 ## Requirements
 
 * SQL Server requires a machine with at least 2000 megabytes of memory.
 * Optional: If you want to input T-SQL statements and stored procedures to SQL Server, you must create a file with the `.sql` extension containing these SQL statements and procedures.
 
-## Role Variables
+## Role Scenarios
 
-### `mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula`
+### Configuring General SQL Server Settings
+
+These variables apply to general SQL Server set up.
+
+#### Variables
+
+##### `mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula`
 
 Set this variable to `true` to indicate that you accept EULA for installing the `msodbcsql17` package.
 
@@ -26,7 +29,7 @@ Default: `false`
 
 Type: `bool`
 
-### `mssql_accept_microsoft_cli_utilities_for_sql_server_eula`
+##### `mssql_accept_microsoft_cli_utilities_for_sql_server_eula`
 
 Set this variable to `true` to indicate that you accept EULA for installing the `mssql-tools` package.
 
@@ -36,7 +39,7 @@ Default: `false`
 
 Type: `bool`
 
-### `mssql_accept_microsoft_sql_server_standard_eula`
+##### `mssql_accept_microsoft_sql_server_standard_eula`
 
 Set this variable to `true` to indicate that you accept EULA for using Microsoft SQL Server.
 
@@ -47,34 +50,7 @@ Default: `false`
 
 Type: `bool`
 
-### `mssql_version`
-
-The version of the SQL Server to configure.
-The role currently supports versions 2017, 2019, and 2022.
-
-If unset, the role sets the variable to the currently installed SQL Server version.
-
-Note that RHEL 7 does not support SQL Server 2022.
-
-Default: `null`
-
-Type: `int`
-
-### `mssql_upgrade`
-
-If you want to upgrade your SQL Server, set this variable to `true` and the `mssql_version` variable to the version to which you wish to upgrade.
-
-Considerations:
-
-* The role does not support downgrading SQL Server.
-* SQL Server does not support a direct upgrade from 2017 to 2022.
-  To upgrade from 2017 to 2022, you must perform the upgrade in two steps - upgrade 2017 to 2019 and then 2019 to 2022.
-
-Default: `false`
-
-Type: `bool`
-
-### `mssql_password`
+##### `mssql_password`
 
 The password for the database sa user.
 The password must have a minimum length of 8 characters, include uppercase and lowercase letters, base 10 digits or non-alphanumeric symbols.
@@ -88,7 +64,7 @@ Default: `null`
 
 Type: `string`
 
-### `mssql_edition`
+##### `mssql_edition`
 
 The edition of SQL Server to install.
 
@@ -109,126 +85,25 @@ Default: `null`
 
 Type: `string`
 
-### `mssql_tcp_port`
+##### `mssql_enable_sql_agent`
 
-The port that SQL Server listens on.
-
-If you set `mssql_manage_firewall` to `false`, you must open the firewall port defined with the `mssql_tcp_port` variable prior to running this role.
-
-You can change the TCP port by setting this variable to a different port.
-If you set `mssql_manage_firewall` to `true` while changing the TCP port, the role closes the previously opened firewall port.
-
-Default: `1433`
-
-Type: `int`
-
-### `mssql_manage_firewall`
-
-Whether to open firewall ports required by this role.
-
-When this variable is set to `true`, the role enables firewall even if it was not enabled.
-
-The role uses the `fedora.linux_system_roles.firewall` role to manage the firewall, hence, only firewall implementations supported by the `fedora.linux_system_roles.firewall` role work.
-
-If you set this variable to `false`, you must open required ports prior to running this role.
-
-Default: `false`
-
-Type: `bool`
-
-### `mssql_ip_address`
-
-The IP address that SQL Server listens on.
-
-If you define this variable, the role configures SQL Server with the defined IP address.
-
-If you do not define this variable when installing SQL Server, the role configures SQL Server to listen on the SQL Server default IP address `0.0.0.0`, that is, to listen on every available network interface.
-
-If you do not define this variable when configuring running SQL Server, the role does not change the IP address setting on SQL Server.
-
-Default: `null`
-
-Type: `string`
-
-### `mssql_input_sql_file`
-
-This variable is deprecated. Use the below variables instead.
-
-### `mssql_pre_input_sql_file` and `mssql_post_input_sql_file`
-
-You can use the role to input a file containing SQL statements or procedures into SQL Server.
-
-* Use `mssql_pre_input_sql_file` to input the SQL file immediately after the role configures SQL Server.
-* Use `mssql_post_input_sql_file` to input the SQL file at the end of the role invocation.
-
-With these variables, enter the path to the files containing SQL scripts.
-
-When specifying any of these variables, you must also specify the `mssql_password` variable because authentication is required to input an SQL file to SQL Server.
-
-If you do not pass these variables, the role only configures the SQL Server and does not input any SQL file.
-
-Note that this task is not idempotent, the role always inputs an SQL file if any of these variables is defined.
-
-You can find an example of an SQL file at `tests/sql_script.sql` at the role directory.
-
-You can set these variables to a list of files, or to a string containing single file.
-For example:
-
-```yaml
-mssql_pre_input_sql_file: script0.sql
-mssql_post_input_sql_file:
-  - script1.sql
-  - script2.sql
-```
-
-Default: `null`
-
-Type: `string` or `list`
-
-### `mssql_debug`
-
-Whether or not to print the output of sqlcmd commands.
-The role inputs SQL scripts with the sqlcmd command to configure SQL Server for HA or to input users' SQL scripts when you define a [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) or [`mssql_post_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable.
-
-Default: `false`
-
-Type: `bool`
-
-### `mssql_enable_sql_agent`
-
-Set this variable to `true` or `false` to enable or disable the SQL agent.
+Optional: Set this variable to `true` or `false` to enable or disable the SQL agent.
 
 Default: `null`
 
 Type: `bool`
 
-### `mssql_install_fts`
+##### `mssql_enable_ha`
 
-Set this variable to `true` or `false` to install or remove the `mssql-server-fts` package that provides full-text search.
-
-Default: `null`
-
-Type: `bool`
-
-### `mssql_install_powershell`
-
-Set this variable to `true` or `false` to install or remove the `powershell` package that provides PowerShell.
+Optional: Set this variable to `true` or `false` to install or remove the `mssql-server-ha` package and enable or disable the `hadrenabled` setting.
 
 Default: `null`
 
 Type: `bool`
 
-### `mssql_enable_ha`
+##### `mssql_tune_for_fua_storage`
 
-Set this variable to `true` or `false` to install or remove the `mssql-server-ha` package and enable or disable the `hadrenabled` setting.
-
-Default: `null`
-
-Type: `bool`
-
-### `mssql_tune_for_fua_storage`
-
-Set this variable to `true` or `false` to enable or disable settings that improve performance on hosts that support Forced Unit Access (FUA) capability.
+Optional: Set this variable to `true` or `false` to enable or disable settings that improve performance on hosts that support Forced Unit Access (FUA) capability.
 
 Only set this variable to `true` if your hosts are configured for FUA capability.
 
@@ -250,11 +125,249 @@ Default: `null`
 
 Type: `bool`
 
-### `mssql_tls_enable`
+#### Example Playbooks
+
+##### Configuring Basic SQL Server
+
+This example playbook shows how to use the role to set up SQL Server with the minimum required variables.
+
+```yaml
+- hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2019
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
+  roles:
+    - microsoft.sql.server
+```
+
+### Managing SQL Server version
+
+Use these variables to manage SQL Server version
+
+#### Considerations
+
+* The role does not support downgrading SQL Server.
+* SQL Server does not support a direct upgrade from 2017 to 2022.
+  To upgrade from 2017 to 2022, you must perform the upgrade in two steps - upgrade 2017 to 2019 and then 2019 to 2022.
+* SQL Server 2022 does not support EL 7 hosts.
+* The role currently supports installing and configuring SQL Server versions 2017, 2019, and 2022.
+
+##### `mssql_version`
+
+The version of the SQL Server to configure.
+
+The role currently supports installing and configuring SQL Server versions 2017, 2019, and 2022.
+
+If unset, the role sets the variable to the currently installed SQL Server version.
+
+Note that RHEL 7 does not support SQL Server 2022.
+
+Default: `null`
+
+Type: `int`
+
+##### `mssql_upgrade`
+
+Optional: If you want to upgrade your SQL Server, set this variable to `true` and the `mssql_version` variable to the version to which you wish to upgrade.
+
+Default: `false`
+
+Type: `bool`
+
+### Inputting SQL Scripts to SQL Server
+
+Optional: Use these variables to input T-SQL scripts to SQL Server.
+
+#### Variables
+
+##### `mssql_input_sql_file`
+
+This variable is deprecated. Use the below variables instead.
+
+##### `mssql_pre_input_sql_file` and `mssql_post_input_sql_file`
+
+You can use the role to input a file containing SQL statements or procedures into SQL Server.
+
+* Use `mssql_pre_input_sql_file` to input the SQL file immediately after the role configures SQL Server.
+* Use `mssql_post_input_sql_file` to input the SQL file at the end of the role invocation.
+
+With these variables, enter the path to the files containing SQL scripts.
+
+When specifying any of these variables, you must also specify the `mssql_password` variable because authentication is required to input an SQL file to SQL Server.
+
+If you do not pass these variables, the role only configures the SQL Server and does not input any SQL file.
+
+Note that this task is not idempotent, the role always inputs an SQL file if any of these variables is defined.
+
+You can find an example of an SQL file at `tests/sql_script.sql` at the role directory.
+
+You can set these variables to a list of files, or to a string containing single file.
+
+Default: `null`
+
+Type: `string` or `list`
+
+##### `mssql_debug`
+
+Whether or not to print the output of sqlcmd commands.
+The role inputs SQL scripts with the sqlcmd command to configure SQL Server for HA or to input users' SQL scripts when you define a [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) or [`mssql_post_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable.
+
+Default: `false`
+
+Type: `bool`
+
+#### Example Playbooks
+
+##### Inputting SQL Files to SQL Server
+
+```yaml
+- hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2019
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
+    mssql_pre_input_sql_file: script0.sql
+    mssql_post_input_sql_file:
+      - script1.sql
+      - script2.sql
+```
+
+### Installing Additional Packages
+
+Optional: Use these variables to install additional packages to SQL Server host.
+
+##### `mssql_install_fts`
+
+Set this variable to `true` or `false` to install or remove the `mssql-server-fts` package that provides full-text search.
+
+Default: `null`
+
+Type: `bool`
+
+##### `mssql_install_powershell`
+
+Set this variable to `true` or `false` to install or remove the `powershell` package that provides PowerShell.
+
+Default: `null`
+
+Type: `bool`
+
+### Configuring Custom URLs for Packages
+
+Optional: Use these variables to configure your host to get packages from custom URLs.
+This is useful if you store packages in a proxy server.
+
+When you do not provide these variables, the role uses default values from the `vars/` directory based on operating system.
+
+##### `mssql_rpm_key`
+
+The URL or path to the Microsoft rpm gpg keys.
+
+Default: `https://packages.microsoft.com/keys/microsoft.asc`
+
+Type: `string`
+
+##### `mssql_server_repository`
+
+The URL to the Microsoft SQL Server repository.
+
+Default: `{{ __mssql_server_repository }}`
+
+Type: `string`
+
+##### `mssql_client_repository`
+
+The URL to the Microsoft production repository.
+
+Default: `{{ __mssql_client_repository }}`
+
+Type: `string`
+
+### Configuring Network Parameters
+
+Use these variables to configure TCP port settings.
+
+#### Variables
+
+##### `mssql_ip_address`
+
+The IP address that SQL Server listens on.
+
+If you define this variable, the role configures SQL Server with the defined IP address.
+
+If you do not define this variable when installing SQL Server, the role configures SQL Server to listen on the SQL Server default IP address `0.0.0.0`, that is, to listen on every available network interface.
+
+If you do not define this variable when configuring running SQL Server, the role does not change the IP address setting on SQL Server.
+
+Default: `null`
+
+Type: `string`
+
+##### `mssql_tcp_port`
+
+The port that SQL Server listens on.
+
+If you set `mssql_manage_firewall` to `false`, you must open the firewall port defined with the `mssql_tcp_port` variable prior to running this role.
+
+You can change the TCP port by setting this variable to a different port.
+If you set `mssql_manage_firewall` to `true` while changing the TCP port, the role closes the previously opened firewall port.
+
+Default: `1433`
+
+Type: `int`
+
+##### `mssql_manage_firewall`
+
+Whether to open firewall ports required by this role.
+
+When this variable is set to `true`, the role enables firewall even if it was not enabled.
+
+The role uses the `fedora.linux_system_roles.firewall` role to manage the firewall, hence, only firewall implementations supported by the `fedora.linux_system_roles.firewall` role work.
+
+If you set this variable to `false`, you must open required ports prior to running this role.
+
+Default: `false`
+
+Type: `bool`
+
+#### Example Playbooks
+
+##### Configuring SQL Server with Custom Network Parameters
+
+This example shows how to use the role to set up SQL Server, configure it with a custom IP address and TCP port, and open the TCP port in firewall.
+
+```yaml
+- hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2019
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
+    mssql_tcp_port: 1433
+    mssql_ip_address: 0.0.0.0
+    mssql_manage_firewall: true
+  roles:
+    - microsoft.sql.server
+```
+
+### Configuring TLS Certificates
 
 Use the variables starting with the `mssql_tls_` prefix to configure SQL Server to encrypt connections using TLS certificates.
 
 You can either use existing TLS certificate and private key files by providing them with [`mssql_tls_cert` and `mssql_tls_private_key`](#mssql_tls_cert-and-mssql_tls_private_key), or use the role to create certificates by providing [`mssql_tls_certificates`](#mssql_tls_certificates).
+
+#### Variables
+
+##### `mssql_tls_enable`
 
 Set to `true` or `false` to enable or disable TLS encryption.
 
@@ -270,7 +383,7 @@ Default: `null`
 
 Type: `bool`
 
-#### `mssql_tls_certificates`
+##### `mssql_tls_certificates`
 
 Use this variable to generate certificate and private key for TLS encryption using the `fedora.linux_system_roles.certificate`.
 
@@ -291,7 +404,7 @@ Default: `[]`
 
 Type: `list of dictionaries`
 
-#### `mssql_tls_cert` and `mssql_tls_private_key`
+##### `mssql_tls_cert` and `mssql_tls_private_key`
 
 Paths to the certificate and private key files to copy to SQL Server.
 
@@ -304,7 +417,7 @@ Default: `null`
 
 Type: `string`
 
-#### `mssql_tls_remote_src`
+##### `mssql_tls_remote_src`
 
 Only applicable when using [`mssql_tls_cert` and `mssql_tls_private_key`](#mssql_tls_cert-and-mssql_tls_private_key).
 
@@ -318,7 +431,7 @@ Default: `false`
 
 Type: `bool`
 
-#### `mssql_tls_version`
+##### `mssql_tls_version`
 
 TLS version to use.
 
@@ -326,7 +439,7 @@ Default: `1.2`
 
 Type: `string`
 
-#### `mssql_tls_force`
+##### `mssql_tls_force`
 
 Set to `true` to replace the existing certificate and private key files on host if they exist at `/etc/pki/tls/certs/` and `/etc/pki/tls/private/` respectively.
 
@@ -334,37 +447,62 @@ Default: `false`
 
 Type: `bool`
 
-### `mssql_rpm_key`
+#### Example Playbooks
 
-The URL or path to the Microsoft rpm gpg keys.
+##### Configuring SQL Server with TLS Encryption with Certificate Files
 
-Default: `https://packages.microsoft.com/keys/microsoft.asc`
+This example shows how to use the role to set up SQL Server and configure it to use TLS encryption.
+Certificate files `mycert.pem` and `mykey.key` must exist on the primary node.
 
-Type: `string`
+```yaml
+- hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2019
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
+    mssql_manage_firewall: true
+    mssql_tls_enable: true
+    mssql_tls_cert: mycert.pem
+    mssql_tls_private_key: mykey.key
+    mssql_tls_version: 1.2
+    mssql_tls_force: false
+  roles:
+    - microsoft.sql.server
+```
 
-### `mssql_server_repository`
+##### Configuring SQL Server with TLS Encryption with the Certificate Role
 
-The URL to the Microsoft SQL Server repository.
-See `vars/` for default values based on operating system.
+This example shows how to use the role to set up SQL Server and configure it with TLS encryption using self-signed certificate and key created by the certificate role.
 
-Default: `{{ __mssql_server_repository }}`
+```yaml
+- hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2019
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
+    mssql_manage_firewall: true
+    mssql_tls_enable: true
+    mssql_tls_certificates:
+      - name: cert_name
+        dns: *.example.com
+        ca: self-sign
+  roles:
+    - microsoft.sql.server
+```
 
-Type: `string`
-
-### `mssql_client_repository`
-
-The URL to the Microsoft production repository.
-See `vars/` for default values based on operating system.
-
-Default: `{{ __mssql_client_repository }}`
-
-Type: `string`
-
-### `mssql_ha_configure`
+### Configuring Always On Availability Group
 
 Use the variables starting with the `mssql_ha_` prefix to configure an SQL Server Always On availability group to provide high availability.
 
-**Prerequisites**
+Configuring for high availability is not supported on RHEL 7 because the `fedora.linux_system_roles.ha_cluster` role does not support RHEL 7.
+
+#### Prerequisites
 
 * Ensure that your hosts meet the requirements for high availability configuration, namely DNS resolution configured so that hosts can communicate using short names.
   For more information, see Prerequisites in [Configure SQL Server Always On Availability Group for high availability on Linux](https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-availability-group-configure-ha?view=sql-server-ver15#prerequisites).
@@ -375,7 +513,21 @@ Use the variables starting with the `mssql_ha_` prefix to configure an SQL Serve
 
   If you do not provide the [`mssql_ha_db_names`](#mssql_ha_db_names) variable, the role creates a cluster without replicating database in it.
 
-Configuring for high availability is not supported on RHEL 7 because the `fedora.linux_system_roles.ha_cluster` role does not support RHEL 7.
+#### Configuring the Ansible Inventory
+
+You must set the `mssql_ha_replica_type` variable for each host that you want to configure.
+
+If you set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true`, you can provide variables required by the `fedora.linux_system_roles.ha_cluster` role.
+If you do not provide names or addresses, the `fedora.linux_system_roles.ha_cluster` uses play's targets, and the high availability setup requires pacemaker to be configured with short names.
+Therefore, if you define hosts in inventory not by short names, or the default hosts' IP address differs from the IP address that pacemaker must use, you must set the corresponding `fedora.linux_system_roles.ha_cluster` role variables.
+
+For an example inventory, see [Example Inventory for HA Configuration](#Example-Inventory-for-HA-Configuration).
+
+See the `fedora.linux_system_roles.ha_cluster` role's documentation for more information.
+
+#### Variables
+
+##### `mssql_ha_configure`
 
 Set to `true` to configure for high availability.
 Setting to `false` does not remove configuration for high availability.
@@ -390,7 +542,7 @@ When set to `true`, the role performs the following tasks:
      2. Create certificate on the primary replica and distribute to other replicas.
      3. Configure endpoint and availability group.
      4. Configure the user provided with the [`mssql_ha_login`](#mssql_ha_login) variable for
-Pacemaker.
+        Pacemaker.
 3. Optional: Include the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker.
 You must set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true` and provide all variables required by the `fedora.linux_system_roles.ha_cluster` role for a proper Pacemaker cluster configuration based on example playbooks in [Setting Up SQL Server and Configuring for High Availability](#Setting_Up_SQL_Server_and_Configuring_for_High_Availability).
 
@@ -398,7 +550,7 @@ Default: `false`
 
 Type: `bool`
 
-#### `mssql_ha_ag_cluster_type`
+##### `mssql_ha_ag_cluster_type`
 
 With this variable, provide a cluster type that you want to configure.
 
@@ -411,7 +563,7 @@ Default: `external`
 
 Type: `string`
 
-#### `mssql_ha_replica_type`
+##### `mssql_ha_replica_type`
 
 A host variable that specifies the type of the replica to be configured on this host.
 
@@ -427,7 +579,7 @@ Default: no default
 
 Type: `string`
 
-#### `mssql_ha_listener_port`
+##### `mssql_ha_listener_port`
 
 The TCP port used to replicate data for an Always On availability group.
 
@@ -440,7 +592,7 @@ Default: `5022`
 
 Type: `int`
 
-#### `mssql_ha_cert_name`
+##### `mssql_ha_cert_name`
 
 The name of the certificate used to secure transactions between members of an Always On availability group.
 
@@ -448,7 +600,7 @@ Default: `null`
 
 Type: `string`
 
-#### `mssql_ha_master_key_password`
+##### `mssql_ha_master_key_password`
 
 The password to set for the master key used with the certificate.
 
@@ -456,7 +608,7 @@ Default: `null`
 
 Type: `string`
 
-#### `mssql_ha_private_key_password`
+##### `mssql_ha_private_key_password`
 
 The password to set for the private key used with the certificate.
 
@@ -464,7 +616,7 @@ Default: `null`
 
 Type: `string`
 
-#### `mssql_ha_reset_cert`
+##### `mssql_ha_reset_cert`
 
 Whether to reset certificates used by an Always On availability group or not.
 
@@ -472,7 +624,7 @@ Default: `false`
 
 Type: `bool`
 
-#### `mssql_ha_endpoint_name`
+##### `mssql_ha_endpoint_name`
 
 The name of the endpoint to be configured.
 
@@ -480,7 +632,7 @@ Default: `null`
 
 Type: `string`
 
-#### `mssql_ha_ag_name`
+##### `mssql_ha_ag_name`
 
 The name of the availability group to be configured.
 
@@ -488,7 +640,7 @@ Default: `null`
 
 Type: `string`
 
-#### `mssql_ha_db_names`
+##### `mssql_ha_db_names`
 
 This is an optional variable.
 
@@ -519,7 +671,7 @@ Default: `[]`
 
 Type: `list`
 
-#### `mssql_ha_login`
+##### `mssql_ha_login`
 
 The user created for Pacemaker in SQL Server.
 This user is used by the SQL Server Pacemaker resource agent to connect to SQL Server to perform regular database health checks and manage state transitions from replica to primary when needed.
@@ -528,7 +680,7 @@ Default: `null`
 
 Type: `string`
 
-#### `mssql_ha_login_password`
+##### `mssql_ha_login_password`
 
 The password for the mssql_ha_login user in SQL Server.
 
@@ -536,7 +688,7 @@ Default: `null`
 
 Type: `string`
 
-#### `mssql_ha_cluster_run_role`
+##### `mssql_ha_cluster_run_role`
 
 Whether to run the `fedora.linux_system_roles.ha_cluster` role from this role.
 
@@ -556,7 +708,7 @@ Default: `false`
 
 Type: `bool`
 
-#### `mssql_ha_virtual_ip`
+##### `mssql_ha_virtual_ip`
 
 Only applicable when you set `mssql_ha_ag_cluster_type` to `external`.
 
@@ -572,136 +724,11 @@ Default: `null`
 
 Type: `string`
 
-## Example Playbooks
-
-This section outlines example playbooks that you can use as a reference.
-
-### Setting up SQL Server
-
-This example shows how to use the role to set up SQL Server with the minimum required variables.
-
-```yaml
-- hosts: all
-  vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
-    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
-    mssql_accept_microsoft_sql_server_standard_eula: true
-    mssql_version: 2019
-    mssql_password: "p@55w0rD"
-    mssql_edition: Evaluation
-  roles:
-    - microsoft.sql.server
-```
-
-### Setting up SQL Server with Custom Network Parameters
-
-This example shows how to use the role to set up SQL Server, configure it with a custom IP address and TCP port, and open the TCP port in firewall.
-
-```yaml
-- hosts: all
-  vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
-    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
-    mssql_accept_microsoft_sql_server_standard_eula: true
-    mssql_version: 2019
-    mssql_password: "p@55w0rD"
-    mssql_edition: Evaluation
-    mssql_tcp_port: 1433
-    mssql_ip_address: 0.0.0.0
-    mssql_manage_firewall: true
-  roles:
-    - microsoft.sql.server
-```
-
-### Setting Up SQL Server and Enabling Additional Functionality
-
-This example shows how to use the role to set up SQL Server and enable the following additional functionality:
-
-* Enable the SQL Agent
-* Install FTS
-* Install PowerShell
-* Configure SQL Server for FUA capability
-* After SQL Server is set up, input an SQL file to SQL Server
-
-```yaml
-- hosts: all
-  vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
-    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
-    mssql_accept_microsoft_sql_server_standard_eula: true
-    mssql_version: 2019
-    mssql_password: "p@55w0rD"
-    mssql_edition: Evaluation
-    mssql_manage_firewall: true
-    mssql_enable_sql_agent: true
-    mssql_install_fts: true
-    mssql_install_powershell: true
-    mssql_tune_for_fua_storage: true
-    mssql_pre_input_sql_file: myusers.sql
-    mssql_post_input_sql_file: mydatabases.sql
-  roles:
-    - microsoft.sql.server
-```
-
-### Setting Up SQL Server with TLS Encryption
-
-This example shows how to use the role to set up SQL Server and configure it to use TLS encryption.
-Certificate files `mycert.pem` and `mykey.key` must exist on the primary node.
-
-```yaml
-- hosts: all
-  vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
-    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
-    mssql_accept_microsoft_sql_server_standard_eula: true
-    mssql_version: 2019
-    mssql_password: "p@55w0rD"
-    mssql_edition: Evaluation
-    mssql_manage_firewall: true
-    mssql_tls_enable: true
-    mssql_tls_cert: mycert.pem
-    mssql_tls_private_key: mykey.key
-    mssql_tls_version: 1.2
-    mssql_tls_force: false
-  roles:
-    - microsoft.sql.server
-```
-
-This example shows how to use the role to set up SQL Server and configure it with TLS encryption using self-signed certificate and key created by the certificate role.
-
-```yaml
-- hosts: all
-  vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
-    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
-    mssql_accept_microsoft_sql_server_standard_eula: true
-    mssql_version: 2019
-    mssql_password: "p@55w0rD"
-    mssql_edition: Evaluation
-    mssql_manage_firewall: true
-    mssql_tls_enable: true
-    mssql_tls_certificates:
-      - name: cert_name
-        dns: *.example.com
-        ca: self-sign
-  roles:
-    - microsoft.sql.server
-```
-
-
-### Setting Up SQL Server and Configuring for High Availability
+### Example Playbooks
 
 Examples in this section shows how to use the role to set up SQL Server and configure it for high availability in different environments.
 
-#### Configuring the Ansible Inventory
-
-You must set the `mssql_ha_replica_type` variable for each host that you want to configure.
-
-If you set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true`, you can provide variables required by the `fedora.linux_system_roles.ha_cluster` role.
-If you do not provide names or addresses, the `fedora.linux_system_roles.ha_cluster` uses play's targets, and the high availability setup requires pacemaker to be configured with short names.
-Therefore, if you define hosts in inventory not by short names, or the default hosts' IP address differs from the IP address that pacemaker must use, you must set the corresponding `fedora.linux_system_roles.ha_cluster` role variables.
-
-See the `fedora.linux_system_roles.ha_cluster` role's documentation for more information.
+#### Example Inventory for HA Configuration
 
 The following example inventory describes different cases:
 
