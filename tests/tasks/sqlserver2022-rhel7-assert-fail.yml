@@ -1,3 +1,4 @@
+---
 - name: Assert fail on RHEL 7 when upgrading to 2022
   when:
     - ansible_distribution in ['CentOS', 'RedHat']

@@ -64,9 +64,10 @@
 - name: Verify if the mssql_ha_replica_type variable is provided correctly
   assert:
     that: mssql_ha_replica_type in __mssql_ha_replica_types_all
+    # noqa jinja[spacing]
     fail_msg: >-
-      You must set the mssql_ha_replica_type variable to one of {{
-      __mssql_ha_replica_types_all | join (', ') }}
+      You must set the mssql_ha_replica_type variable to one of
+      {{ __mssql_ha_replica_types_all | join (', ') }}
   when: mssql_ha_configure | bool
 
 - name: Verify that 'mssql_ha_replica_type = primary' is provided once
@@ -144,7 +145,8 @@
   block:
     # This works only on systems that use yum or dnf
     - name: >-
-        Update all packages from SQL Server {{ __mssql_current_version }} repo
+        Update all packages from SQL Server repo
+        version {{ __mssql_current_version }}
       package:
         name: "*"
         disablerepo: "*"
@@ -169,7 +171,7 @@
         state: absent
       when: __mssql_curr_repo.stdout | length > 0
 
-- name: Configure the Microsoft SQL Server {{ mssql_version }} repository
+- name: Configure the Microsoft SQL Server repo version {{ mssql_version }}
   yum_repository:
     name: packages-microsoft-com-mssql-server-{{ mssql_version | int }}
     description: Microsoft SQL Server {{ mssql_version }}
@@ -179,7 +181,7 @@
     (__mssql_server_packages not in ansible_facts.packages) or
     (mssql_upgrade | bool)
 
-- name: Ensure the {{ __mssql_server_packages }} package
+- name: Ensure the package {{ __mssql_server_packages }}
   package:
     name: "{{ __mssql_server_packages }}"
     state: "{{ 'latest' if mssql_upgrade else 'present' }}"
@@ -237,9 +239,9 @@
     - name: Set up MSSQL
       command: "{{ __mssql_conf_cli }} -n setup"
       environment:
-        - ACCEPT_EULA: "Y"
-        - MSSQL_SA_PASSWORD: "{{ mssql_password }}"
-        - MSSQL_PID: "{{ mssql_edition }}"
+        ACCEPT_EULA: "Y"
+        MSSQL_SA_PASSWORD: "{{ mssql_password }}"
+        MSSQL_PID: "{{ mssql_edition }}"
       when: not __mssql_is_setup
       register: __mssql_conf_setup
 
@@ -267,7 +269,7 @@
     - name: Attempt to add mssql to the list of Tuned profiles
       command: >-
         tuned-adm profile {{ __mssql_tuned_active_profiles.stdout
-        | regex_replace( '^Current active profile: ', '' ) }} mssql
+        | regex_replace('^Current active profile: ', '') }} mssql
       register: __mssql_tuned_adm_profile
       changed_when: __mssql_tuned_adm_profile.stderr | length == 0
       failed_when: false
@@ -289,7 +291,7 @@
     - name: Add the fixed mssql profile to the list of Tuned profiles
       command: >-
         tuned-adm profile {{ __mssql_tuned_active_profiles.stdout |
-        regex_replace( '^Current active profile: ', '' ) }} mssql
+        regex_replace('^Current active profile: ', '') }} mssql
       when: >-
         "Cannot find profile 'throughput-performance'" in
         __mssql_tuned_adm_profile.stderr
@@ -308,7 +310,7 @@
     name: "{{ __mssql_client_packages }}"
     state: present
   environment:
-    - ACCEPT_EULA: Y
+    ACCEPT_EULA: Y
 
 - name: Set a new password for the MSSQL sa user
   when:
@@ -329,7 +331,7 @@
     - name: Check if the set password matches the existing password
       command: "{{ __mssql_sqlcmd_login_cmd }} -Q 'SELECT @@VERSION'"
       environment:
-        - SQLCMDPASSWORD: "{{ mssql_password }}"
+        SQLCMDPASSWORD: "{{ mssql_password }}"
       ignore_errors: true
       changed_when: false
       register: __mssql_password_query
@@ -351,7 +353,7 @@
         - name: Change the password of the sa user
           command: "{{ __mssql_conf_cli }} set-sa-password"
           environment:
-            - MSSQL_SA_PASSWORD: "{{ mssql_password }}"
+            MSSQL_SA_PASSWORD: "{{ mssql_password }}"
           when: __mssql_password_query is failed
           notify: Restart the mssql-server service
           register: __mssql_set_ha_password
@@ -373,8 +375,7 @@
       mssql_pre_input_sql_file
       if mssql_pre_input_sql_file | type_debug == 'list'
       else
-      [mssql_pre_input_sql_file]
-    }}"
+      [mssql_pre_input_sql_file] }}"
   include_tasks: input_sql_files.yml
   when: mssql_pre_input_sql_file != []
 
@@ -442,7 +443,7 @@
   changed_when: false
   register: __mssql_previous_tcp_port
 
-- name: Open the {{ mssql_tcp_port }} TCP port
+- name: Open the TCP port {{ mssql_tcp_port }}
   when: mssql_manage_firewall | bool
   include_role:
     name: fedora.linux_system_roles.firewall
@@ -463,7 +464,7 @@
   vars:
     # Empty previous tcp port setting means that the port is default 1433
     __tcpport: >-
-      {{ __mssql_previous_tcp_port.stdout | regex_search( '[1-9][0-9]{0,4}')
+      {{ __mssql_previous_tcp_port.stdout | regex_search('[1-9][0-9]{0,4}')
       if __mssql_previous_tcp_port.stdout
       else '1433' }}
     firewall:
@@ -484,14 +485,14 @@
     __mssql_conf_setting_value: "{{ mssql_enable_sql_agent }}"
   when: mssql_enable_sql_agent is not none
 
-- name: Ensure the {{ __mssql_server_fts_packages }} package
+- name: Ensure the package {{ __mssql_server_fts_packages }}
   package:
     name: "{{ __mssql_server_fts_packages }}"
     state: "{{ 'present' if mssql_install_fts | bool else 'absent' }}"
   when: mssql_install_fts is not none
   notify: Restart the mssql-server service
 
-- name: Ensure the {{ __mssql_powershell_packages }} package
+- name: Ensure the package {{ __mssql_powershell_packages }}
   package:
     name: "{{ __mssql_powershell_packages }}"
     state: "{{ 'present' if mssql_install_powershell | bool else 'absent' }}"
@@ -500,7 +501,7 @@
 - name: Configure HA
   when: mssql_enable_ha is not none
   block:
-    - name: Ensure the {{ __mssql_server_ha_packages }} package
+    - name: Ensure the package {{ __mssql_server_ha_packages }}
       package:
         name: "{{ __mssql_server_ha_packages }}"
         state: "{{ 'present' if mssql_enable_ha | bool else 'absent' }}"
@@ -645,8 +646,8 @@
     - name: Open required firewall ports and set required facts
       block:
         - name: >-
-            Open the {{ mssql_ha_listener_port }}/tcp port and
-            enable the high-availability service in firewall
+            Open the port and enable the high-availability service in
+            firewall tcp port {{ mssql_ha_listener_port }}
           when: mssql_manage_firewall | bool
           include_role:
             name: fedora.linux_system_roles.firewall
@@ -717,7 +718,7 @@
       any_errors_fatal: true
       when: mssql_ha_replica_type == 'primary'
       block:
-        - name: Ensure the {{ __mssql_server_ha_packages }} package
+        - name: Ensure the package {{ __mssql_server_ha_packages }}
           package:
             name: "{{ __mssql_server_ha_packages }}"
             state: "{{ 'present' if mssql_ha_configure | bool else 'absent' }}"
@@ -858,7 +859,7 @@
               - Fix the above error on the primary replica and re-run the role
           run_once: true
 
-        - name: Ensure the {{ __mssql_server_ha_packages }} package
+        - name: Ensure the package {{ __mssql_server_ha_packages }}
           package:
             name: "{{ __mssql_server_ha_packages }}"
             state: "{{ 'present' if mssql_ha_configure | bool else 'absent' }}"
@@ -924,7 +925,7 @@
     - name: Configure pacemaker
       when: mssql_ha_ag_cluster_type | lower == 'external'
       block:
-        - name: Save credentials for the {{ mssql_ha_login }} SQL Server login
+        - name: Save credentials for the SQL Server login {{ mssql_ha_login }}
           copy:
             content: |
               {{ mssql_ha_login }}
@@ -942,7 +943,7 @@
           when: mssql_ha_cluster_run_role | bool
 
     # Configure on a current primary identified above
-    - name: Configure listener for the {{ mssql_ha_ag_name }} availability group
+    - name: Configure listener for the availability group {{ mssql_ha_ag_name }}
       vars:
         __mssql_sql_files_to_input:
           - configure_listener.j2

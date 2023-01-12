@@ -1,17 +1,19 @@
 # SPDX-License-Identifier: MIT
 ---
-- name: Get the {{ __mssql_conf_setting }} setting
+- name: Get the setting {{ __mssql_conf_setting }}
+  # noqa jinja[spacing]
   command: >-
-    grep '^{{ __mssql_conf_setting | regex_replace( '^.*\s' ,'') }} = '
+    grep '^{{ __mssql_conf_setting | regex_replace('^.*\s' ,'') }} = '
     {{ __mssql_conf_path }}
   changed_when: false
   failed_when: false
   register: __mssql_conf_get_setting
 
-- name: Configure the {{ __mssql_conf_setting }} setting
+- name: Configure the setting {{ __mssql_conf_setting }}
+  # noqa jinja[spacing]
   command: >-
     {{ __mssql_conf_cli }} set {{ __mssql_conf_setting |
-    regex_replace( ' ','.') }} {{ __mssql_conf_setting_value | quote }}
+    regex_replace(' ','.') }} {{ __mssql_conf_setting_value | quote }}
   vars:
     __mssql_conf_get_value: >-
       {{ __mssql_conf_get_setting.stdout |
@@ -37,7 +39,7 @@
     __mssql_conf_set.stdout
   notify: Restart the mssql-server service
 
-- name: Unset the {{ __mssql_conf_setting }} setting
+- name: Unset the setting {{ __mssql_conf_setting }}
   command: "{{ __mssql_conf_cli }} unset {{ __mssql_conf_setting }}"
   when:
     - __mssql_conf_setting_value == "unset"
