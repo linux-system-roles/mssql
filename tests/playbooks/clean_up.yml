@@ -16,9 +16,20 @@
       include_role:
         name: fedora.linux_system_roles.firewall
 
-    - name: Remove mssql-server
+    - name: Leave realm
+      command: realm leave
+      register: realm_leave
+      failed_when: >-
+        not "Couldn't find a configured realm" in realm_leave.stderr
+
+    - name: Destroy Kerberos tickets
+      command: kdestroy -A
+
+    - name: Remove related packages
       package:
-        name: mssql-server
+        name:
+          - mssql-server
+          - adutil
         state: absent
 
     - name: Remove related files

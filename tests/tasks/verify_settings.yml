@@ -55,6 +55,8 @@
   when: __verify_mssql_password is defined
   block:
     - name: Prepare MSSQL and facts for logging in
+      vars:
+        mssql_password: "{{ __verify_mssql_password }}"
       include_role:
         name: linux-system-roles.mssql
         tasks_from: verify_password
@@ -69,8 +71,6 @@
 
     - name: Check if the set password matches the existing password
       command: "{{ __mssql_sqlcmd_login_cmd }} -Q 'SELECT @@VERSION'"
-      environment:
-        SQLCMDPASSWORD: "{{ __verify_mssql_password }}"
       ignore_errors: true
       changed_when: false
       register: __mssql_password_query
@@ -78,6 +78,10 @@
     - name: Verify if the password matched
       assert:
         that: __mssql_password_query is success
+
+    - name: Set the mssql_password variable to default null
+      set_fact:
+        mssql_password: null
 
 - name: Verify that the SQL agent is enabled
   include_tasks: mssql_conf_verify.yml

@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: MIT
+---
+collections:
+  - name: ansible.windows
+  - name: fedora.linux_system_roles

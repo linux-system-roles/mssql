@@ -19,6 +19,7 @@ __mssql_version_package_mapping:
   - 2017: 14
   - 2019: 15
   - 2022: 16
+__mssql_keytab_path: /var/opt/mssql/secrets/mssql.keytab
 __mssql_conf_path: /var/opt/mssql/mssql.conf
 __mssql_conf_cli: /opt/mssql/bin/mssql-conf
 __mssql_ha_replica_types_all:
