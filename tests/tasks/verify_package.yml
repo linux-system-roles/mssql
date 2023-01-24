@@ -9,12 +9,12 @@
     manager: auto
   no_log: true
 
-- name: Verify if the {{ __mssql_verify_package_name }} package is installed
+- name: Verify if the package is installed {{ __mssql_verify_package_name }}
   assert:
     that: __mssql_verify_package_name in ansible_facts.packages
   when: __mssql_verify_package_installed | bool
 
-- name: Verify if the {{ __mssql_verify_package_name }} package is not installed
+- name: Verify if the package is not installed {{ __mssql_verify_package_name }}
   assert:
     that: __mssql_verify_package_name not in ansible_facts.packages
   when: not __mssql_verify_package_installed

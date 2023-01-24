@@ -6,7 +6,7 @@
     - not ansible_distribution in ['CentOS', 'RedHat']
     - not ansible_distribution_version is version('8', '<')
   block:
-    - name: Configure the Microsoft SQL Server {{ mssql_version }} repository
+    - name: Configure the Microsoft SQL Server repository {{ mssql_version }}
       yum_repository:
         name: packages-microsoft-com-mssql-server-{{ mssql_version | int }}
         description: Microsoft SQL Server {{ mssql_version }}
@@ -25,7 +25,7 @@
         name: "{{ __mssql_packages }}"
         state: absent
 
-    - name: Remove the Microsoft SQL Server {{ mssql_version }} repository
+    - name: Remove the Microsoft SQL Server repo version {{ mssql_version }}
       yum_repository:
         name: packages-microsoft-com-mssql-server-{{ mssql_version | int }}
         state: absent

@@ -28,8 +28,7 @@
     mssql_ha_virtual_ip: 192.168.122.148
     # ha_cluster doesn't support running against a single host
     mssql_ha_cluster_run_role: "{{
-      true if ansible_play_hosts_all | length > 1 else false
-    }}"
+      true if ansible_play_hosts_all | length > 1 else false }}"
     ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
     ha_cluster_hacluster_password: "p@55w0rD4"
     ha_cluster_sbd_enabled: true
@@ -67,7 +66,7 @@
                 value: 30s
     ha_cluster_resource_clones:
       - resource_id: ag_cluster
-        promotable: yes
+        promotable: true
         meta_attrs:
           - attrs:
               - name: notify
@@ -552,6 +551,7 @@
             remote_src: true
             src: "{{ item }}"
             dest: /tmp/{{ item | basename }}
+            mode: 0600
           loop:
             - "{{ __mssql_ha_cert_dest }}"
             - "{{ __mssql_ha_private_key_dest }}"
@@ -590,6 +590,7 @@
             remote_src: true
             src: /tmp/{{ __mssql_ha_private_key_dest | basename }}
             dest: "{{ __mssql_ha_private_key_dest }}"
+            mode: 0600
 
         - name: Input create_and_back_up_cert.j2
           vars:
@@ -615,6 +616,7 @@
             remote_src: true
             src: /tmp/{{ __mssql_ha_cert_dest | basename }}
             dest: "{{ __mssql_ha_cert_dest }}"
+            mode: 0600
 
         - name: Drop certificate from SQL Server
           vars:
@@ -670,7 +672,7 @@
               in __mssql_sqlcmd_input.stdout
 
     # create_ha_login.j2 template test
-    - name: Create a {{ mssql_ha_login }} login when it already exists
+    - name: Create a login when it already exists {{ mssql_ha_login }}
       vars:
         __mssql_sql_files_to_input:
           - create_ha_login.j2

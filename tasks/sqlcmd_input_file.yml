@@ -1,6 +1,7 @@
-- name: Input {{ item }} with sqlcmd
+---
+- name: Input with sqlcmd {{ item }}
   block:
-    - name: Create a tempfile for {{ item }} on the host
+    - name: Create a tempfile on the host for {{ item }}
       tempfile:
         state: file
         prefix: "{{ item | splitext | first }}_"
@@ -8,7 +9,7 @@
       register: __mssql_sql_tempfile
       changed_when: false
 
-    - name: Copy the {{ item }} file to the host
+    - name: Copy the file to the host {{ item }}
       copy:
         src: "{{ item }}"
         dest: "{{ __mssql_sql_tempfile.path }}"
@@ -16,7 +17,7 @@
       when: item is not search(".*\.j2$")
       changed_when: false
 
-    - name: Generate the {{ item }} template on the host
+    - name: Generate the template on the host for {{ item }}
       template:
         src: "{{ item }}"
         dest: "{{ __mssql_sql_tempfile.path }}"
@@ -24,11 +25,11 @@
       when: item is search(".*\.j2$")
       changed_when: false
 
-    - name: Input {{ item }} with the sqlcmd command
+    - name: Input with the sqlcmd command {{ item }}
       command: >-
         {{ __mssql_sqlcmd_login_cmd }} -i {{ __mssql_sql_tempfile.path }} -b
       environment:
-        - SQLCMDPASSWORD: "{{ mssql_password }}"
+        SQLCMDPASSWORD: "{{ mssql_password }}"
       register: __mssql_sqlcmd_input
       changed_when: '"successfully" in __mssql_sqlcmd_input.stdout'
   always:
@@ -43,8 +44,8 @@
         (__mssql_sqlcmd_input is failed)
       block:
         - name: >-
-            Print the output of the sqlcmd command for {{ item }}
-            if not empty
+            Print the output of the sqlcmd command
+            if not empty for {{ item }}
           debug:
             var: __mssql_sqlcmd_input.stdout_lines
 
@@ -53,7 +54,7 @@
             var: __mssql_sql_tempfile.path
 
     # Role keeps the file if the input failed
-    - name: Remove the {{ item }} tempfile
+    - name: Remove the tempfile {{ item }}
       file:
         path: "{{ __mssql_sql_tempfile.path }}"
         state: absent

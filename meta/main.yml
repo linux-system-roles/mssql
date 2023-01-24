@@ -1,3 +1,4 @@
+---
 galaxy_info:
   author: Sergei Petrosian <spetrosi@redhat.com>
   description: This role installs and configures Microsoft SQL Server
@@ -7,11 +8,11 @@ galaxy_info:
   platforms:
     - name: Fedora
       versions:
-        - 35
+        - "35"
     - name: EL
       versions:
-        - 8
-        - 7
+        - "8"
+        - "7"
   galaxy_tags:
     - rhel
     - fedora

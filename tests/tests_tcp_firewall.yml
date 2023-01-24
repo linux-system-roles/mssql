@@ -21,7 +21,7 @@
             mssql_edition: Evaluation
 
         - name: >-
-            Verify that the {{ __mssql_test_port }} port is configured properly
+            Verify that the port is configured properly {{ __mssql_test_port }}
           include_tasks: tasks/verify_tcp_port.yml
           vars:
             __mssql_tcp_port_new: "{{ __mssql_test_port }}"
@@ -42,7 +42,7 @@
             mssql_tcp_port: "{{ __mssql_test_port }}"
 
         - name: >-
-            Verify that the {{ __mssql_test_port }} port is configured properly
+            Verify that the port is configured properly {{ __mssql_test_port }}
           include_tasks: tasks/verify_tcp_port.yml
           vars:
             __mssql_tcp_port_new: "{{ __mssql_test_port }}"
@@ -60,7 +60,7 @@
             mssql_tcp_port: "{{ __mssql_test_port }}"
 
         - name: >-
-            Verify that the {{ __mssql_test_port }} port is configured properly
+            Verify that the port is configured properly {{ __mssql_test_port }}
           include_tasks: tasks/verify_tcp_port.yml
           vars:
             __mssql_tcp_port_new: "{{ __mssql_test_port }}"

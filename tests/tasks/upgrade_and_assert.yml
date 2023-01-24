@@ -1,3 +1,4 @@
+---
 # With __mssql_version provide the version to upgrade to
 # With __mssql_prev_version provide the current version of SQL Server
 - name: Upgrade to a new version
@@ -17,7 +18,8 @@
     Verify the failure when mssql_version < current version
   block:
     - name: >-
-        Upgrade to {{ __mssql_prev_version }} on mssql {{ __mssql_version }}
+        Upgrade to new version on mssql
+        new version {{ __mssql_prev_version }}
       include_role:
         name: linux-system-roles.mssql
       vars:

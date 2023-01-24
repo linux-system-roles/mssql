@@ -70,7 +70,7 @@
     - name: Check if the set password matches the existing password
       command: "{{ __mssql_sqlcmd_login_cmd }} -Q 'SELECT @@VERSION'"
       environment:
-        - SQLCMDPASSWORD: "{{ __verify_mssql_password }}"
+        SQLCMDPASSWORD: "{{ __verify_mssql_password }}"
       ignore_errors: true
       changed_when: false
       register: __mssql_password_query
@@ -86,14 +86,14 @@
     __mssql_conf_value: "{{ __verify_mssql_agent_is_enabled }}"
   when: __verify_mssql_agent_is_enabled is defined
 
-- name: Verify the {{ __mssql_server_fts_packages }} package
+- name: Verify the package {{ __mssql_server_fts_packages }}
   include_tasks: verify_package.yml
   vars:
     __mssql_verify_package_name: "{{ __mssql_server_fts_packages }}"
     __mssql_verify_package_installed: "{{ __verify_mssql_fts_is_installed }}"
   when: __verify_mssql_fts_is_installed is defined
 
-- name: Verify the {{ __mssql_powershell_packages }} package
+- name: Verify the package {{ __mssql_powershell_packages }}
   include_tasks: verify_package.yml
   vars:
     __mssql_verify_package_name: "{{ __mssql_powershell_packages }}"
@@ -104,7 +104,7 @@
 - name: Verify the ha settings
   when: __verify_mssql_ha_is_installed is defined
   block:
-    - name: Verify if the {{ __mssql_server_ha_packages }} package is installed
+    - name: Verify if the package is installed {{ __mssql_server_ha_packages }}
       include_tasks: verify_package.yml
       vars:
         __mssql_verify_package_name: "{{ __mssql_server_ha_packages }}"

@@ -1,3 +1,4 @@
+---
 namespace: "microsoft"
 name: "sql"
 version: "1.0.11"

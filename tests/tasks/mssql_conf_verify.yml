@@ -4,34 +4,34 @@
 # It takes two variables:
 # __mssql_conf_setting - the setting name
 # __mssql_conf_value - the setting value
-- name: Get the value of the {{ __mssql_conf_setting }} setting
+- name: Get the value of the setting {{ __mssql_conf_setting }}
   vars:
     __mssql_conf_path: /var/opt/mssql/mssql.conf
   shell: grep '^{{ __mssql_conf_setting }}' {{ __mssql_conf_path }} || true
   changed_when: false
   register: __mssql_conf_get_setting
 
-- name: Verify the {{ __mssql_conf_setting }} setting when it is type str
+- name: Verify the setting when it is type str {{ __mssql_conf_setting }}
   vars:
     # basename is needed for settings that have path values, such as tlskey
     __mssql_conf_get_value: >-
       {{ __mssql_conf_get_setting.stdout |
-      regex_replace( '^.*\s=\s', '') | string | lower | basename }}
+      regex_replace('^.*\s=\s', '') | string | lower | basename }}
   assert:
     that: __mssql_conf_get_value == __mssql_conf_value | string
   when:
     - "__mssql_conf_value | type_debug == 'str'"
     - __mssql_conf_setting != "tcpport"
 
-- name: Verify the {{ __mssql_conf_setting }} setting when it is type bool
+- name: Verify the setting when it is type bool {{ __mssql_conf_setting }}
   vars:
     __mssql_conf_get_value: >-
       {{ __mssql_conf_get_setting.stdout |
-      regex_replace( '^.*\s=\s', '') | bool }}
+      regex_replace('^.*\s=\s', '') | bool }}
   assert:
     that: __mssql_conf_get_value == __mssql_conf_value
   when:
-    - "__mssql_conf_value | type_debug == 'bool'"
+    - __mssql_conf_value | type_debug == 'bool'
     - __mssql_conf_setting != "tcpport"
 
 # Special case for tcpport because sqlcmd does not set tcpport to 1433
@@ -41,7 +41,7 @@
 - name: Verify that tcpport = {{ __mssql_conf_value }}
   vars:
     __mssql_conf_get_value: >-
-      {{ __mssql_conf_get_setting.stdout | regex_search( '[1-9][0-9]{0,4}')
+      {{ __mssql_conf_get_setting.stdout | regex_search('[1-9][0-9]{0,4}')
       if __mssql_conf_get_setting.stdout
       else '1433' }}
   assert:
