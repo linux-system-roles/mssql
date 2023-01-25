@@ -13,6 +13,7 @@ kinds:
   - playbook: "**/examples/*.yml"
 skip_list:
   - fqcn-builtins
+  - galaxy[no-changelog]
 exclude_paths:
   - tests/roles/
   - .github/
