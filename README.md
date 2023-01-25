@@ -535,7 +535,7 @@ Setting to `false` does not remove configuration for high availability.
 When set to `true`, the role performs the following tasks:
 
 1. Include the `fedora.linux_system_roles.firewall` role to configure firewall:
-     1. Open the firewall port set with the [`mssql_ha_listener_port`](#mssql_ha_listener_port) variable.
+     1. Open the firewall port set with the [`mssql_ha_log_transport_port`](#mssql_ha_log_transport_port) variable.
      2. Enable the `high-availability` service in firewall.
 2. Configure SQL Server for high availability:
      1. Enable AlwaysOn Health events.
@@ -579,14 +579,14 @@ Default: no default
 
 Type: `string`
 
-##### `mssql_ha_listener_port`
+##### `mssql_ha_log_transport_port`
 
 The TCP port used to replicate data for an Always On availability group.
 
 Note that due to an SQL Server limitation it is not possible to change a listener port number on an existing availability group when the availability group contains a configuration-only replica.
 To do that, you must re-create the availability group using the required port number.
 
-If you set `mssql_manage_firewall` to `false`, you must open the firewall port defined with the `mssql_ha_listener_port` variable prior to running this role.
+If you set `mssql_manage_firewall` to `false`, you must open the firewall port defined with the `mssql_ha_log_transport_port` variable prior to running this role.
 
 Default: `5022`
 
@@ -782,7 +782,7 @@ In this case the role does not configure Pacemaker.
     mssql_manage_firewall: true
     mssql_ha_configure: true
     mssql_ha_ag_cluster_type: none
-    mssql_ha_listener_port: 5022
+    mssql_ha_log_transport_port: 5022
     mssql_ha_cert_name: ExampleCert
     mssql_ha_master_key_password: "p@55w0rD1"
     mssql_ha_private_key_password: "p@55w0rD2"
@@ -819,7 +819,7 @@ For more information, see the `fedora.linux_system_roles.ha_cluster` role docume
     mssql_manage_firewall: true
     mssql_ha_configure: true
     mssql_ha_ag_cluster_type: external
-    mssql_ha_listener_port: 5022
+    mssql_ha_log_transport_port: 5022
     mssql_ha_cert_name: ExampleCert
     mssql_ha_master_key_password: "p@55w0rD1"
     mssql_ha_private_key_password: "p@55w0rD2"
@@ -914,7 +914,7 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_manage_firewall: true
     mssql_ha_configure: true
     mssql_ha_ag_cluster_type: external
-    mssql_ha_listener_port: 5022
+    mssql_ha_log_transport_port: 5022
     mssql_ha_cert_name: ExampleCert
     mssql_ha_master_key_password: "p@55w0rD1"
     mssql_ha_private_key_password: "p@55w0rD2"
@@ -1027,7 +1027,7 @@ This example playbooks sets the `firewall` variables for the `fedora.linux_syste
     mssql_edition: Evaluation
     mssql_ha_configure: true
     mssql_ha_ag_cluster_type: external
-    mssql_ha_listener_port: 5022
+    mssql_ha_log_transport_port: 5022
     mssql_ha_cert_name: ExampleCert
     mssql_ha_master_key_password: "p@55w0rD1"
     mssql_ha_private_key_password: "p@55w0rD2"
