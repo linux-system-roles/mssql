@@ -9,7 +9,7 @@ authors:
 
 repository: "https://github.com/linux-system-roles/mssql"
 # yamllint disable-line rule:line-length
-documentation: "https://github.com/linux-system-roles/mssql/blob/master/README.md"
+documentation: "https://github.com/linux-system-roles/mssql/blob/main/README.md"
 issues: "https://github.com/linux-system-roles/mssql/issues"
 
 readme: "README.md"
