@@ -1,6 +1,62 @@
 Changelog
 =========
 
+[1.3.1] - 2023-01-31
+--------------------
+
+### New Features
+
+- Rename mssql_ha_listener_port to mssql_ha_endpoint_port (#166)
+  As per feedback from Microsoft, mssql_ha_listener_port should be called
+  mssql_ha_endpoint_port, as that port is used
+  when creating endpoint for replication between primary and secondary
+  replica. Listener is a term used for AG listener associated with AG
+  which is used to route client connection to primary replica (or read
+  only secondary replica based on configuration and request type).
+  And listener uses tcp_port, hence the confusion.
+
+- Restructure README files to split it into available scenarios (#161)
+
+- Add AD integration functionality (#159)
+  - Add mssql version to set up
+  - Add clean up for realm to clean_up_mssql.yml
+  - Remove setting passwords with environment:
+    Set password inline for security because setting passwords with
+    environment: reveals the value when running playbooks with high
+    verbosity
+  - Add collection-requirements.yml
+  - Set the mssql_password variable to default null after test verification
+
+### Bug Fixes
+
+- Add a note about not supporting direct upgrade 2017>2022 (#157)
+
+### Other Changes
+
+- ansible-lint 6.x fixes (#162)
+  The big one is that ansible-lint doesn't like templates in `name`
+  strings except at the end.  In general, Ansible does not like having
+  templated variables in `name` values because it makes it harder to
+  grep the source to find a log message in the source.
+  The other ones are jinja spacing cleanup, use of `true`/`false`
+  instead of `yes`/`no`, and various other cleanup.
+
+- Add check for non-inclusive language (#158)
+  - Cleanup non-inclusive words.
+  - Add a check for usage of terms and language that is considered
+    non-inclusive. We are using the woke tool for this with a wordlist
+    that can be found at
+    https://github.com/linux-system-roles/tox-lsr/blob/main/src/tox_lsr/config_files/woke.yml
+  - Create separate github actions for various checks; get rid of monolithic tox.yml
+    Using separate github actions, and especially the official github actions which
+    generally have support for in-line comments, should help greatly with
+    readability and troubleshooting test results.
+  - skip no-changelog errors because it searches changelog in .collection
+    galaxy[no-changelog]: No changelog found. Please add a changelog file.
+    Refer to the galaxy.md file for more info.
+    .collection/galaxy.yml:1
+
+
 [1.3.0] - 2022-12-21
 --------------------
 ### New Features
