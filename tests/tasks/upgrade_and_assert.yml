@@ -6,7 +6,7 @@
     mssql_upgrade: true
     mssql_version: "{{ __mssql_version }}"
   block:
-    - name: Upgrade to "{{ __mssql_version }}"
+    - name: Upgrade to {{ __mssql_version }}
       include_role:
         name: linux-system-roles.mssql
 

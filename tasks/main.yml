@@ -233,14 +233,18 @@
           - "mssql_password"
           - "mssql_edition"
 
-    - name: Set up MSSQL
-      command: "{{ __mssql_conf_cli }} -n setup"
+    # Setting MSSQL_SA_PASSWORD inline for security because setting it with
+    # environment: reveals the value when running playbooks with high verbosity
+    - name: Set up MSSQL  # noqa command-instead-of-shell
+      shell: >-
+        MSSQL_SA_PASSWORD={{ mssql_password | quote }}
+        {{ __mssql_conf_cli }} setup
       environment:
         ACCEPT_EULA: "Y"
-        MSSQL_SA_PASSWORD: "{{ mssql_password }}"
         MSSQL_PID: "{{ mssql_edition }}"
       when: not __mssql_is_setup
       register: __mssql_conf_setup
+      no_log: true
 
 - name: Ensure that the tuned-profiles-mssql package is installed
   package:
@@ -327,11 +331,10 @@
 
     - name: Check if the set password matches the existing password
       command: "{{ __mssql_sqlcmd_login_cmd }} -Q 'SELECT @@VERSION'"
-      environment:
-        SQLCMDPASSWORD: "{{ mssql_password }}"
       ignore_errors: true
       changed_when: false
       register: __mssql_password_query
+      no_log: true
 
     - name: Ensure that the mssql-server service is stopped
       service:
@@ -345,15 +348,18 @@
         manager: auto
       no_log: true
 
+    # Setting MSSQL_SA_PASSWORD inline for security because setting it with
+    # environment: reveals the value when running playbooks with high verbosity
     - name: Change the password of the sa user
       block:
-        - name: Change the password of the sa user
-          command: "{{ __mssql_conf_cli }} set-sa-password"
-          environment:
-            MSSQL_SA_PASSWORD: "{{ mssql_password }}"
+        - name: Change the password of sa user  # noqa command-instead-of-shell
+          shell: >-
+            MSSQL_SA_PASSWORD={{ mssql_password | quote }}
+            {{ __mssql_conf_cli }} set-sa-password
           when: __mssql_password_query is failed
           notify: Restart the mssql-server service
           register: __mssql_set_ha_password
+          no_log: true
       rescue:
         - name: Workaround for expected error on version 2022
           fail:
@@ -416,6 +422,7 @@
           changed_when: '"The new edition" in __mssql_conf_set_edition.stdout'
           when: not __mssql_edition_matches.stdout | bool
           notify: Restart the mssql-server service
+          no_log: true
       rescue:
         - name: Workaround for expected error on version 2022
           fail:
@@ -623,6 +630,204 @@
       vars:
         __mssql_conf_setting: "network forceencryption"
         __mssql_conf_setting_value: "{{ '1' if mssql_tls_enable else 'unset' }}"
+
+- name: Configure Active Directory authentication
+  vars:
+    __mssql_kinit_user: >-
+      {{ ad_integration_user }}@{{ ad_integration_realm | upper }}
+  when: mssql_ad_configure | bool
+  block:
+    - name: Join to realm {{ ad_integration_realm }}
+      include_role:
+        name: linux-system-roles.ad_integration
+
+    - name: Ensure the adutil package
+      package:
+        name: adutil
+        state: present
+
+    - name: Print credential caches to check if AD principal exists
+      command: klist -l
+      register: __mssql_klist
+      changed_when: false
+      failed_when: false
+
+    # Do not fail when there are no tickets
+    - name: Print the status of credential cache for {{ __mssql_kinit_user }}
+      shell: >-
+        set -euo pipefail;
+        klist -l $(klist -l | grep {{ __mssql_kinit_user }} | awk '{print $2}')
+      register: __mssql_klist_kinit_user
+      when: __mssql_kinit_user in __mssql_klist.stdout
+      changed_when: false
+
+    - name: Obtain Kerberos ticket of the AD user {{ ad_integration_user }}
+      shell: >-
+        set -euo pipefail;
+        echo {{ ad_integration_password | quote }}
+        | kinit {{ __mssql_kinit_user }}
+      when: >-
+        (__mssql_kinit_user not in __mssql_klist.stdout)
+        or
+        ("(Expired)" in __mssql_klist_kinit_user.stdout | d())
+      no_log: true
+      changed_when: true
+
+    # Do not fail if account does not exist
+    - name: Check if SQL user exists {{ mssql_ad_sql_username }}
+      command: >-
+        adutil account exists
+        --name {{ mssql_ad_sql_username }}
+        --accept-eula
+      register: __mssql_adutil_account_exists
+      changed_when: false
+      failed_when: false
+
+    - name: Verify password provided for user {{ mssql_ad_sql_username }}
+      command: >-
+        sshpass -p {{ mssql_ad_sql_password | quote }}
+        ssh -o StrictHostKeyChecking=no
+        -l {{ mssql_ad_sql_username }}@{{ ad_integration_realm }}
+        {{ ansible_fqdn }} id
+      register: __mssql_sql_user_ssh
+      ignore_errors: true
+      changed_when: false
+      when: __mssql_adutil_account_exists.stdout | bool
+      no_log: true
+
+    - name: Update password for the SQL user {{ mssql_ad_sql_username }}
+      command: >-
+        adutil account setpassword
+        --name {{ mssql_ad_sql_username }}
+        --password {{ mssql_ad_sql_password | quote }}
+      when: __mssql_sql_user_ssh is failed
+      no_log: true
+
+    - name: In AD server create user {{ mssql_ad_sql_username }}
+      command: >-
+        adutil user create
+        --name {{ mssql_ad_sql_username }}
+        --password {{ mssql_ad_sql_password | quote }}
+        --distname
+        CN={{ mssql_ad_sql_username }},CN=Users,DC={{
+        ad_integration_realm.split('.') | first | upper
+        }},DC=COM
+        --debug
+      register: __mssql_adutil_user_create
+      when: not __mssql_adutil_account_exists.stdout | bool
+      no_log: true
+
+    - name: Get SPNs for the principal {{ mssql_ad_sql_username }}
+      command: adutil spn show --name {{ mssql_ad_sql_username }}
+      register: __mssql_adutil_spn_show
+      changed_when: false
+
+    - name: Register SPNs to the principal {{ mssql_ad_sql_username }}
+      command: >-
+        adutil spn addauto
+        --name {{ mssql_ad_sql_username }}
+        --spn-service MSSQLSvc
+        --spn-host {{ ansible_fqdn }}
+        --spn-port {{ mssql_tcp_port }}
+        --yes
+        --debug
+      register: __mssql_adutil_spn_addauto
+      changed_when: >-
+        not "Type or value exists"
+        in __mssql_adutil_spn_addauto.stdout
+      when: >-
+        not "MSSQLSvc/" ~ ansible_fqdn ~ ":" ~ mssql_tcp_port
+        in __mssql_adutil_spn_show.stdout
+
+    - name: Get kvno of the SPN host
+      command: adutil account kvno {{ mssql_ad_sql_username }}
+      register: __mssql_kvno
+      changed_when: false
+
+    - name: Get stats of the keytab file
+      stat:
+        path: "{{ __mssql_keytab_path }}"
+      register: __mssql_keytab_stat
+
+    - name: Get keytab properties
+      command: klist -edk {{ __mssql_keytab_path }}
+      changed_when: false
+      when: __mssql_keytab_stat.stat.exists | bool
+      register: __mssql_keytab_properties
+
+    - name: Create keytab
+      command: >-
+        adutil keytab createauto
+        --password {{ mssql_ad_sql_password | quote }}
+        --path {{ __mssql_keytab_path }}
+        --spn-port {{ mssql_tcp_port }}
+        --spn-host {{ ansible_fqdn }}
+        --spn-service MSSQLSvc
+        --kvno {{ __mssql_kvno.stdout }}
+        --enctype aes256-cts-hmac-sha1-96,aes128-cts-hmac-sha1-96
+        --yes
+      when:
+        - >-
+          not __mssql_kvno.stdout ~ " MSSQLSvc/" ~ ansible_fqdn ~ ":"
+          ~ mssql_tcp_port ~ "@" ~ ad_integration_realm | upper
+          ~ " (aes256-cts-hmac-sha1-96)"
+          in __mssql_keytab_properties.stdout | d()
+        - >-
+          not __mssql_kvno.stdout ~ " MSSQLSvc/" ~ ansible_fqdn ~ ":"
+          ~ mssql_tcp_port ~ "@" ~ ad_integration_realm | upper
+          ~ " (aes128-cts-hmac-sha1-96)"
+          in __mssql_keytab_properties.stdout | d()
+      notify: Restart the mssql-server service
+      no_log: true
+
+    - name: Add an entry in the keytab for the principal name and password
+      command: >-
+        adutil keytab create
+        --password {{ mssql_ad_sql_password | quote }}
+        --path {{ __mssql_keytab_path }}
+        --principal {{ mssql_ad_sql_username }}
+        --kvno {{ __mssql_kvno.stdout }}
+        --enctype aes256-cts-hmac-sha1-96,aes128-cts-hmac-sha1-96
+      when:
+        - >-
+          not __mssql_kvno.stdout ~ " " ~ mssql_ad_sql_username ~ "@"
+          ~ ad_integration_realm | upper ~ " (aes256-cts-hmac-sha1-96)"
+          in __mssql_keytab_properties.stdout | d()
+        - >-
+          not __mssql_kvno.stdout ~ " " ~ mssql_ad_sql_username ~ "@"
+          ~ ad_integration_realm | upper ~ " (aes128-cts-hmac-sha1-96)"
+          in __mssql_keytab_properties.stdout | d()
+      notify: Restart the mssql-server service
+      no_log: true
+
+    - name: Ensure correct permissions and ownership on the keytab
+      file:
+        path: "{{ __mssql_keytab_path }}"
+        owner: mssql
+        group: mssql
+        mode: 0440
+      notify: Restart the mssql-server service
+
+    - name: Configure the network.kerberoskeytabfile setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: network kerberoskeytabfile
+        __mssql_conf_setting_value: "{{ __mssql_keytab_path }}"
+
+    - name: Configure the network.kerberoskeytabfile setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: network privilegedadaccount
+        __mssql_conf_setting_value: "{{ mssql_ad_sql_username }}"
+
+    - name: Create the privileged account login
+      vars:
+        __mssql_sql_files_to_input:
+          - ad_create_login.j2
+        __mssql_ad_user: >-
+          {{ ad_integration_realm.split('.')
+          | first }}\{{ ad_integration_user }}
+      include_tasks: input_sql_files.yml
 
 - name: Configure for high availability
   when: mssql_ha_configure | bool
