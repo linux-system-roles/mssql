@@ -32,7 +32,7 @@ mssql_ha_ag_cluster_type: external
 # mssql_ha_replica_type must be set per host in inventory. Setting it hear to
 # avoid "variable not defined" error in Ansible
 mssql_ha_replica_type: null
-mssql_ha_listener_port: 5022
+mssql_ha_endpoint_port: 5022
 mssql_ha_cert_name: null
 mssql_ha_private_key_password: null
 mssql_ha_master_key_password: null

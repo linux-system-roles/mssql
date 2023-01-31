@@ -94,7 +94,7 @@ removing this replica re-create it';
     ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} ADD REPLICA ON
       N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
         ENDPOINT_URL = N'tcp://{{
-          hostvars[item]['ansible_fqdn'] }}:{{ mssql_ha_listener_port }}',
+          hostvars[item]['ansible_fqdn'] }}:{{ mssql_ha_endpoint_port }}',
         AVAILABILITY_MODE = {{ hostvars[item]['__mssql_ha_availability_mode'] }},
         FAILOVER_MODE = {{ hostvars[item]['__mssql_ha_failover_mode'] }},
         SEEDING_MODE = {{ hostvars[item]['__mssql_ha_seeding_mode'] }}
@@ -102,7 +102,7 @@ removing this replica re-create it';
 {%     elif hostvars[item]['mssql_ha_replica_type'] == 'witness' %}
     ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} ADD REPLICA ON
       N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
-        ENDPOINT_URL = N'tcp://{{ hostvars[item]['ansible_fqdn'] }}:{{ mssql_ha_listener_port }}',
+        ENDPOINT_URL = N'tcp://{{ hostvars[item]['ansible_fqdn'] }}:{{ mssql_ha_endpoint_port }}',
         AVAILABILITY_MODE = {{ hostvars[item]['__mssql_ha_availability_mode'] }}
       );
 {%     endif %}
@@ -118,7 +118,7 @@ removing this replica re-create it';
   "sql_setting_name":"ENDPOINT_URL",
   "sys_setting_name":"endpoint_url",
   "setting_value":"N'tcp://" + hostvars[item]['ansible_fqdn'] + ":" +
-    mssql_ha_listener_port | string + "'"
+    mssql_ha_endpoint_port | string + "'"
 },
 "failover_mode":{
   "sql_setting_name":"FAILOVER_MODE",
@@ -142,7 +142,7 @@ removing this replica re-create it';
   "sql_setting_name":"ENDPOINT_URL",
   "sys_setting_name":"endpoint_url",
   "setting_value":"N'tcp://" + hostvars[item]['ansible_fqdn'] + ":" +
-    mssql_ha_listener_port | string + "'"
+    mssql_ha_endpoint_port | string + "'"
 }
 }) %}
 {%     endif %}
@@ -242,7 +242,7 @@ BEGIN
 {%   if hostvars[item]['mssql_ha_replica_type'] == 'primary' %}
       N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
         ENDPOINT_URL = N'tcp://{{
-          hostvars[item]['ansible_fqdn'] }}:{{ mssql_ha_listener_port }}',
+          hostvars[item]['ansible_fqdn'] }}:{{ mssql_ha_endpoint_port }}',
         AVAILABILITY_MODE = {{ hostvars[item]['__mssql_ha_availability_mode'] }},
         FAILOVER_MODE = {{ hostvars[item]['__mssql_ha_failover_mode'] }},
         SEEDING_MODE = {{ hostvars[item]['__mssql_ha_seeding_mode'] }},
@@ -251,7 +251,7 @@ BEGIN
       ),
       N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
         ENDPOINT_URL = N'tcp://{{
-          hostvars[item]['ansible_fqdn'] }}:{{ mssql_ha_listener_port }}',
+          hostvars[item]['ansible_fqdn'] }}:{{ mssql_ha_endpoint_port }}',
         AVAILABILITY_MODE = {{ hostvars[item]['__mssql_ha_availability_mode'] }},
         FAILOVER_MODE = {{ hostvars[item]['__mssql_ha_failover_mode'] }},
         SEEDING_MODE = {{ hostvars[item]['__mssql_ha_seeding_mode'] }},
@@ -260,7 +260,7 @@ BEGIN
       ),
       N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
         ENDPOINT_URL = N'tcp://{{
-          hostvars[item]['ansible_fqdn'] }}:{{ mssql_ha_listener_port }}',
+          hostvars[item]['ansible_fqdn'] }}:{{ mssql_ha_endpoint_port }}',
         AVAILABILITY_MODE = {{ hostvars[item]['__mssql_ha_availability_mode'] }}
 {%   endif %}
 {% endfor %}

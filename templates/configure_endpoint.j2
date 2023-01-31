@@ -7,7 +7,7 @@ BEGIN
   PRINT 'Endpoint {{ mssql_ha_endpoint_name }} does not exist, creating';
   CREATE ENDPOINT {{ mssql_ha_endpoint_name }}
     STATE = STARTED
-    AS TCP (LISTENER_PORT = {{ mssql_ha_listener_port }})
+    AS TCP (LISTENER_PORT = {{ mssql_ha_endpoint_port }})
     FOR DATABASE_MIRRORING (
       ROLE = {{ __mssql_ha_endpoint_role }},
       AUTHENTICATION = CERTIFICATE {{ mssql_ha_cert_name }},
@@ -21,18 +21,18 @@ BEGIN
   IF NOT EXISTS (
     SELECT name, port FROM sys.tcp_endpoints
     WHERE name = '{{ mssql_ha_endpoint_name }}' AND
-          port = {{ mssql_ha_listener_port }}
+          port = {{ mssql_ha_endpoint_port }}
   )
   BEGIN
     ALTER ENDPOINT {{ mssql_ha_endpoint_name }}
-      AS TCP (LISTENER_PORT = {{ mssql_ha_listener_port }});
+      AS TCP (LISTENER_PORT = {{ mssql_ha_endpoint_port }});
     PRINT 'The LISTENER_PORT setting for the {{ mssql_ha_endpoint_name }} \
-endpoint updated to {{ mssql_ha_listener_port }} successfully';
+endpoint updated to {{ mssql_ha_endpoint_port }} successfully';
   END
   ELSE
   BEGIN
     PRINT 'The LISTENER_PORT setting for the {{ mssql_ha_endpoint_name }} \
-endpoint is already set to {{ mssql_ha_listener_port }}, skipping';
+endpoint is already set to {{ mssql_ha_endpoint_port }}, skipping';
   END
   IF NOT EXISTS (
     SELECT name, role_desc FROM sys.database_mirroring_endpoints

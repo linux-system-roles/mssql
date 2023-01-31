@@ -9,23 +9,6 @@
   set_fact:
     __mssql_sqlcmd_login_cmd: null
 
-- name: Link the deprecated accept_microsoft_sql_server_2019_standard_eula fact
-  when: mssql_accept_microsoft_sql_server_2019_standard_eula is defined
-  block:
-    - name: Print that the variable is deprecated
-      debug:
-        msg: >-
-          The accept_microsoft_sql_server_2019_standard_eula variable is
-          deprecated and will be removed in a future version. Edit your playbook
-          to use the mssql_accept_microsoft_sql_server_standard_eula variable
-          instead.
-
-    - name: >-
-        Link the deprecated accept_microsoft_sql_server_2019_standard_eula fact
-      set_fact:
-        mssql_accept_microsoft_sql_server_standard_eula: >-
-          {{ mssql_accept_microsoft_sql_server_2019_standard_eula }}
-
 - name: Link the deprecated mssql_input_sql_file fact
   when: mssql_input_sql_file is defined
   block:
@@ -40,6 +23,20 @@
     - name: Link the deprecated mssql_input_sql_file fact
       set_fact:
         mssql_post_input_sql_file: "{{ mssql_input_sql_file }}"
+
+- name: Link the deprecated mssql_ha_listener_port fact
+  when: mssql_ha_listener_port is defined
+  block:
+    - name: Print that the variable is deprecated
+      debug:
+        msg: >-
+          The mssql_ha_listener_port variable is deprecated and will be removed
+          in a future version. Edit your playbook to use the
+          mssql_ha_endpoint_port variable instead.
+
+    - name: Link the deprecated mssql_ha_listener_port fact
+      set_fact:
+        mssql_ha_endpoint_port: "{{ mssql_ha_listener_port }}"
 
 - name: Verify that the user accepts EULA variables
   assert:
@@ -647,13 +644,13 @@
       block:
         - name: >-
             Open the port and enable the high-availability service in
-            firewall tcp port {{ mssql_ha_listener_port }}
+            firewall tcp port {{ mssql_ha_endpoint_port }}
           when: mssql_manage_firewall | bool
           include_role:
             name: fedora.linux_system_roles.firewall
           vars:
             firewall:
-              - port: "{{ mssql_ha_listener_port }}/tcp"
+              - port: "{{ mssql_ha_endpoint_port }}/tcp"
                 state: enabled
                 permanent: true
                 runtime: true

@@ -13,7 +13,7 @@
     mssql_version: 2019
     mssql_manage_firewall: true
     mssql_ha_configure: true
-    mssql_ha_listener_port: 5022
+    mssql_ha_endpoint_port: 5022
     mssql_ha_cert_name: ExampleCert
     mssql_ha_master_key_password: "p@55w0rD1"
     mssql_ha_private_key_password: "p@55w0rD2"
@@ -237,7 +237,7 @@
             in __mssql_sqlcmd_input.stdout
           - >-
             "The LISTENER_PORT setting for the {{ mssql_ha_endpoint_name }}
-            endpoint is already set to {{ mssql_ha_listener_port }}, skipping"
+            endpoint is already set to {{ mssql_ha_endpoint_port }}, skipping"
             in __mssql_sqlcmd_input.stdout
           - >-
             "The ROLE setting for the {{ mssql_ha_endpoint_name }} endpoint is
@@ -279,7 +279,7 @@
             in __mssql_sqlcmd_input.stdout
           - >-
             "The LISTENER_PORT setting for the {{ mssql_ha_endpoint_name }}
-            endpoint updated to {{ mssql_ha_listener_port }} successfully"
+            endpoint updated to {{ mssql_ha_endpoint_port }} successfully"
             in __mssql_sqlcmd_input.stdout
           - >-
             "The ROLE setting for the {{ mssql_ha_endpoint_name }}
