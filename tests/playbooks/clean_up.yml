@@ -16,13 +16,13 @@
       include_role:
         name: fedora.linux_system_roles.firewall
 
-    - name: Leave realm
+    - name: Leave realm  # noqa no-changed-when
       command: realm leave
       register: realm_leave
       failed_when: >-
         not "Couldn't find a configured realm" in realm_leave.stderr
 
-    - name: Destroy Kerberos tickets
+    - name: Destroy Kerberos tickets  # noqa no-changed-when
       command: kdestroy -A
 
     - name: Remove related packages
