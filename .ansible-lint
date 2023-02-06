@@ -15,7 +15,6 @@ skip_list:
   - fqcn-builtins
   - galaxy[no-changelog]
 exclude_paths:
-  - tests/playbooks/clean_up.yml
   - tests/roles/
   - .github/
   - examples/roles/
