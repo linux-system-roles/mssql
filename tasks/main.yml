@@ -939,7 +939,6 @@
             state: restarted
           when: (__mssql_conf_set is changed) or
             (__mssql_server_ha_packages_install is changed)
-          register: __mssql_primary_restarted
 
         - name: Remove certificates
           when: mssql_ha_reset_cert | bool
