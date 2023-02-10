@@ -36,6 +36,10 @@
     ad_integration_realm: domain.com
     ad_integration_password: Secret123
     ad_integration_user: Administrator
+    ad_integration_manage_dns: true
+    ad_integration_dns_server: "{{ hostvars.ad.ansible_host }}"
+    ad_integration_dns_connection_name: "{{ ansible_default_ipv4.interface }}"
+    ad_integration_dns_connection_type: ethernet
   tasks:
     - name: Set up MSSQL and configure AD authentication
       include_role:
