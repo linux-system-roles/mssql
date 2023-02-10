@@ -63,6 +63,11 @@
 
     - name: Test AD integration
       block:
+        - name: Install sshpass for use in the following task
+          package:
+            name: sshpass
+            state: present
+
         - name: SSH into AD, kinit as Administrator, verify authentication
           vars:
             __mssql_kinit_user: >-
