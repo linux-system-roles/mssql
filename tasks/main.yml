@@ -245,6 +245,10 @@
       when: not __mssql_is_setup
       register: __mssql_conf_setup
       no_log: true
+  rescue:
+    - name: Print output of failed task
+      fail:
+        msg: "{{ ansible_failed_result.stderr_lines }}"
 
 - name: Ensure that the tuned-profiles-mssql package is installed
   package:
@@ -363,6 +367,7 @@
       rescue:
         - name: Workaround for expected error on version 2022
           fail:
+            msg: "{{ ansible_failed_result.stderr_lines }}"
           when:
             - ansible_facts.packages["mssql-server"][0]["version"].split(".")
               | first | int != 16
@@ -426,6 +431,7 @@
       rescue:
         - name: Workaround for expected error on version 2022
           fail:
+            msg: "{{ ansible_failed_result.stderr_lines }}"
           when:
             - ansible_facts.packages["mssql-server"][0]["version"].split(".")
               | first | int != 16
@@ -828,6 +834,10 @@
           {{ ad_integration_realm.split('.')
           | first }}\{{ ad_integration_user }}
       include_tasks: input_sql_files.yml
+  rescue:
+    - name: Print output of failed task
+      fail:
+        msg: "{{ ansible_failed_result.stderr_lines }}"
 
 - name: Configure for high availability
   when: mssql_ha_configure | bool
