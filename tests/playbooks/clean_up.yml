@@ -2,12 +2,18 @@
 - name: Purge cluster and mssql configuration
   hosts: all
   tasks:
+    - name: Gather package facts
+      package_facts:
+        manager: auto
+      no_log: true
+
     - name: Purge cluster configuration
       vars:
         ha_cluster_cluster_present: false
         ha_cluster_enable_repos: false
       include_role:
         name: fedora.linux_system_roles.ha_cluster
+      when: ansible_facts.packages.pcs is defined
 
     - name: Purge firewall configuration
       vars:
@@ -15,15 +21,19 @@
           - previous: replaced
       include_role:
         name: fedora.linux_system_roles.firewall
+      when: ansible_facts.packages.firewalld is defined
 
-    - name: Leave realm  # noqa no-changed-when
+    - name: Leave realm
       command: realm leave
       register: realm_leave
-      failed_when: >-
+      failed_when: false
+      changed_when: >-
         not "Couldn't find a configured realm" in realm_leave.stderr
+      when: ansible_facts.packages.realmd is defined
 
     - name: Destroy Kerberos tickets  # noqa no-changed-when
       command: kdestroy -A
+      when: ansible_facts.packages["krb5-workstation"] is defined
 
     - name: Remove related packages
       package:
@@ -40,4 +50,5 @@
         /tmp/ansible.*
         /var/log/pacemaker/pacemaker.log
         /etc/yum.repos.d/packages-microsoft-com-*
+        /tmp/*.j2
       changed_when: true
