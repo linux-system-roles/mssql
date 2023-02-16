@@ -99,6 +99,8 @@ Changelog
   - Add tests/requirements.txt for reqs on Python modules during testing
   - Set up MSSQL in a separate block to catch errors
 
+- Call the ad_integration role with FQDN (#175)
+
 ### Other Changes
 
 - weekly-ci: do not create a new PR every time
