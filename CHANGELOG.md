@@ -1,7 +1,7 @@
 Changelog
 =========
 
-[1.3.0] - 2023-01-31
+[1.3.0] - 2023-02-16
 --------------------
 
 ### New Features
@@ -92,6 +92,13 @@ Changelog
 
 - Add a note about not supporting direct upgrade 2017>2022 (#157)
 
+- Fixes for AD integration functionality (#172)
+  - Add configuring DNS vars to ad_integration
+  - Install sshpass on client for AD testing
+  - Print errors for tasks with no_log: true for visibility
+  - Add tests/requirements.txt for reqs on Python modules during testing
+  - Set up MSSQL in a separate block to catch errors
+
 ### Other Changes
 
 - weekly-ci: do not create a new PR every time
@@ -174,6 +181,14 @@ Changelog
     galaxy[no-changelog]: No changelog found. Please add a changelog file.
     Refer to the galaxy.md file for more info.
     .collection/galaxy.yml:1
+
+- Skip no-changed-when check in clean_up.yml (#171)
+  - add contents: write permission for branch push
+  - Need `contents: write` permission for branch push for weekly ci job
+    Signed-off-by: Rich Megginson <rmeggins@redhat.com>
+
+- Remove shellcheck github action (#173)
+  Remove shellcheck github action since there are no shell scripts in the role.
 
 [1.2.4] - 2022-09-01
 --------------------
