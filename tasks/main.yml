@@ -648,7 +648,7 @@
   block:
     - name: Join to realm {{ ad_integration_realm }}
       include_role:
-        name: linux-system-roles.ad_integration
+        name: fedora.linux_system_roles.ad_integration
 
     - name: Ensure the adutil package
       package:
