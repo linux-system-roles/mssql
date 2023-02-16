@@ -3,8 +3,7 @@
 - name: Verify the role on the primary node
   hosts: all
   vars:
-    __mssql_single_node_test: "{{
-      false if ansible_play_hosts_all | length > 1 else true }}"
+    __mssql_single_node_test: "{{ ansible_play_hosts_all | length == 1 }}"
     mssql_debug: true
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
@@ -28,8 +27,7 @@
     mssql_ha_login_password: "p@55w0rD3"
     mssql_ha_virtual_ip: 192.168.122.148
     # ha_cluster doesn't support running against a single host
-    mssql_ha_cluster_run_role: "{{
-      true if ansible_play_hosts_all | length > 1 else false }}"
+    mssql_ha_cluster_run_role: "{{ ansible_play_hosts_all | length > 1 }}"
     ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
     ha_cluster_hacluster_password: "p@55w0rD4"
     ha_cluster_sbd_enabled: true
