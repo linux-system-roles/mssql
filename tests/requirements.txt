@@ -1,0 +1,3 @@
+# Python requirements for tests
+# Requirement for playbooks/tests_ad_integration.yml
+pywinrm==0.4.3

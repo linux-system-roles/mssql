@@ -213,26 +213,29 @@
   service_facts:
   no_log: true
 
-- name: Set up MSSQL
-  when: not __mssql_is_setup
-  vars:
+- name: Set the __mssql_is_setup variable
+  set_fact:
     __mssql_is_setup: >-
       {{ ('running' in
       ansible_facts['services']['mssql-server.service']['state']) or
       ('enabled' in
       ansible_facts['services']['mssql-server.service']['status']) or
       (__mssql_errorlog.stdout | length > 0) }}
-  block:
-    - name: Verify that the variables required for setting up MSSQL are defined
-      assert:
-        that:
-          - mssql_password is not none
-          - mssql_edition is not none
-        fail_msg:
-          - "You must define the following variables to set up MSSQL:"
-          - "mssql_password"
-          - "mssql_edition"
 
+- name: Verify that the variables required for setting up MSSQL are defined
+  when: not __mssql_is_setup
+  assert:
+    that:
+      - mssql_password is not none
+      - mssql_edition is not none
+    fail_msg:
+      - "You must define the following variables to set up MSSQL:"
+      - "mssql_password"
+      - "mssql_edition"
+
+- name: Set up MSSQL
+  when: not __mssql_is_setup
+  block:
     # Setting MSSQL_SA_PASSWORD inline for security because setting it with
     # environment: reveals the value when running playbooks with high verbosity
     - name: Set up MSSQL  # noqa command-instead-of-shell
@@ -245,6 +248,10 @@
       when: not __mssql_is_setup
       register: __mssql_conf_setup
       no_log: true
+  rescue:
+    - name: Print output of failed task
+      fail:
+        msg: "{{ ansible_failed_result.stderr_lines }}"
 
 - name: Ensure that the tuned-profiles-mssql package is installed
   package:
@@ -363,6 +370,7 @@
       rescue:
         - name: Workaround for expected error on version 2022
           fail:
+            msg: "{{ ansible_failed_result.stderr_lines }}"
           when:
             - ansible_facts.packages["mssql-server"][0]["version"].split(".")
               | first | int != 16
@@ -426,6 +434,7 @@
       rescue:
         - name: Workaround for expected error on version 2022
           fail:
+            msg: "{{ ansible_failed_result.stderr_lines }}"
           when:
             - ansible_facts.packages["mssql-server"][0]["version"].split(".")
               | first | int != 16
@@ -828,6 +837,10 @@
           {{ ad_integration_realm.split('.')
           | first }}\{{ ad_integration_user }}
       include_tasks: input_sql_files.yml
+  rescue:
+    - name: Print output of failed task
+      fail:
+        msg: "{{ ansible_failed_result.stderr_lines }}"
 
 - name: Configure for high availability
   when: mssql_ha_configure | bool
@@ -939,7 +952,6 @@
             state: restarted
           when: (__mssql_conf_set is changed) or
             (__mssql_server_ha_packages_install is changed)
-          register: __mssql_primary_restarted
 
         - name: Remove certificates
           when: mssql_ha_reset_cert | bool
