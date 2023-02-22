@@ -717,10 +717,7 @@
         adutil user create
         --name {{ mssql_ad_sql_user_name }}
         --password {{ mssql_ad_sql_password | quote }}
-        --distname
-        CN={{ mssql_ad_sql_user_name }},CN=Users,DC={{
-        ad_integration_realm.split('.') | first | upper
-        }},DC=COM
+        --distname {{ mssql_ad_sql_user_distname }}
         --debug
       register: __mssql_adutil_user_create
       when: not __mssql_adutil_account_exists.stdout | bool
@@ -834,8 +831,7 @@
         __mssql_sql_files_to_input:
           - ad_create_login.j2
         __mssql_ad_user: >-
-          {{ ad_integration_realm.split('.')
-          | first }}\{{ ad_integration_user }}
+          {{ ad_integration_realm }}\{{ ad_integration_user }}
       include_tasks: input_sql_files.yml
   rescue:
     - name: Print output of failed task

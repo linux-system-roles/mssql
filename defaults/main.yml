@@ -53,4 +53,5 @@ mssql_ha_cluster_run_role: false
 
 mssql_ad_configure: false
 mssql_ad_sql_user_name: null
+mssql_ad_sql_user_distname: null
 mssql_ad_sql_password: null
