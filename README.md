@@ -1180,7 +1180,7 @@ For more information, see [Join SQL Server on a Linux host to an Active Director
 
 #### Post Configuration Tasks
 
-After you execute the role to configure AD Server authentication, you must complete one of the following procedures to add AES128 and AES256 kerberos encryption types to the [`mssql_ad_sql_username`](#mssql_ad_sql_username) on AD Server.
+After you execute the role to configure AD Server authentication, you must complete one of the following procedures to add AES128 and AES256 kerberos encryption types to the [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name) on AD Server.
 
 * For the web UI users, complete the following steps:
     1. Log in to your AD Server
@@ -1204,7 +1204,7 @@ Default: `false`
 
 Type: `bool`
 
-##### mssql_ad_sql_username
+##### mssql_ad_sql_user_name
 
 User to be created in SQL Server and used for authentication.
 
@@ -1214,7 +1214,7 @@ Type: `string`
 
 ##### mssql_ad_sql_password
 
-Password to be set for the [`mssql_ad_sql_username`](#mssql_ad_sql_username) user.
+Password to be set for the [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name) user.
 
 Default: `null`
 
@@ -1236,7 +1236,7 @@ Type: `string`
     mssql_edition: Evaluation
     mssql_manage_firewall: true
     mssql_ad_configure: true
-    mssql_ad_sql_username: sqluser
+    mssql_ad_sql_user_name: sqluser
     mssql_ad_sql_password: "p@55w0rD1"
     ad_integration_realm: domain.com
     ad_integration_password: Secret123
