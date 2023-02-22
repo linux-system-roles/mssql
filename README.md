@@ -1208,7 +1208,7 @@ Type: `bool`
 
 User to be created in SQL Server and used for authentication.
 
-Default: `false`
+Default: `null`
 
 Type: `string`
 
@@ -1216,7 +1216,7 @@ Type: `string`
 
 Password to be set for the [`mssql_ad_sql_username`](#mssql_ad_sql_username) user.
 
-Default: `false`
+Default: `null`
 
 Type: `string`
 
