@@ -1155,13 +1155,23 @@ Optional: Use variables starting with the `mssql_ad_` prefix to configure SQL Se
 
 #### Considerations
 
-To configure direct AD integration, this role uses the `fedora.linux_system_roles.ad_integration` role.When you set this variable to `true`, you must provide the following variables:
-* [`mssql_ad_sql_username`](#mssql_ad_sql_username)
+This role uses the `fedora.linux_system_roles.ad_integration` role to join SQL Server with AD server.
+
+To configure AD integration, provide the following variables:
+* [`mssql_ad_configure: true`](#mssql_ad_configure)
+* [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name)
 * [`mssql_ad_sql_password`](#mssql_ad_sql_password)
 * `ad_integration_realm`
 * `ad_integration_password`
 * `ad_integration_user`
 * Optional: You can provide further variables for the `fedora.linux_system_roles.ad_integration` role if you need.
+* Optional, You can configure DNS using ad_integration role by providing the following variables:
+  ```
+  ad_integration_manage_dns: true
+  ad_integration_dns_server: <AD_server_IP>
+  ad_integration_dns_connection_name: <linux_network_interface>
+  ad_integration_dns_connection_type: ethernet
+  ```
 
 #### Prerequisites
 
@@ -1198,7 +1208,7 @@ Type: `bool`
 
 User to be created in SQL Server and used for authentication.
 
-Default: `false`
+Default: `null`
 
 Type: `string`
 
@@ -1206,7 +1216,7 @@ Type: `string`
 
 Password to be set for the [`mssql_ad_sql_username`](#mssql_ad_sql_username) user.
 
-Default: `false`
+Default: `null`
 
 Type: `string`
 
@@ -1231,6 +1241,10 @@ Type: `string`
     ad_integration_realm: domain.com
     ad_integration_password: Secret123
     ad_integration_user: Administrator
+    ad_integration_manage_dns: true
+    ad_integration_dns_server: 1.1.1.1
+    ad_integration_dns_connection_name: eth0
+    ad_integration_dns_connection_type: ethernet
 ```
 
 ## License

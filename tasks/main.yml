@@ -683,20 +683,20 @@
       changed_when: true
 
     # Do not fail if account does not exist
-    - name: Check if SQL user exists {{ mssql_ad_sql_username }}
+    - name: Check if SQL user exists {{ mssql_ad_sql_user_name }}
       command: >-
         adutil account exists
-        --name {{ mssql_ad_sql_username }}
+        --name {{ mssql_ad_sql_user_name }}
         --accept-eula
       register: __mssql_adutil_account_exists
       changed_when: false
       failed_when: false
 
-    - name: Verify password provided for user {{ mssql_ad_sql_username }}
+    - name: Verify password provided for user {{ mssql_ad_sql_user_name }}
       command: >-
         sshpass -p {{ mssql_ad_sql_password | quote }}
         ssh -o StrictHostKeyChecking=no
-        -l {{ mssql_ad_sql_username }}@{{ ad_integration_realm }}
+        -l {{ mssql_ad_sql_user_name }}@{{ ad_integration_realm }}
         {{ ansible_fqdn }} id
       register: __mssql_sql_user_ssh
       ignore_errors: true
@@ -704,21 +704,21 @@
       when: __mssql_adutil_account_exists.stdout | bool
       no_log: true
 
-    - name: Update password for the SQL user {{ mssql_ad_sql_username }}
+    - name: Update password for the SQL user {{ mssql_ad_sql_user_name }}
       command: >-
         adutil account setpassword
-        --name {{ mssql_ad_sql_username }}
+        --name {{ mssql_ad_sql_user_name }}
         --password {{ mssql_ad_sql_password | quote }}
       when: __mssql_sql_user_ssh is failed
       no_log: true
 
-    - name: In AD server create user {{ mssql_ad_sql_username }}
+    - name: In AD server create user {{ mssql_ad_sql_user_name }}
       command: >-
         adutil user create
-        --name {{ mssql_ad_sql_username }}
+        --name {{ mssql_ad_sql_user_name }}
         --password {{ mssql_ad_sql_password | quote }}
         --distname
-        CN={{ mssql_ad_sql_username }},CN=Users,DC={{
+        CN={{ mssql_ad_sql_user_name }},CN=Users,DC={{
         ad_integration_realm.split('.') | first | upper
         }},DC=COM
         --debug
@@ -726,15 +726,15 @@
       when: not __mssql_adutil_account_exists.stdout | bool
       no_log: true
 
-    - name: Get SPNs for the principal {{ mssql_ad_sql_username }}
-      command: adutil spn show --name {{ mssql_ad_sql_username }}
+    - name: Get SPNs for the principal {{ mssql_ad_sql_user_name }}
+      command: adutil spn show --name {{ mssql_ad_sql_user_name }}
       register: __mssql_adutil_spn_show
       changed_when: false
 
-    - name: Register SPNs to the principal {{ mssql_ad_sql_username }}
+    - name: Register SPNs to the principal {{ mssql_ad_sql_user_name }}
       command: >-
         adutil spn addauto
-        --name {{ mssql_ad_sql_username }}
+        --name {{ mssql_ad_sql_user_name }}
         --spn-service MSSQLSvc
         --spn-host {{ ansible_fqdn }}
         --spn-port {{ mssql_tcp_port }}
@@ -749,7 +749,7 @@
         in __mssql_adutil_spn_show.stdout
 
     - name: Get kvno of the SPN host
-      command: adutil account kvno {{ mssql_ad_sql_username }}
+      command: adutil account kvno {{ mssql_ad_sql_user_name }}
       register: __mssql_kvno
       changed_when: false
 
@@ -794,16 +794,16 @@
         adutil keytab create
         --password {{ mssql_ad_sql_password | quote }}
         --path {{ __mssql_keytab_path }}
-        --principal {{ mssql_ad_sql_username }}
+        --principal {{ mssql_ad_sql_user_name }}
         --kvno {{ __mssql_kvno.stdout }}
         --enctype aes256-cts-hmac-sha1-96,aes128-cts-hmac-sha1-96
       when:
         - >-
-          not __mssql_kvno.stdout ~ " " ~ mssql_ad_sql_username ~ "@"
+          not __mssql_kvno.stdout ~ " " ~ mssql_ad_sql_user_name ~ "@"
           ~ ad_integration_realm | upper ~ " (aes256-cts-hmac-sha1-96)"
           in __mssql_keytab_properties.stdout | d()
         - >-
-          not __mssql_kvno.stdout ~ " " ~ mssql_ad_sql_username ~ "@"
+          not __mssql_kvno.stdout ~ " " ~ mssql_ad_sql_user_name ~ "@"
           ~ ad_integration_realm | upper ~ " (aes128-cts-hmac-sha1-96)"
           in __mssql_keytab_properties.stdout | d()
       notify: Restart the mssql-server service
@@ -827,7 +827,7 @@
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_conf_setting: network privilegedadaccount
-        __mssql_conf_setting_value: "{{ mssql_ad_sql_username }}"
+        __mssql_conf_setting_value: "{{ mssql_ad_sql_user_name }}"
 
     - name: Create the privileged account login
       vars:
