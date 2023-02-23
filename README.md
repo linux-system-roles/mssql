@@ -1180,7 +1180,7 @@ To configure AD integration, provide the following variables:
 Ensure that your AD Server and Linux host meet the prerequisites for joining.
 For more information, see [Join SQL Server on a Linux host to an Active Directory domain](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-active-directory-join-domain?view=sql-server-ver15#prerequisites) and [Troubleshoot Active Directory authentication for SQL Server on Linux and containers](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-ad-auth-troubleshooting?view=sql-server-ver15) in Microsoft documetation.
 
-#### Post Configuration Tasks
+#### Finishing AD Server Configuration
 
 After you execute the role to configure AD Server authentication, you must complete one of the following procedures to add AES128 and AES256 kerberos encryption types to the [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name) on AD Server.
 
@@ -1194,6 +1194,23 @@ After you execute the role to configure AD Server authentication, you must compl
     ```powershell
     Set-ADUser -Identity <sqluser> -KerberosEncryptionType AES128,AES256
     ```
+
+#### Verifying Authentication
+
+After you execute the role to configure AD Server authentication and complete [Post Configuration Tasks](#post-configuration-tasks), you log in using Azure Data Studio or complete the following procedure to verify that you can log in to SQL Server from your Linux machine using the <sqluser> account.
+
+1. SSH into the _<sqluser>@<domain.com>_ user on your Linux _client.domain.com_ machine:
+  ```
+  ssh -l <sqluser>@<domain.com> <client.domain.com>
+  ```
+2. Obtain Kerberos ticket for the Administrator user:
+  ```
+  kinit Administrator@<DOMAIN.COM>
+  ```
+3. Use `sqlcmd` to log in to SQL Server and, for example, run the query to get current user:
+  ```
+  /opt/mssql-tools/bin/sqlcmd -S. -Q 'SELECT SYSTEM_USER'
+  ```
 
 #### Variables
 
