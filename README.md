@@ -1161,10 +1161,11 @@ To configure AD integration, provide the following variables:
 * [`mssql_ad_configure: true`](#mssql_ad_configure)
 * [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name)
 * [`mssql_ad_sql_password`](#mssql_ad_sql_password)
+* Optional: [`mssql_ad_sql_user_dn`](#mssql_ad_sql_user_dn)
+* Optional: [`mssql_ad_netbios_name`](#mssql_ad_netbios_name)
 * `ad_integration_realm`
 * `ad_integration_password`
 * `ad_integration_user`
-* Optional: You can provide further variables for the `fedora.linux_system_roles.ad_integration` role if you need.
 * Optional, You can configure DNS using ad_integration role by providing the following variables:
   ```
   ad_integration_manage_dns: true
@@ -1172,13 +1173,14 @@ To configure AD integration, provide the following variables:
   ad_integration_dns_connection_name: <linux_network_interface>
   ad_integration_dns_connection_type: ethernet
   ```
+* Optional: You can provide further variables for the `fedora.linux_system_roles.ad_integration` role if you need.
 
 #### Prerequisites
 
 Ensure that your AD Server and Linux host meet the prerequisites for joining.
 For more information, see [Join SQL Server on a Linux host to an Active Directory domain](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-active-directory-join-domain?view=sql-server-ver15#prerequisites) and [Troubleshoot Active Directory authentication for SQL Server on Linux and containers](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-ad-auth-troubleshooting?view=sql-server-ver15) in Microsoft documetation.
 
-#### Post Configuration Tasks
+#### Finishing AD Server Configuration
 
 After you execute the role to configure AD Server authentication, you must complete one of the following procedures to add AES128 and AES256 kerberos encryption types to the [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name) on AD Server.
 
@@ -1192,6 +1194,23 @@ After you execute the role to configure AD Server authentication, you must compl
     ```powershell
     Set-ADUser -Identity <sqluser> -KerberosEncryptionType AES128,AES256
     ```
+
+#### Verifying Authentication
+
+After you execute the role to configure AD Server authentication and complete [Post Configuration Tasks](#post-configuration-tasks), you log in using Azure Data Studio or complete the following procedure to verify that you can log in to SQL Server from your Linux machine using the <sqluser> account.
+
+1. SSH into the _<sqluser>@<domain.com>_ user on your Linux _client.domain.com_ machine:
+  ```
+  ssh -l <sqluser>@<domain.com> <client.domain.com>
+  ```
+2. Obtain Kerberos ticket for the Administrator user:
+  ```
+  kinit Administrator@<DOMAIN.COM>
+  ```
+3. Use `sqlcmd` to log in to SQL Server and, for example, run the query to get current user:
+  ```
+  /opt/mssql-tools/bin/sqlcmd -S. -Q 'SELECT SYSTEM_USER'
+  ```
 
 #### Variables
 
@@ -1217,6 +1236,45 @@ Type: `string`
 Password to be set for the [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name) user.
 
 Default: `null`
+
+Type: `string`
+
+##### mssql_ad_sql_user_dn
+
+Optional: You must set `mssql_ad_sql_user_dn` if your AD server stores user account in a custom OU rather than in the `Users` OU.
+
+AD distinguished name to create the [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name) at.
+
+By default, the role builds `mssql_ad_sql_user_dn` the following way:
+
+1. `CN={{ mssql_ad_sql_user_name }},` - name of the user created in AD
+2. `CN=Users,` - the `Users` OU where AD stores users by default
+3. `DC=<subdomain1>,DC=<subdomain2>,DC=<subdomainN>,` - all subdomain portions of the AD domain name provided with the `ad_integration_realm` variable
+4. `DC=<TLD>` - top level domain
+
+For example: `CN=sqluser,CN=Users,DC=DOMAIN,DC=COM`.
+
+Default:
+```
+mssql_ad_sql_user_dn: >-
+  CN={{ mssql_ad_sql_user_name }},
+  CN=Users,
+  {{ ad_integration_realm.split(".")
+  | map("regex_replace","^","DC=")
+  | join(",") }}
+```
+
+Type: `string`
+
+##### mssql_ad_netbios_name
+
+Optional: You must set `mssql_ad_netbios_name` if NetBIOS domain name of your AD server does not equal to the first subdomain of the domain name that you provide with the `ad_integration_realm` variable.
+
+For example, if you set `ad_integration_realm` to domain.cortoso.com and your NetBIOS domain name is not `domain`.
+
+This value is used to create the `{{ mssql_ad_netbios_name }}\{{ ad_integration_user }}` login in SQL Server.
+
+Default: `{{ ad_integration_realm.split('.') | first }}`
 
 Type: `string`
 
