@@ -1173,13 +1173,6 @@ To configure AD integration, provide the following variables:
   ad_integration_dns_connection_type: ethernet
   ```
 * Optional: You can provide further variables for the `fedora.linux_system_roles.ad_integration` role if you need.
-* Optional, You can configure DNS using ad_integration role by providing the following variables:
-  ```
-  ad_integration_manage_dns: true
-  ad_integration_dns_server: <AD_server_IP>
-  ad_integration_dns_connection_name: <linux_network_interface>
-  ad_integration_dns_connection_type: ethernet
-  ```
 
 #### Prerequisites
 
@@ -1222,11 +1215,28 @@ Type: `string`
 
 ##### mssql_ad_sql_user_distname
 
+Optional: You must set `mssql_ad_sql_user_distname` if your AD server stores user account in a custom OU rather than in the `Users` OU.
+
 AD distinguished name to create the [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name) at.
 
-For example, `CN=sqluser,CN=Users,DC=DOMAIN,DC=COM`.
+By default, the role builds `mssql_ad_sql_user_distname` the following way:
 
-Default: `null`
+1. `CN={{ mssql_ad_sql_user_name }},` - name of the user created in AD
+2. `CN=Users,` - the `Users` OU where AD stores users by default
+3. `DC=<subdomain1>,DC=<subdomain2>,DC=<subdomainN>,` - all subdomain portions of the AD domain name provided with the `ad_integration_realm` variable
+4. `DC=<TLD>` - top level domain
+
+For example: `CN=sqluser,CN=Users,DC=DOMAIN,DC=COM`.
+
+Default:
+```
+mssql_ad_sql_user_distname: >-
+  CN={{ mssql_ad_sql_user_name }},
+  CN=Users,
+  {{ ad_integration_realm.split(".")
+  | map("regex_replace","^","DC=")
+  | join(",") }}
+```
 
 Type: `string`
 
@@ -1255,7 +1265,6 @@ Type: `string`
     mssql_manage_firewall: true
     mssql_ad_configure: true
     mssql_ad_sql_user_name: sqluser
-    mssql_ad_sql_user_distname: CN=sqluser,CN=Users,DC=DOMAIN,DC=COM
     mssql_ad_sql_password: "p@55w0rD1"
     ad_integration_realm: domain.com
     ad_integration_password: Secret123
