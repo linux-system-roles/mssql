@@ -1160,8 +1160,9 @@ This role uses the `fedora.linux_system_roles.ad_integration` role to join SQL S
 To configure AD integration, provide the following variables:
 * [`mssql_ad_configure: true`](#mssql_ad_configure)
 * [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name)
-* [`mssql_ad_sql_user_dn`](#mssql_ad_sql_user_dn)
 * [`mssql_ad_sql_password`](#mssql_ad_sql_password)
+* Optional: [`mssql_ad_sql_user_dn`](#mssql_ad_sql_user_dn)
+* Optional: [`mssql_ad_netbios_name`](#mssql_ad_netbios_name)
 * `ad_integration_realm`
 * `ad_integration_password`
 * `ad_integration_user`
@@ -1213,6 +1214,14 @@ Default: `null`
 
 Type: `string`
 
+##### mssql_ad_sql_password
+
+Password to be set for the [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name) user.
+
+Default: `null`
+
+Type: `string`
+
 ##### mssql_ad_sql_user_dn
 
 Optional: You must set `mssql_ad_sql_user_dn` if your AD server stores user account in a custom OU rather than in the `Users` OU.
@@ -1240,11 +1249,15 @@ mssql_ad_sql_user_dn: >-
 
 Type: `string`
 
-##### mssql_ad_sql_password
+##### mssql_ad_netbios_name
 
-Password to be set for the [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name) user.
+Optional: You must set `mssql_ad_netbios_name` if NetBIOS domain name of your AD server does not equal to the first subdomain of the domain name that you provide with the `ad_integration_realm` variable.
 
-Default: `null`
+For example, if you set `ad_integration_realm` to domain.cortoso.com and your NetBIOS domain name is not `domain`.
+
+This value is used to create the `{{ mssql_ad_netbios_name }}\{{ ad_integration_user }}` login in SQL Server.
+
+Default: `{{ ad_integration_realm.split('.') | first }}`
 
 Type: `string`
 

@@ -53,6 +53,7 @@ mssql_ha_cluster_run_role: false
 
 mssql_ad_configure: false
 mssql_ad_sql_user_name: null
+mssql_ad_sql_password: null
 # Default to CN={{ mssql_ad_sql_user_name }},CN=Users,DC=DOMAIN,DC=SUBDOMAIN...
 mssql_ad_sql_user_dn: >-
   CN={{ mssql_ad_sql_user_name }},
@@ -60,4 +61,4 @@ mssql_ad_sql_user_dn: >-
   {{ ad_integration_realm.split(".")
   | map("regex_replace","^","DC=")
   | join(",") }}
-mssql_ad_sql_password: null
+mssql_ad_netbios_name: "{{ ad_integration_realm.split('.') | first }}"

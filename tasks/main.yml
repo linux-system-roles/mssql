@@ -831,7 +831,7 @@
         __mssql_sql_files_to_input:
           - ad_create_login.j2
         __mssql_ad_user: >-
-          {{ ad_integration_realm }}\{{ ad_integration_user }}
+          {{ mssql_ad_netbios_name }}\{{ ad_integration_user }}
       include_tasks: input_sql_files.yml
   rescue:
     - name: Print output of failed task
