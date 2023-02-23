@@ -60,6 +60,8 @@ Changelog
     verbosity
   - Add collection-requirements.yml
   - Set the mssql_password variable to default null after test verification
+  - Add mssql_ad_netbios_name
+  - Add mssql_ad_sql_user_dn variable for flexibility
   
 ### Bug Fixes
 
