@@ -1160,7 +1160,7 @@ This role uses the `fedora.linux_system_roles.ad_integration` role to join SQL S
 To configure AD integration, provide the following variables:
 * [`mssql_ad_configure: true`](#mssql_ad_configure)
 * [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name)
-* [`mssql_ad_sql_user_distname`](#mssql_ad_sql_user_distname)
+* [`mssql_ad_sql_user_dn`](#mssql_ad_sql_user_dn)
 * [`mssql_ad_sql_password`](#mssql_ad_sql_password)
 * `ad_integration_realm`
 * `ad_integration_password`
@@ -1213,13 +1213,13 @@ Default: `null`
 
 Type: `string`
 
-##### mssql_ad_sql_user_distname
+##### mssql_ad_sql_user_dn
 
-Optional: You must set `mssql_ad_sql_user_distname` if your AD server stores user account in a custom OU rather than in the `Users` OU.
+Optional: You must set `mssql_ad_sql_user_dn` if your AD server stores user account in a custom OU rather than in the `Users` OU.
 
 AD distinguished name to create the [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name) at.
 
-By default, the role builds `mssql_ad_sql_user_distname` the following way:
+By default, the role builds `mssql_ad_sql_user_dn` the following way:
 
 1. `CN={{ mssql_ad_sql_user_name }},` - name of the user created in AD
 2. `CN=Users,` - the `Users` OU where AD stores users by default
@@ -1230,7 +1230,7 @@ For example: `CN=sqluser,CN=Users,DC=DOMAIN,DC=COM`.
 
 Default:
 ```
-mssql_ad_sql_user_distname: >-
+mssql_ad_sql_user_dn: >-
   CN={{ mssql_ad_sql_user_name }},
   CN=Users,
   {{ ad_integration_realm.split(".")

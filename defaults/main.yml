@@ -54,7 +54,7 @@ mssql_ha_cluster_run_role: false
 mssql_ad_configure: false
 mssql_ad_sql_user_name: null
 # Default to CN={{ mssql_ad_sql_user_name }},CN=Users,DC=DOMAIN,DC=SUBDOMAIN...
-mssql_ad_sql_user_distname: >-
+mssql_ad_sql_user_dn: >-
   CN={{ mssql_ad_sql_user_name }},
   CN=Users,
   {{ ad_integration_realm.split(".")

@@ -32,7 +32,6 @@
     mssql_debug: true
     mssql_ad_configure: true
     mssql_ad_sql_user_name: sqluser
-    mssql_ad_sql_user_distname: CN=sqluser,CN=Users,DC=DOMAIN,DC=COM
     mssql_ad_sql_password: "p@55w0rD1"
     ad_integration_realm: domain.com
     ad_integration_password: Secret123
