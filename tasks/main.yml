@@ -717,7 +717,7 @@
         adutil user create
         --name {{ mssql_ad_sql_user_name }}
         --password {{ mssql_ad_sql_password | quote }}
-        --distname {{ mssql_ad_sql_user_dn | regex_replace(' ', '') }}
+        --distname {{ mssql_ad_sql_user_dn | quote }}
         --debug
       register: __mssql_adutil_user_create
       when: not __mssql_adutil_account_exists.stdout | bool
