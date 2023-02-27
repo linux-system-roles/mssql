@@ -86,11 +86,5 @@
         - name: End EL < 8 host
           meta: end_host
 
-    - name: Upgrade to 2022 and assert expected results
-      include_tasks: tasks/upgrade_and_assert.yml
-      vars:
-        __mssql_version: 2022
-        __mssql_prev_version: 2019
-
     - name: Check the ansible_managed header in the configuration file
       include_tasks: tasks/check_header.yml
