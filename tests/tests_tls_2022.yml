@@ -9,7 +9,7 @@
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_tcp_port: 1433
-    mssql_version: 2019
+    mssql_version: 2022
   tasks:
     - name: Ensure the openssl package
       package:
@@ -170,7 +170,7 @@
         __verify_mssql_password: "p@55w0rD"
         __verify_mssql_is_tls_encrypted: true
 
-    # Test disabling TLS encryption
+    # Disable TLS encryption for future tests
     - name: Disable TLS encryption
       include_role:
         name: linux-system-roles.mssql
