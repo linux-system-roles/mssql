@@ -9,6 +9,9 @@
     mssql_manage_firewall: true
     mssql_version: 2022
   tasks:
+    - name: Assert fail on RHEL 7 when upgrading to 2022
+      include_tasks: tasks/sqlserver2022-rhel7-assert-fail.yml
+
     - name: Test while not settings mssql_tcp_port to default it to 1433
       vars:
         __mssql_test_port: 1433

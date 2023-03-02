@@ -11,6 +11,9 @@
     mssql_tcp_port: 1433
     mssql_version: 2022
   tasks:
+    - name: Assert fail on RHEL 7 when upgrading to 2022
+      include_tasks: tasks/sqlserver2022-rhel7-assert-fail.yml
+
     - name: Ensure the openssl package
       package:
         name: openssl
