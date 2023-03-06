@@ -6,7 +6,7 @@
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
-    mssql_version: 2019
+    mssql_version: 2017
   tasks:
     - name: Verify the failure on a fresh host when required vars undefined
       block:
