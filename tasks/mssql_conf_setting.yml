@@ -42,7 +42,7 @@
 - name: Unset the setting {{ __mssql_conf_setting }}
   command: >-
     {{ __mssql_conf_cli }} unset
-    {{ __mssql_conf_setting | regex_replace('\s','.') }}
+    {{ __mssql_conf_setting | regex_replace('\s', '.') }}
   when:
     - __mssql_conf_setting_value == "unset"
     - '"No setting for the given" not in __mssql_conf_get_setting.stdout'
@@ -51,3 +51,4 @@
     ("error" in __mssql_conf_unset.stdout | lower) or
     (__mssql_conf_unset is failed)
   notify: Restart the mssql-server service
+  changed_when: true
