@@ -152,7 +152,9 @@
         state: latest  # noqa package-latest
 
     - name: Get yum repositories  # noqa command-instead-of-module
-      shell: yum repolist --enabled
+      shell: >-
+        set -euo pipefail;
+        yum repolist --enabled
         | grep packages-microsoft-com-mssql-server-
         | grep -v packages-microsoft-com-mssql-server-{{ mssql_version }}
         | cut -d" " -f 1
@@ -248,6 +250,7 @@
       when: not __mssql_is_setup
       register: __mssql_conf_setup
       no_log: true
+      changed_when: true
   rescue:
     - name: Print output of failed task
       fail:
@@ -367,6 +370,7 @@
           notify: Restart the mssql-server service
           register: __mssql_set_ha_password
           no_log: true
+          changed_when: true
       rescue:
         - name: Workaround for expected error on version 2022
           fail:
@@ -540,12 +544,14 @@
       when:
         - mssql_tune_for_fua_storage | bool
         - "'3979' not in __mssql_get_traceflag.stdout"
+      changed_when: true
 
     - name: Unset the 3979 traceflag
       command: "{{ __mssql_conf_cli }} traceflag 3979 off"
       when:
         - not mssql_tune_for_fua_storage | bool
         - "'3979' in __mssql_get_traceflag.stdout"
+      changed_when: true
 
     # the alternatewritethrough must be set to `false` as per MS docs
     - name: Configure the alternatewritethrough setting
@@ -711,6 +717,7 @@
         --password {{ mssql_ad_sql_password | quote }}
       when: __mssql_sql_user_ssh is failed
       no_log: true
+      changed_when: true
 
     - name: In AD server create user {{ mssql_ad_sql_user_name }}
       command: >-
@@ -722,6 +729,7 @@
       register: __mssql_adutil_user_create
       when: not __mssql_adutil_account_exists.stdout | bool
       no_log: true
+      changed_when: true
 
     - name: Get SPNs for the principal {{ mssql_ad_sql_user_name }}
       command: adutil spn show --name {{ mssql_ad_sql_user_name }}
@@ -785,6 +793,7 @@
           in __mssql_keytab_properties.stdout | d()
       notify: Restart the mssql-server service
       no_log: true
+      changed_when: true
 
     - name: Add an entry in the keytab for the principal name and password
       command: >-
@@ -805,6 +814,7 @@
           in __mssql_keytab_properties.stdout | d()
       notify: Restart the mssql-server service
       no_log: true
+      changed_when: true
 
     - name: Ensure correct permissions and ownership on the keytab
       file:
@@ -946,6 +956,7 @@
           service:
             name: mssql-server
             state: restarted
+          # noqa no-handler
           when: (__mssql_conf_set is changed) or
             (__mssql_server_ha_packages_install is changed)
 
@@ -1086,6 +1097,7 @@
           service:
             name: mssql-server
             state: restarted
+          # noqa no-handler
           when: (__mssql_conf_set is changed) or
             (__mssql_server_ha_packages_install is changed)
           register: __mssql_replica_restarted
