@@ -59,6 +59,6 @@ mssql_ad_sql_user_dn: >-
   CN={{ mssql_ad_sql_user_name }},
   CN=Users,
   {{ ad_integration_realm.split(".")
-  | map("regex_replace","^","DC=")
+  | map("regex_replace", "^", "DC=")
   | join(",") }}
 mssql_ad_netbios_name: "{{ ad_integration_realm.split('.') | first }}"

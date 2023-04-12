@@ -43,7 +43,6 @@
         state: absent
 
     - name: Remove related files
-      # noqa deprecated-command-syntax
       shell: >-
         rm -rf /var/opt/mssql
         /opt/mssql
