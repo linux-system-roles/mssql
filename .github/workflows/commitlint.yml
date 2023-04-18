@@ -52,13 +52,3 @@ jobs:
       - name: Run commitlint on PR title
         run: |
           echo ${{ github.event.pull_request.title }} | npx commitlint --verbose
-
-      - name: Fail if more than one commits exist in the PR
-        if: ${{ github.event.pull_request.commits != 1 }}
-        run: |
-          cat << EOF
-          You must squash commits into one.
-          Run 'git rebase -i origin/main' and replace 'pick' with 's' for all
-          commits except the first.
-          EOF
-          exit 1
