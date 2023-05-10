@@ -13,14 +13,13 @@
 
 - name: Verify the setting when it is type str {{ __mssql_conf_setting }}
   vars:
-    # basename is needed for settings that have path values, such as tlskey
     __mssql_conf_get_value: >-
       {{ __mssql_conf_get_setting.stdout |
-      regex_replace('^.*\s=\s', '') | string | lower | basename }}
+      regex_replace('^.*\s=\s', '') | string }}
   assert:
     that: __mssql_conf_get_value == __mssql_conf_value | string
   when:
-    - "__mssql_conf_value | type_debug == 'str'"
+    - __mssql_conf_value | type_debug != 'bool'
     - __mssql_conf_setting != "tcpport"
 
 - name: Verify the setting when it is type bool {{ __mssql_conf_setting }}

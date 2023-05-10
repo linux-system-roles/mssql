@@ -256,6 +256,21 @@
       fail:
         msg: "{{ ansible_failed_result.stderr_lines }}"
 
+- name: Ensure the directory and permissions for datadir and logdir
+  when: item.path is not none
+  loop:
+    - path: "{{ mssql_datadir }}"
+      mode: "{{ mssql_datadir_mode }}"
+      setting: defaultdatadir
+    - path: "{{ mssql_logdir }}"
+      mode: "{{ mssql_logdir_mode }}"
+      setting: defaultlogdir
+  include_tasks: configure_storage_paths.yml
+  vars:
+    __mssql_storage_path: "{{ item.path }}"
+    __mssql_storage_mode: "{{ item.mode }}"
+    __mssql_storage_setting: "{{ item.setting }}"
+
 - name: Ensure that the tuned-profiles-mssql package is installed
   package:
     name: tuned-profiles-mssql

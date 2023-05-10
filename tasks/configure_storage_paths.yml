@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: MIT
+---
+- name: Get stat of the directory {{ __mssql_storage_path }}
+  stat:
+    path: "{{ __mssql_storage_path }}"
+  register: __mssql_storage_path_stat
+
+- name: Ensure the directory and permissions for {{ __mssql_storage_path }}
+  # null converts to an empty string when setting vars in the parent task
+  when: __mssql_storage_mode != ''
+  file:
+    path: "{{ __mssql_storage_path }}"
+    state: directory
+    owner: mssql
+    group: mssql
+    mode: "{{ __mssql_storage_mode }}"
+
+- name: >-
+    Ensure the directory and keep present permissions {{ __mssql_storage_path }}
+  when: __mssql_storage_mode == ''
+  file:  # noqa risky-file-permissions
+    path: "{{ __mssql_storage_path }}"
+    state: directory
+    owner: mssql
+    group: mssql
+
+- name: Configure the setting {{ __mssql_storage_setting }}
+  include_tasks: mssql_conf_setting.yml
+  vars:
+    __mssql_conf_setting: filelocation {{ __mssql_storage_setting }}
+    __mssql_conf_setting_value: "{{ __mssql_storage_path }}"
