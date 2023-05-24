@@ -5,24 +5,20 @@
     path: "{{ __mssql_storage_path }}"
   register: __mssql_storage_path_stat
 
-- name: Ensure the directory and permissions for {{ __mssql_storage_path }}
-  # null converts to an empty string when setting vars in the parent task
-  when: __mssql_storage_mode != ''
-  file:
-    path: "{{ __mssql_storage_path }}"
-    state: directory
-    owner: mssql
-    group: mssql
-    mode: "{{ __mssql_storage_mode }}"
-
 - name: >-
     Ensure the directory and keep present permissions {{ __mssql_storage_path }}
-  when: __mssql_storage_mode == ''
   file:  # noqa risky-file-permissions
     path: "{{ __mssql_storage_path }}"
     state: directory
     owner: mssql
     group: mssql
+    mode: "{{
+      __mssql_storage_mode if __mssql_storage_mode != ''
+      else
+      __mssql_storage_path_stat.stat.mode
+      if __mssql_storage_path_stat.stat.exists
+      else
+      __mssql_storage_mode_default }}"
 
 - name: Configure the setting {{ __mssql_storage_setting }}
   include_tasks: mssql_conf_setting.yml
