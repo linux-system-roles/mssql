@@ -90,22 +90,16 @@
         tasks_from: verify_password
         public: true
 
-    - name: Wait for mssql-server to start and prepare for client connections
+    - name: Wait for mssql-server to prepare for client connections
       wait_for:
         path: /var/opt/mssql/log/errorlog
         search_regex: SQL Server is now ready for client connections
-        delay: 3
+        delay: 15
         timeout: 40
 
     - name: Check if the set password matches the existing password
       command: "{{ __mssql_sqlcmd_login_cmd }} -Q 'SELECT @@VERSION'"
-      ignore_errors: true
       changed_when: false
-      register: __mssql_password_query
-
-    - name: Verify if the password matched
-      assert:
-        that: __mssql_password_query is success
 
     - name: Set the mssql_password variable to default null
       set_fact:
