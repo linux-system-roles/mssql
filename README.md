@@ -13,6 +13,9 @@ The role also optimizes the operating system to improve performance and throughp
 
 ## Role Scenarios
 
+This section describes different scenarios that the role can accomplish.
+You can combine the scenarios by combining variables serving different scenarios into a larger playbook.
+
 ### Configuring General SQL Server Settings
 
 These variables apply to general SQL Server configuration.
@@ -293,6 +296,60 @@ Type: `string`
 The URL to the Microsoft production repository.
 
 Default: `{{ __mssql_client_repository }}`
+
+Type: `string`
+
+### Configuring Custom Data and Logs Storage Paths
+
+Optional: Use these variables to configure SQL Server to store data and logs in custom paths.
+
+#### Variables
+
+##### mssql_datadir
+
+The path to the directory that SQL Server must use to store data.
+When defined, the role creates the provided directory and ensures correct permissions and ownership for it.
+
+Note that if you change this path, the previously used directory and all it's content remains at the original path.
+
+Default: `null`
+
+Type: `string`
+
+##### mssql_datadir_mode
+
+The permissions to be set for the `mssql_datadir` path in the format of the Ansible `file` module `mode` variable.
+
+Quote the mode like `'0700'` so Ansible parses it as a string to avoid conflicts with octal numbers.
+
+If mode is not specified and the destination directory *does not* exist, the role uses the default umask on the system when setting the mode.
+If mode is not specified and the destination directory *does* exist, the role uses the mode of the existing directory.
+
+Default: `null`
+
+Type: `string`
+
+##### mssql_logdir
+
+The path to the directory that SQL Server must use to store logs.
+When defined, the role creates the provided directory and ensures correct permissions and ownership for it.
+
+Note that if you change this path, the previously used directory and all it's content remains at the original path.
+
+Default: `null`
+
+Type: `string`
+
+##### mssql_logdir_mode
+
+The permissions to be set for the `mssql_logdir` path in the format of the Ansible `file` module `mode` variable.
+
+Quote the mode like `'0700'` so Ansible parses it as a string to avoid conflicts with octal numbers.
+
+If mode is not specified and the destination directory *does not* exist, the role uses the default umask on the system when setting the mode.
+If mode is not specified and the destination directory *does* exist, the role uses the mode of the existing directory.
+
+Default: `null`
 
 Type: `string`
 

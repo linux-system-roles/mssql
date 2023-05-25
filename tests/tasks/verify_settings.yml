@@ -25,11 +25,10 @@
         errorlog_edition="$(grep -oi '{{ __verify_mssql_edition }} edition' \
         {{ __mssql_errorlog.stdout }})"
         if [ -z "${errorlog_edition}" ]; then
-          edition_matches=false
+          echo false
         else
-          edition_matches=true
+          echo true
         fi
-        echo "${edition_matches}"
       register: __mssql_edition_matches
       changed_when: false
 
@@ -37,19 +36,48 @@
       assert:
         that: __mssql_edition_matches.stdout | bool
 
-- name: Verify the IP address setting
+- name: Verify the setting {{ item.key }}
+  with_dict:
+    ipaddress: "{{ __verify_mssql_ip_address }}"
+    tcpport: "{{ __verify_mssql_tcp_port }}"
+    defaultdatadir: "{{ __verify_mssql_datadir }}"
+    defaultlogdir: "{{ __verify_mssql_logdir }}"
+    enabled: "{{ __verify_mssql_agent_is_enabled }}"
+  when: item.value is defined
   include_tasks: mssql_conf_verify.yml
   vars:
-    __mssql_conf_setting: ipaddress
-    __mssql_conf_value: __mssql_ip_address_matches
-  when: __mssql_ip_address_matches is defined
+    __mssql_conf_setting: "{{ item.key }}"
+    __mssql_conf_value: "{{ item.value }}"
 
-- name: Verify the TCP port setting
-  include_tasks: mssql_conf_verify.yml
-  vars:
-    __mssql_conf_setting: tcpport
-    __mssql_conf_value: "{{ __mssql_tcp_port_matches }}"
-  when: __mssql_tcp_port_matches is defined
+- name: Verify mssql_datadir permissions and ownership
+  when: __verify_mssql_datadir_mode is defined
+  block:
+    - name: Get stat of mssql_datadir
+      stat:
+        path: "{{ __verify_mssql_datadir }}"
+      register: __mssql_datadir_stat
+
+    - name: Assert that mssql_datadir has proper permissions and ownership
+      assert:
+        that:
+          - __mssql_datadir_stat.stat.mode == __verify_mssql_datadir_mode
+          - __mssql_datadir_stat.stat.gr_name == 'mssql'
+          - __mssql_datadir_stat.stat.pw_name == 'mssql'
+
+- name: Verify mssql_logdir permissions and ownership
+  when: __verify_mssql_logdir_mode is defined
+  block:
+    - name: Get stat of mssql_logdir
+      stat:
+        path: "{{ __verify_mssql_logdir }}"
+      register: __mssql_logdir_stat
+
+    - name: Assert that mssql_logdir has proper permissions and ownership
+      assert:
+        that:
+          - __mssql_logdir_stat.stat.mode == __verify_mssql_logdir_mode
+          - __mssql_logdir_stat.stat.gr_name == 'mssql'
+          - __mssql_logdir_stat.stat.pw_name == 'mssql'
 
 - name: Verify password
   when: __verify_mssql_password is defined
@@ -82,13 +110,6 @@
     - name: Set the mssql_password variable to default null
       set_fact:
         mssql_password: null
-
-- name: Verify that the SQL agent is enabled
-  include_tasks: mssql_conf_verify.yml
-  vars:
-    __mssql_conf_setting: enabled
-    __mssql_conf_value: "{{ __verify_mssql_agent_is_enabled }}"
-  when: __verify_mssql_agent_is_enabled is defined
 
 - name: Verify the package {{ __mssql_server_fts_packages }}
   include_tasks: verify_package.yml
@@ -161,7 +182,8 @@
       vars:
         __mssql_conf_setting: tlscert
         __mssql_conf_value: >-
-          {{ mssql_tls_cert | basename if __verify_mssql_is_tls_encrypted
+          {{ '/etc/pki/tls/certs/' ~ mssql_tls_cert | basename
+          if __verify_mssql_is_tls_encrypted
           else '' }}
 
     - name: Verify the tlskey setting
@@ -169,8 +191,9 @@
       vars:
         __mssql_conf_setting: tlskey
         __mssql_conf_value: >-
-          {{ mssql_tls_private_key | basename if
-          __verify_mssql_is_tls_encrypted else '' }}
+          {{ '/etc/pki/tls/private/' ~ mssql_tls_private_key | basename
+          if __verify_mssql_is_tls_encrypted
+          else '' }}
 
     - name: Verify the tlsprotocols setting
       include_tasks: mssql_conf_verify.yml
