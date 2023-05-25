@@ -22,6 +22,10 @@
         mssql_enable_ha: true
         mssql_tune_for_fua_storage: true
         mssql_install_powershell: true
+        mssql_datadir: /tmp/data
+        mssql_logdir: /tmp/log
+        mssql_datadir_mode: '0700'
+        mssql_logdir_mode: '0700'
 
     - name: Configure the mssql-server service start limit interval and burst
       include_tasks: tasks/mssql-sever-increase-start-limit.yml
@@ -39,6 +43,8 @@
         mssql_enable_ha: true
         mssql_tune_for_fua_storage: true
         mssql_install_powershell: true
+        mssql_datadir: /tmp/data
+        mssql_logdir: /tmp/log
 
     - name: Verify settings
       include_tasks: tasks/verify_settings.yml
@@ -52,6 +58,10 @@
         __verify_mssql_ha_is_installed: true
         __verify_mssql_is_tuned_for_fua: true
         __verify_mssql_powershell_is_installed: true
+        __verify_mssql_datadir: /tmp/data
+        __verify_mssql_logdir: /tmp/log
+        __verify_mssql_datadir_mode: '0700'
+        __verify_mssql_logdir_mode: '0700'
 
     - name: Run to edit settings
       include_role:
@@ -66,6 +76,10 @@
         mssql_enable_ha: false
         mssql_tune_for_fua_storage: false
         mssql_install_powershell: false
+        mssql_datadir: /var/opt/mssql/data
+        mssql_logdir: /var/opt/mssql/log
+        mssql_datadir_mode: '0755'
+        mssql_logdir_mode: '0755'
 
     - name: Run with the edited settings again - should report not changed
       include_role:
@@ -80,6 +94,8 @@
         mssql_enable_ha: false
         mssql_tune_for_fua_storage: false
         mssql_install_powershell: false
+        mssql_datadir: /var/opt/mssql/data
+        mssql_logdir: /var/opt/mssql/log
 
     - name: Verify disabled settings
       include_tasks: tasks/verify_settings.yml
@@ -93,6 +109,10 @@
         __verify_mssql_ha_is_installed: false
         __verify_mssql_is_tuned_for_fua: false
         __verify_mssql_powershell_is_installed: false
+        __verify_mssql_datadir: /var/opt/mssql/data
+        __verify_mssql_logdir: /var/opt/mssql/log
+        __verify_mssql_datadir_mode: '0755'
+        __verify_mssql_logdir_mode: '0755'
 
     - name: Check the ansible_managed header in the configuration file
       include_tasks: tasks/check_header.yml
