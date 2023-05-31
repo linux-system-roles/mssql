@@ -1,6 +1,110 @@
 Changelog
 =========
 
+[1.4.0] - 2023-05-31
+--------------------
+
+### New Features
+
+- feat: Support custom data and logs storage paths (#199)
+
+  Previously, the role was configuring the default data and logs storage
+  paths. Currently, you can provide custom storage paths with variables
+  `mssql_datadir` and `mssql_logdir`, and optionally set permissions for
+  the custom paths with `mssql_datadir_mode` and `mssql_logdir_mode`
+  variables.
+
+### Other Changes
+
+- perf: Enable running in series (#182)
+
+  * Split tests_upgrade to tests_2019_upgrade and tests_2022_upgrade
+  
+  * Replace tests_accept_eula_2019 with 2017
+  
+  * tests_tls: Clone for 2017 and 2022, disable encryption for future tests
+  
+  * Clone tests_tcp_firewall for all versions
+  
+  * Assert fail on RHEL 7 when upgrading to 2022 on new tests
+  
+  * Unset settings using format with dot between setting names
+  
+- ci: update tox-lsr to 2.13.2; update ansible-lint configuration; start of support for merge queues
+
+  Update tox-lsr to 2.13.2
+  
+  Update ansible-lint configuration
+  
+  Add support for merge queues to github actions
+  This doesn't mean all system roles support merge queues,
+  this is just a preliminary step
+  
+  See https://github.com/linux-system-roles/.github/pull/21
+  
+  Signed-off-by: Rich Megginson <rmeggins@redhat.com>
+  
+- docs: Add README-ansible.md to refer Ansible intro page on linux-system-roles.github.io
+
+  Signed-off-by: Noriko Hosoi <nhosoi@redhat.com>
+  
+- chore: Fingerprint RHEL System Role managed config files (#185)
+
+  - Add role name to the generated config files.
+  
+  Signed-off-by: Noriko Hosoi <nhosoi@redhat.com>
+  
+- ci: ansible-lint - use changed_when for conditional tasks; fix spacing (#186)
+
+  ansible-lint now requires the use of changed_when even for
+  conditional tasks
+  
+  - Fix some jinja spacing issues
+  - add skip for `galaxy[no-runtime]`
+  - remove deprecated suppression comment
+  - add pipefail for shell
+  - add yaml header for vault-variables.yml
+  
+  Signed-off-by: Rich Megginson <rmeggins@redhat.com>
+  
+- ci: Add commitlint GitHub action to ensure conventional commits with feedback
+
+  For more information, see Conventional Commits format in Contribute
+  https://linux-system-roles.github.io/contribute.html#conventional-commits-format
+  
+  Signed-off-by: Sergei Petrosian <spetrosi@redhat.com>
+  
+- docs: Consistent contributing.md for all roles - allow role specific contributing.md section
+
+  Provide a single, consistent contributing.md for all roles.  This mostly links to
+  and summarizes https://linux-system-roles.github.io/contribute.html
+  
+  Allow for a role specific section which typically has information about
+  role particulars, role debugging tips, etc.
+  
+  See https://github.com/linux-system-roles/.github/pull/19
+  
+  Signed-off-by: Rich Megginson <rmeggins@redhat.com>
+  
+- ci: update tox-lsr to version 3.0.0
+
+  The major version bump is because tox-lsr 3 drops support
+  for tox version 2.  If you are using tox 2 you will need to
+  upgrade to tox 3 or 4.
+  
+  tox-lsr 3.0.0 adds support for tox 4, commitlint, and ansible-lint-collection
+  
+  See https://github.com/linux-system-roles/tox-lsr/releases/tag/3.0.0
+  for full release notes
+  
+  Signed-off-by: Rich Megginson <rmeggins@redhat.com>
+  
+- refactor: Refactor tests and fix tests timeouts (#201)
+
+  * Print stdout and stderr for sqlcmd files input
+  * Wait for mssql-server to start longer to avoid timeout
+  * Put tests tasks in separate files to reuse for diff versions
+
 [1.3.0] - 2023-02-16
 --------------------
 
