@@ -34,23 +34,20 @@
   always:
     # Role prints the output if the input succeeds, otherwise Ansible prints the
     # output from the failed input tasks
-    - name: Print debug info for {{ item }}
-      when: >-
-        (__mssql_sqlcmd_input.stdout_lines | length > 0
-        and
-        mssql_debug | bool)
-        or
-        (__mssql_sqlcmd_input is failed)
-      block:
-        - name: >-
-            Print the output of the sqlcmd command
-            if not empty for {{ item }}
-          debug:
-            var: __mssql_sqlcmd_input.stdout_lines
-
-        - name: Print the file where script is stored
-          debug:
-            var: __mssql_sql_tempfile.path
+    - name: Print file location and output from inputting {{ item }}
+      when:
+        - >-
+          (mssql_debug | bool) or
+          (__mssql_sqlcmd_input is failed)
+        - __mssql_sqlcmd_loop | length > 0
+      debug:
+        var: __mssql_sqlcmd_loop
+      loop:
+        - "{{ __mssql_sql_tempfile.path }}"
+        - "{{ __mssql_sqlcmd_input.stdout_lines }}"
+        - "{{ __mssql_sqlcmd_input.stderr_lines }}"
+      loop_control:
+        loop_var: __mssql_sqlcmd_loop
 
     # Role keeps the file if the input failed
     - name: Remove the tempfile {{ item }}

@@ -1,4 +1,8 @@
 ---
+- name: Ensure ansible_facts to get ansible_distribution
+  setup:
+    gather_subset: min
+
 - name: Assert fail on RHEL 7 when upgrading to 2022
   when:
     - ansible_distribution in ['CentOS', 'RedHat']

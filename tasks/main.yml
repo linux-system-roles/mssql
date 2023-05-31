@@ -253,8 +253,12 @@
       changed_when: true
   rescue:
     - name: Print output of failed task
+      when: item | length > 0
       fail:
-        msg: "{{ ansible_failed_result.stderr_lines }}"
+        msg: "{{ item }}"
+      loop:
+        - "{{ ansible_failed_result.stderr_lines }}"
+        - "{{ ansible_failed_result.stdout_lines }}"
 
 - name: Ensure the directory and permissions for datadir and logdir
   when: item.path is not none
@@ -860,8 +864,12 @@
       include_tasks: input_sql_files.yml
   rescue:
     - name: Print output of failed task
+      when: item | length > 0
       fail:
-        msg: "{{ ansible_failed_result.stderr_lines }}"
+        msg: "{{ item }}"
+      loop:
+        - "{{ ansible_failed_result.stderr_lines }}"
+        - "{{ ansible_failed_result.stdout_lines }}"
 
 - name: Configure for high availability
   when: mssql_ha_configure | bool
