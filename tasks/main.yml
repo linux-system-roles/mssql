@@ -534,21 +534,6 @@
     state: "{{ 'present' if mssql_install_powershell | bool else 'absent' }}"
   when: mssql_install_powershell is not none
 
-- name: Configure HA
-  when: mssql_enable_ha is not none
-  block:
-    - name: Ensure the package {{ __mssql_server_ha_packages }}
-      package:
-        name: "{{ __mssql_server_ha_packages }}"
-        state: "{{ 'present' if mssql_enable_ha | bool else 'absent' }}"
-      notify: Restart the mssql-server service
-
-    - name: Configure the hadrenabled setting
-      include_tasks: mssql_conf_setting.yml
-      vars:
-        __mssql_conf_setting: "hadr hadrenabled"
-        __mssql_conf_setting_value: "{{ 1 if mssql_enable_ha else 0 }}"
-
 - name: Tune MSSQL for FUA-capable storage
   when: mssql_tune_for_fua_storage is not none
   block:

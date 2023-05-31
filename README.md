@@ -96,14 +96,6 @@ Default: `null`
 
 Type: `bool`
 
-##### mssql_enable_ha
-
-Optional: Set this variable to `true` or `false` to install or remove the `mssql-server-ha` package and enable or disable the `hadrenabled` setting.
-
-Default: `null`
-
-Type: `bool`
-
 ##### mssql_tune_for_fua_storage
 
 Optional: Set this variable to `true` or `false` to enable or disable settings that improve performance on hosts that support Forced Unit Access (FUA) capability.
