@@ -35,6 +35,12 @@
       command: kdestroy -A
       when: ansible_facts.packages["krb5-workstation"] is defined
 
+    - name: Ensure that yum and dnf caching is enabled
+      lineinfile:
+        path: /etc/yum.conf
+        regexp: '^keepcache='
+        line: keepcache=1
+
     - name: Remove related packages
       package:
         name:
@@ -44,10 +50,11 @@
 
     - name: Remove related files
       shell: >-
-        rm -rf /var/opt/mssql
+        rm -rfv /var/opt/mssql
         /opt/mssql
         /tmp/ansible.*
         /var/log/pacemaker/pacemaker.log
         /etc/yum.repos.d/packages-microsoft-com-*
         /tmp/*.j2
-      changed_when: true
+      register: __mssql_cleanup_remove
+      changed_when: "'removed' in __mssql_cleanup_remove.stdout"
