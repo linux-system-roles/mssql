@@ -1,6 +1,32 @@
 Changelog
 =========
 
+[1.4.1] - 2023-06-12
+--------------------
+
+### Bug Fixes
+
+- fix: Remove outdated and confusing mssql_enable_ha variable (#204)
+
+  It has a very limited functionality, the proper HA functionality is available with the mssql_ha_configure variable
+
+### Other Changes
+
+- tests: Keep cache in cleanup and rename for consistency (#203)
+
+- ci: Add pull request template and run commitlint on PR title only (#205)
+
+  We now ensure the conventional commits format only on PR titles and not on
+  commits to let developers keep commit messages targeted for other developers
+  i.e. describe actual changes to code that users should not care about.
+  And PR titles, on the contrary, must be aimed at end users.
+  
+  For more info, see
+  https://linux-system-roles.github.io/contribute.html#write-a-good-pr-title-and-description
+  
+  Signed-off-by: Sergei Petrosian <spetrosi@redhat.com>
+
+
 [1.4.0] - 2023-05-31
 --------------------
 
