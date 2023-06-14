@@ -9,5 +9,10 @@
     mssql_manage_firewall: true
     mssql_version: 2022
   tasks:
-    - name: Configure the mssql-server service start limit interval and burst
-      include_tasks: tasks/tests_tcp_firewall.yml
+    - name: Run test in a block to clean up in always
+      block:
+        - name: Run tests_tcp_firewall with SQL Server {{ mssql_version }}
+          include_tasks: tasks/tests_tcp_firewall.yml
+      always:
+        - name: Clean up after the role invocation
+          include_tasks: tasks/cleanup.yml

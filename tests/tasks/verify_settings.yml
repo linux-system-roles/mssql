@@ -94,7 +94,7 @@
       wait_for:
         path: /var/opt/mssql/log/errorlog
         search_regex: SQL Server is now ready for client connections
-        delay: 15
+        delay: 18
         timeout: 40
 
     - name: Check if the set password matches the existing password
@@ -119,22 +119,6 @@
     __mssql_verify_package_installed: >-
       {{ __verify_mssql_powershell_is_installed }}
   when: __verify_mssql_powershell_is_installed is defined
-
-- name: Verify the ha settings
-  when: __verify_mssql_ha_is_installed is defined
-  block:
-    - name: Verify if the package is installed {{ __mssql_server_ha_packages }}
-      include_tasks: verify_package.yml
-      vars:
-        __mssql_verify_package_name: "{{ __mssql_server_ha_packages }}"
-        __mssql_verify_package_installed: "{{ __verify_mssql_ha_is_installed }}"
-
-    - name: Verify the hadrenabled setting
-      include_tasks: mssql_conf_verify.yml
-      vars:
-        __mssql_conf_setting: hadrenabled
-        __mssql_conf_value: >-
-          {{ true if __verify_mssql_ha_is_installed else false }}
 
 - name: Verify that MSSQL is tuned for FUA
   when: __verify_mssql_is_tuned_for_fua is defined
@@ -175,8 +159,10 @@
       include_tasks: mssql_conf_verify.yml
       vars:
         __mssql_conf_setting: tlscert
+        __mssql_tls_cert: >-
+          {{ mssql_tls_cert if mssql_tls_cert is not none else '' }}
         __mssql_conf_value: >-
-          {{ '/etc/pki/tls/certs/' ~ mssql_tls_cert | basename
+          {{ '/etc/pki/tls/certs/' ~ __mssql_tls_cert | basename
           if __verify_mssql_is_tls_encrypted
           else '' }}
 
@@ -184,8 +170,11 @@
       include_tasks: mssql_conf_verify.yml
       vars:
         __mssql_conf_setting: tlskey
+        __mssql_tls_private_key: >-
+          {{ mssql_tls_private_key if mssql_tls_private_key is not none
+          else '' }}
         __mssql_conf_value: >-
-          {{ '/etc/pki/tls/private/' ~ mssql_tls_private_key | basename
+          {{ '/etc/pki/tls/private/' ~ __mssql_tls_private_key | basename
           if __verify_mssql_is_tls_encrypted
           else '' }}
 

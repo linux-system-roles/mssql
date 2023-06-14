@@ -1,0 +1,75 @@
+---
+- name: Gather package facts
+  package_facts:
+    manager: auto
+  no_log: false
+
+- name: Purge cluster configuration
+  vars:
+    ha_cluster_cluster_present: false
+    ha_cluster_enable_repos: false
+  include_role:
+    name: fedora.linux_system_roles.ha_cluster
+  when: ansible_facts.packages.pcs is defined
+
+- name: Debug ansible_python_version
+  debug:
+    var: ansible_python_version
+
+- name: Purge firewall configuration
+  vars:
+    firewall:
+      - previous: replaced
+  include_role:
+    name: fedora.linux_system_roles.firewall
+  when: ansible_facts.packages.firewalld is defined
+
+- name: Leave realm
+  command: realm leave
+  register: realm_leave
+  failed_when: false
+  changed_when: >-
+    not "Couldn't find a configured realm" in realm_leave.stderr
+  when: ansible_facts.packages.realmd is defined
+
+- name: Destroy Kerberos tickets  # noqa no-changed-when
+  command: kdestroy -A
+  when: ansible_facts.packages["krb5-workstation"] is defined
+
+- name: Ensure that yum and dnf caching is enabled
+  lineinfile:
+    path: /etc/yum.conf
+    regexp: '^keepcache='
+    line: keepcache=1
+
+- name: Include vars from the role
+  include_vars: "{{ playbook_dir }}/../vars/main.yml"
+
+- name: Remove related packages
+  package:
+    name: "{{ item }}"
+    state: absent
+    autoremove: true
+  loop:
+    - "{{ __mssql_server_packages }}"
+    - "{{ __mssql_client_packages }}"
+    - "{{ __mssql_server_fts_packages }}"
+    - "{{ __mssql_server_ha_packages }}"
+    - "{{ __mssql_powershell_packages }}"
+    - adutil
+
+- name: Remove related files
+  shell: >-
+    rm -rfv /var/opt/mssql*
+    /opt/mssql*
+    /var/log/pacemaker/pacemaker.log
+    /etc/yum.repos.d/packages-microsoft-com-*
+    /tmp/*.j2
+    /etc/systemd/system/multi-user.target.wants/mssql-server.service
+  register: __mssql_cleanup_remove
+  changed_when: "'removed' in __mssql_cleanup_remove.stdout"
+
+# On SQL Server 2017, 2019 the service remains after removing RPMs
+- name: Stop the mssql-server service  # noqa command-instead-of-module
+  command: systemctl stop mssql-server  # noqa ignore-errors
+  ignore_errors: true  # noqa no-changed-when

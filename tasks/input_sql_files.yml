@@ -27,7 +27,7 @@
   wait_for:
     path: /var/opt/mssql/log/errorlog
     search_regex: SQL Server is now ready for client connections
-    delay: 3
+    delay: 15
     timeout: 40
 
 - name: Prepare MSSQL and facts for logging in

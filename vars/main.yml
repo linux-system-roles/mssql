@@ -10,10 +10,6 @@ __mssql_client_packages: [mssql-tools, unixODBC-devel]
 __mssql_server_fts_packages: mssql-server-fts
 __mssql_server_ha_packages: mssql-server-ha
 __mssql_powershell_packages: powershell
-__mssql_supported_versions:
-  - 2017
-  - 2019
-  - 2022
 # Dicts define SQL Server version and the corresponding mssql-server version
 __mssql_version_package_mapping:
   - 2017: 14

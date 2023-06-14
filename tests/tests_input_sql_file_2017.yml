@@ -9,5 +9,10 @@
     mssql_debug: true
     mssql_version: 2017
   tasks:
-    - name: Configure the mssql-server service start limit interval and burst
-      include_tasks: tasks/tests_input_sql_file.yml
+    - name: Run test in a block to clean up in always
+      block:
+        - name: Run tests_input_sql_file with SQL Server {{ mssql_version }}
+          include_tasks: tasks/tests_input_sql_file.yml
+      always:
+        - name: Clean up after the role invocation
+          include_tasks: tasks/cleanup.yml

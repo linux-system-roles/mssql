@@ -9,5 +9,10 @@
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_version: 2019
   tasks:
-    - name: Configure the mssql-server service start limit interval and burst
-      include_tasks: tasks/tests_idempotency.yml
+    - name: Run test in a block to clean up in always
+      block:
+        - name: Run tests_idempotency with SQL Server {{ mssql_version }}
+          include_tasks: tasks/tests_idempotency.yml
+      always:
+        - name: Clean up after the role invocation
+          include_tasks: tasks/cleanup.yml

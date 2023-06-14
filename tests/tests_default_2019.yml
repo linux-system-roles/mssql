@@ -3,18 +3,23 @@
 - name: Ensure that the role runs with default parameters
   hosts: all
   tasks:
-    - name: Verify that by default the role fails with EULA not accepted
+    - name: Run test in a block to clean up in always
       block:
-        - name: Run the role with default parameters
-          include_role:
-            name: linux-system-roles.mssql
+        - name: Verify that by default the role fails with EULA not accepted
+          block:
+            - name: Run the role with default parameters
+              include_role:
+                name: linux-system-roles.mssql
 
-        - name: Unreachable task
-          fail:
-            msg: The above task must fail
+            - name: Unreachable task
+              fail:
+                msg: The above task must fail
 
-      rescue:
-        - name: Assert that the role failed with EULA not accepted
-          assert:
-            that: >-
-              'You must accept EULA' in ansible_failed_result.msg.0
+          rescue:
+            - name: Assert that the role failed with EULA not accepted
+              assert:
+                that: >-
+                  'You must accept EULA' in ansible_failed_result.msg.0
+      always:
+        - name: Clean up after the role invocation
+          include_tasks: tasks/cleanup.yml
