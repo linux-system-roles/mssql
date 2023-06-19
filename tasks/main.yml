@@ -138,7 +138,9 @@
     state: present
 
 - name: Prepare for the upgrade
-  when: mssql_upgrade | bool
+  when:
+    - __mssql_current_version is defined
+    - mssql_upgrade | bool
   block:
     # This works only on systems that use yum or dnf
     - name: >-
