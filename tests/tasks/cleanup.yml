@@ -2,7 +2,7 @@
 - name: Gather package facts
   package_facts:
     manager: auto
-  no_log: false
+  no_log: true
 
 - name: Purge cluster configuration
   vars:
