@@ -4,3 +4,6 @@ __mssql_server_repository: >-
   https://packages.microsoft.com/rhel/7/mssql-server-{{ mssql_version | int }}/
 __mssql_client_repository: >-
   https://packages.microsoft.com/rhel/7/prod/
+__mssql_supported_versions:
+  - 2017
+  - 2019

@@ -13,6 +13,31 @@
     - name: Upgrade again to test idempotency - should report not changed
       include_role:
         name: linux-system-roles.mssql
+  rescue:
+    - name: Assert that upgrading EL 7 to 2022 fails
+      when:
+        - __mssql_version == 2022
+        - ansible_distribution in ['CentOS', 'RedHat']
+        - ansible_distribution_version is version('8', '<')
+      assert:
+        that: >-
+          'SQL Server 2022 does not support EL 7 hosts'
+          in ansible_failed_result.msg
+  always:
+    - name: Clean up EL 7after the role invocation
+      when:
+        - __mssql_version == 2022
+        - ansible_distribution in ['CentOS', 'RedHat']
+        - ansible_distribution_version is version('8', '<')
+      include_tasks: tasks/cleanup.yml
+
+    # Putting end_host into a rescue block results in a failed task
+    - name: End EL 7 host
+      when:
+        - __mssql_version == 2022
+        - ansible_distribution in ['CentOS', 'RedHat']
+        - ansible_distribution_version is version('8', '<')
+      meta: end_host
 
 - name: >-
     Verify the failure when mssql_version < current version

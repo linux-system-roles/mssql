@@ -26,6 +26,9 @@
           'SQL Server 2022 does not support EL 7 hosts'
           in ansible_failed_result.msg
   always:
+    - name: Clean up after the role invocation
+      include_tasks: tasks/cleanup.yml
+
     # Putting end_host into a rescue block results in a failed task
     - name: End EL < 8 host
       meta: end_host

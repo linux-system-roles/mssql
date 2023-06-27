@@ -154,7 +154,7 @@
     - name: Get yum repositories  # noqa command-instead-of-module
       shell: >-
         set -euo pipefail;
-        yum repolist --enabled
+        yum repolist enabled
         | grep packages-microsoft-com-mssql-server-
         | grep -v packages-microsoft-com-mssql-server-{{ mssql_version }}
         | cut -d" " -f 1
@@ -355,7 +355,7 @@
       wait_for:
         path: /var/opt/mssql/log/errorlog
         search_regex: SQL Server is now ready for client connections
-        delay: 3
+        delay: 15
         timeout: 40
 
     - name: Check if the set password matches the existing password

@@ -47,7 +47,6 @@
     __verify_mssql_ip_address: 0.0.0.0
     __verify_mssql_agent_is_enabled: true
     __verify_mssql_fts_is_installed: true
-    __verify_mssql_ha_is_installed: true
     __verify_mssql_is_tuned_for_fua: true
     __verify_mssql_powershell_is_installed: true
     __verify_mssql_datadir: /tmp/data

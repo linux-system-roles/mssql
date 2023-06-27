@@ -50,6 +50,11 @@
   delegate_to: localhost
   run_once: true
 
+- name: Set mssql_tls_cert and mssql_tls_private_key for the following test
+  set_fact:
+    mssql_tls_cert: "{{ __mssql_cert_tempfile.path }}"
+    mssql_tls_private_key: "{{ __mssql_pvk_tempfile.path | basename }}"
+
 - name: Test relative and full path with certs on control node
   block:
     - name: Run role
@@ -108,6 +113,11 @@
   loop:
     - "{{ __mssql_cert_tempfile.path }}"
     - "{{ __mssql_pvk_tempfile.path }}"
+
+- name: Set mssql_tls_cert and mssql_tls_private_key for the following test
+  set_fact:
+    mssql_tls_cert: "{{ __mssql_cert_tempfile.path }}"
+    mssql_tls_private_key: "{{ __mssql_pvk_tempfile.path | basename }}"
 
 - name: Test with certs on managed nodes
   include_role:
