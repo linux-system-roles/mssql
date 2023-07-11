@@ -47,11 +47,17 @@
             name: caller
           vars:
             roletoinclude: linux-system-roles.mssql
+            # noqa var-naming[no-role-prefix]
             mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+            # noqa var-naming[no-role-prefix]
             mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+            # noqa var-naming[no-role-prefix]
             mssql_accept_microsoft_sql_server_standard_eula: true
+            # noqa var-naming[no-role-prefix]
             mssql_version: 2019
+            # noqa var-naming[no-role-prefix]
             mssql_password: P@55w0rD
+            # noqa var-naming[no-role-prefix]
             mssql_edition: Evaluation
       always:
         - name: Clean up after the role invocation

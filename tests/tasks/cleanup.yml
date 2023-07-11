@@ -18,6 +18,7 @@
 
 - name: Purge firewall configuration
   vars:
+    # noqa var-naming[no-role-prefix]
     firewall:
       - previous: replaced
   include_role:
