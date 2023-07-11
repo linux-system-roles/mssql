@@ -661,17 +661,33 @@
       {{ ad_integration_user }}@{{ ad_integration_realm | upper }}
   when: mssql_ad_configure | bool
   block:
-    - name: Join to realm {{ ad_integration_realm }}
-      include_role:
-        name: fedora.linux_system_roles.ad_integration
+    - name: Verify that required variables are provided
+      assert:
+        that: ad_integration_realm is defined
 
-    - name: Ensure the adutil package
+    - name: Verify if the mssql_ad_obtain_kerberos var is provided correctly
+      when: mssql_ad_obtain_kerberos | bool
+      assert:
+        that:
+          - ad_integration_user is defined
+          - ad_integration_password is defined
+        fail_msg: >-
+          You have mssql_ad_obtain_kerberos set to true.
+          You must set ad_integration_user and ad_integration_password variables
+          to obtain Kerberos ticket.
+
+    - name: Ensure adutil
       package:
         name: adutil
         state: present
 
-    - name: Create keytab file
-      when: mssql_ad_keytab_file is none
+    - name: Join to realm {{ ad_integration_realm }}
+      include_role:
+        name: fedora.linux_system_roles.ad_integration
+      when: mssql_ad_join | bool
+
+    - name: Obtain Kerberos ticket
+      when: mssql_ad_obtain_kerberos
       block:
         - name: Print credential caches to check if AD principal exists
           command: klist -l
@@ -701,6 +717,9 @@
           no_log: true
           changed_when: true
 
+    - name: Create keytab file
+      when: mssql_ad_keytab_file is none
+      block:
         # Do not fail if account does not exist
         - name: Check if SQL user exists {{ mssql_ad_sql_user_name }}
           command: >-
@@ -710,27 +729,6 @@
           register: __mssql_adutil_account_exists
           changed_when: false
           failed_when: false
-
-        - name: Verify password provided for user {{ mssql_ad_sql_user_name }}
-          command: >-
-            sshpass -p {{ mssql_ad_sql_password | quote }}
-            ssh -o StrictHostKeyChecking=no
-            -l {{ mssql_ad_sql_user_name }}@{{ ad_integration_realm }}
-            {{ ansible_fqdn }} id
-          register: __mssql_sql_user_ssh
-          ignore_errors: true
-          changed_when: false
-          when: __mssql_adutil_account_exists.stdout | bool
-          no_log: true
-
-        - name: Update password for the SQL user {{ mssql_ad_sql_user_name }}
-          command: >-
-            adutil account setpassword
-            --name {{ mssql_ad_sql_user_name }}
-            --password {{ mssql_ad_sql_password | quote }}
-          when: __mssql_sql_user_ssh is failed
-          no_log: true
-          changed_when: true
 
         - name: In AD server create user {{ mssql_ad_sql_user_name }}
           command: >-

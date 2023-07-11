@@ -1208,8 +1208,8 @@ This role uses the `fedora.linux_system_roles.ad_integration` role to join SQL S
 
 To join to AD server, you must also provide the following variables:
 * `ad_integration_realm`
-* `ad_integration_password`
 * `ad_integration_user`
+* `ad_integration_password`
 * Optional, You can configure DNS using ad_integration role by providing the following variables:
   ```
   ad_integration_manage_dns: true
@@ -1219,6 +1219,8 @@ To join to AD server, you must also provide the following variables:
   ```
 * Optional: You can provide further variables for the `fedora.linux_system_roles.ad_integration` role if you need.
 
+Optional: If you have already joined managed nodes to AD and you want to skip running the ad_integration role, you can set the [`mssql_ad_join`](#mssql_ad_join) variable to false and omit the `ad_integration_` variables.
+
 #### Prerequisites
 
 Ensure that your AD Server and Linux host meet the prerequisites for joining.
@@ -1226,35 +1228,41 @@ For more information, see [Join SQL Server on a Linux host to an Active Director
 
 #### Finishing AD Server Configuration
 
-After you execute the role to configure AD Server authentication, you must complete one of the following procedures to add AES128 and AES256 kerberos encryption types to the [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name) on AD Server.
+1. After you execute the role to configure AD Server authentication, you must complete one of the following procedures to add AES128 and AES256 kerberos encryption types to the [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name) on AD Server.
 
-* For the web UI users, complete the following steps:
-    1. Log in to your AD Server
-    2. Navigate to **Tools** > **Active Directory Users and Computers** > ***domain.com*** > **Users** > ***sqluser*** > **Account**
-    3. In the **Account options** list, select **This account supports Kerberos AES 128 bit encryption** and **This account supports Kerberos AES 256 bit encryption**
-    4. Click **Apply**
+  * For the RSAT UI users, complete the following steps:
+      1. Launch **Active Directory Users and Computers**
+      2. Navigate to the SQL User (Default: ***domain*** > **Users** > ***sqluser***)
+      3. Right click the SQL User account and select **Properties**
+      4. In the **Account** tab, select **This account supports Kerberos AES 128 bit encryption** and **This account supports Kerberos AES 256 bit encryption**
+      5. Click **Apply**
 
-* For the PowerShell users, enter the following command:
-    ```powershell
-    Set-ADUser -Identity <sqluser> -KerberosEncryptionType AES128,AES256
-    ```
+  * For the PowerShell users, enter the following command:
+
+      ```powershell
+      Set-ADUser -Identity <sqluser> -KerberosEncryptionType AES128,AES256
+      ```
 
 #### Verifying Authentication
 
 After you execute the role to configure AD Server authentication and complete [Post Configuration Tasks](#post-configuration-tasks), you log in using Azure Data Studio or complete the following procedure to verify that you can log in to SQL Server from your Linux machine using the <sqluser> account.
 
 1. SSH into the _<sqluser>@<domain.com>_ user on your Linux _client.domain.com_ machine:
-  ```
-  ssh -l <sqluser>@<domain.com> <client.domain.com>
-  ```
+
+    ```
+    ssh -l <sqluser>@<domain.com> <client.domain.com>
+    ```
+
 2. Obtain Kerberos ticket for the Administrator user:
-  ```
-  kinit Administrator@<DOMAIN.COM>
-  ```
+    ```
+    kinit Administrator@<DOMAIN.COM>
+    ```
+
 3. Use `sqlcmd` to log in to SQL Server and, for example, run the query to get current user:
-  ```
-  /opt/mssql-tools/bin/sqlcmd -S. -Q 'SELECT SYSTEM_USER'
-  ```
+
+    ```
+    /opt/mssql-tools/bin/sqlcmd -S. -Q 'SELECT SYSTEM_USER'
+    ```
 
 #### Variables
 
@@ -1263,7 +1271,31 @@ After you execute the role to configure AD Server authentication and complete [P
 Set this variable to `true` to configure for AD Server authentication.
 Setting to `false` does not remove configuration for AD Server authentication.
 
+For an example playbook, see [Configuring AD integration with a pre-created keytab file](#configuring-ad-integration-with-general-parameters).
+
 Default: `false`
+
+Type: `bool`
+
+##### mssql_ad_join
+
+Optional: If you have already joined managed nodes to AD and you want to skip running the ad_integration role, you can set this variable to `false`.
+
+For an example playbook, see [Configuring AD integration with a pre-created keytab file](#configuring-ad-integration-without-joining-to-ad).
+
+Default: `true`
+
+Type: `bool`
+
+##### mssql_ad_obtain_kerberos
+
+Optional: If you have already obtained Kerberos ticket on managed nodes and you want to skip obtaining it, you can set this variable to `false`.
+
+By default, when mssql_ad_obtain_kerberos is set to `true`, you must set `ad_integration_user` and `ad_integration_password` variables.
+
+For an example playbook, see [Configuring AD integration with a pre-created keytab file](#configuring-ad-integration-without-joining-to-ad-and-without-obtaining-kerberos-ticket).
+
+Default: `true`
 
 Type: `bool`
 
@@ -1272,6 +1304,8 @@ Type: `bool`
 Optional: You can use this variable if you don't want the role to generate a keytab file and instead want to pass a pre-created keytab file to mssql-server.
 
 A keytab file must be pre-created on AD Server as per [Tutorial: Use Active Directory authentication with SQL Server on Linux](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-active-directory-authentication?view=sql-server-ver16). You must ensure that the keytab file is created for the managed node's hostname and for the user provided with the `mssql_ad_sql_user_name` variable.
+
+Note that kerberos ticket is not required when the role uses keytab, therefore when you set `mssql_ad_keytab_file: false` you can also set `mssql_ad_obtain_kerberos: false`.
 
 For an example playbook, see [Configuring AD integration with a pre-created keytab file](#configuring-ad-integration-with-a-pre-created-keytab-file).
 
@@ -1352,7 +1386,7 @@ Type: `string`
 
 #### Example Playbooks
 
-##### Configuring AD integration and generating a keytab file
+##### Configuring AD integration with general parameters
 
 ```yaml
 - name: Configure with AD server authentication
@@ -1369,8 +1403,8 @@ Type: `string`
     mssql_ad_sql_user_name: sqluser
     mssql_ad_sql_password: "p@55w0rD1"
     ad_integration_realm: domain.com
-    ad_integration_password: Secret123
     ad_integration_user: Administrator
+    ad_integration_password: Secret123
     ad_integration_manage_dns: true
     ad_integration_dns_server: 1.1.1.1
     ad_integration_dns_connection_name: eth0
@@ -1379,8 +1413,10 @@ Type: `string`
 
 ##### Configuring AD integration with a pre-created keytab file
 
+If you received a pre-created keytab file and want the role to use it, set variables like in this example:
+
 ```yaml
-- name: Configure with AD server authentication
+- name: Configure with AD server authentication with a pre-created keytab file
   hosts: all
   vars:
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
@@ -1400,6 +1436,51 @@ Type: `string`
     ad_integration_dns_server: 1.1.1.1
     ad_integration_dns_connection_name: eth0
     ad_integration_dns_connection_type: ethernet
+```
+
+##### Configuring AD integration without joining to AD
+
+You must join managed host to AD Server yourself prior to running this playbook.
+
+```yaml
+- name: Configure with AD server authentication without joining to AD
+  hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2022
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
+    mssql_manage_firewall: true
+    mssql_ad_configure: true
+    mssql_ad_join: false
+    mssql_ad_sql_user_name: sqluser
+    ad_integration_realm: domain.com
+    ad_integration_user: Administrator
+    ad_integration_password: Secret123
+```
+
+##### Configuring AD integration without joining to AD and without obtaining Kerberos ticket
+
+You must join managed host to AD Server yourself prior to running this playbook.
+
+```yaml
+- name: Configure with AD server authentication without joining to AD
+  hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2022
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
+    mssql_manage_firewall: true
+    mssql_ad_configure: true
+    mssql_ad_join: false
+    mssql_ad_obtain_kerberos: false
+    mssql_ad_sql_user_name: sqluser
+    ad_integration_realm: domain.com
 ```
 
 ## License

@@ -34,13 +34,14 @@
     mssql_ad_sql_user_name: sqluser
     mssql_ad_sql_password: "p@55w0rD1"
     ad_integration_realm: domain.com
-    ad_integration_password: Secret123
     ad_integration_user: Administrator
+    ad_integration_password: Secret123
     ad_integration_manage_dns: true
     ad_integration_dns_server: 1.1.1.1
     ad_integration_dns_connection_name: eth0
     ad_integration_dns_connection_type: ethernet
   tasks:
+    # Test general scenario
     - name: Set up MSSQL and configure AD authentication
       include_role:
         name: linux-system-roles.mssql
@@ -62,37 +63,9 @@
       delegate_to: ad
 
     - name: Test AD integration
-      block:
-        - name: Install sshpass for use in the following task
-          package:
-            name: sshpass
-            state: present
+      include_tasks: ../tasks/verify_ad_auth.yml
 
-        - name: SSH into AD, kinit as Administrator, verify authentication
-          vars:
-            __mssql_kinit_user: >-
-              {{ ad_integration_user }}@{{ ad_integration_realm
-              | upper }}
-          shell: >-
-            set -euo pipefail;
-            sshpass -p {{ mssql_ad_sql_password | quote }}
-            ssh -o StrictHostKeyChecking=no
-            -l {{ mssql_ad_sql_user_name }}@{{ ad_integration_realm }}
-            {{ ansible_fqdn }}
-            "echo {{ ad_integration_password | quote }}
-            | kinit {{ __mssql_kinit_user }} &&
-            /opt/mssql-tools/bin/sqlcmd -S. -Q 'SELECT SYSTEM_USER'"
-          register: __mssql_ad_test
-          changed_when: false
-      always:
-        - name: Print test results
-          debug:
-            var: __mssql_ad_test.stdout_lines
-
-        - name: Print test results
-          debug:
-            var: __mssql_ad_test.stderr_lines
-
+    # Test with mssql_ad_keytab_file
     - name: Fetch keytab file that was prepared above
       fetch:
         src: /var/opt/mssql/secrets/mssql.keytab
@@ -112,37 +85,62 @@
       include_role:
         name: linux-system-roles.mssql
 
-    - name: Test AD integration with keytab
+    - name: Test AD integration
+      include_tasks: ../tasks/verify_ad_auth.yml
+
+    - name: Clean up after the role invocation
+      include_tasks: ../tasks/cleanup.yml
+
+    # Test with mssql_ad_join: false
+    - name: Authenticate to AD
+      include_role:
+        name: linux-system-roles.ad_integration
+
+    - name: Set up MSSQL and configure AD authentication without joining to AD
+      include_role:
+        name: linux-system-roles.mssql
       vars:
-        __mssql_kinit_user: >-
-          {{ ad_integration_user }}@{{ ad_integration_realm
-          | upper }}
-      block:
-        - name: Obtain Kerberos ticket of the AD user {{ ad_integration_user }}
-          shell: >-
-            set -euo pipefail;
-            echo {{ ad_integration_password | quote }}
-            | kinit {{ __mssql_kinit_user }}
-          no_log: true
-          changed_when: true
+        mssql_ad_join: false
+        ad_integration_manage_dns: null
+        ad_integration_dns_server: null
+        ad_integration_dns_connection_name: null
+        ad_integration_dns_connection_type: null
 
-        - name: SSH into AD, kinit as Administrator, verify authentication
-          shell: >-
-            set -euo pipefail;
-            sshpass -p {{ mssql_ad_sql_password | quote }}
-            ssh -o StrictHostKeyChecking=no
-            -l {{ mssql_ad_sql_user_name }}@{{ ad_integration_realm }}
-            {{ ansible_fqdn }}
-            "echo {{ ad_integration_password | quote }}
-            | kinit {{ __mssql_kinit_user }} &&
-            /opt/mssql-tools/bin/sqlcmd -S. -Q 'SELECT SYSTEM_USER'"
-          register: __mssql_ad_test
-          changed_when: false
-      always:
-        - name: Print test results
-          debug:
-            var: __mssql_ad_test.stdout_lines
+    - name: Test AD integration
+      include_tasks: ../tasks/verify_ad_auth.yml
 
-        - name: Print test results
-          debug:
-            var: __mssql_ad_test.stderr_lines
+    - name: Clean up after the role invocation
+      include_tasks: ../tasks/cleanup.yml
+
+    # Test with mssql_ad_join: false and mssql_ad_obtain_kerberos: false
+    - name: Authenticate to AD
+      include_role:
+        name: linux-system-roles.ad_integration
+
+    - name: Ensure krb5-workstation
+      package:
+        name: krb5-workstation
+        state: present
+
+    - name: Obtain Kerberos ticket of the AD user {{ ad_integration_user }}
+      shell: >-
+        set -euo pipefail;
+        echo {{ ad_integration_password | quote }}
+        | kinit {{ ad_integration_user }}@{{ ad_integration_realm | upper }}
+      changed_when: true
+
+    - name: Configure AD without joining to AD and without obtaining Kerberos
+      include_role:
+        name: linux-system-roles.mssql
+      vars:
+        mssql_ad_join: false
+        mssql_ad_obtain_kerberos: false
+        ad_integration_user: null
+        ad_integration_password: null
+        ad_integration_manage_dns: null
+        ad_integration_dns_server: null
+        ad_integration_dns_connection_name: null
+        ad_integration_dns_connection_type: null
+
+    - name: Test AD integration
+      include_tasks: ../tasks/verify_ad_auth.yml

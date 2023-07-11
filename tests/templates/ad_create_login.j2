@@ -1,0 +1,14 @@
+USE master;
+IF NOT EXISTS (
+  SELECT name FROM sys.server_principals
+  WHERE name = '{{ __mssql_ad_user }}'
+)
+BEGIN
+  PRINT 'A {{ __mssql_ad_user }} login does not exist, creating';
+  CREATE LOGIN [{{ __mssql_ad_user }}] FROM WINDOWS;
+  PRINT 'The {{ __mssql_ad_user }} login created successfully';
+END
+ELSE
+BEGIN
+  PRINT 'A {{ __mssql_ad_user }} login already exists, skipping'
+END

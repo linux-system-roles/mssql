@@ -54,6 +54,8 @@ mssql_ha_virtual_ip: null
 mssql_ha_cluster_run_role: false
 
 mssql_ad_configure: false
+mssql_ad_join: true
+mssql_ad_obtain_kerberos: true
 mssql_ad_sql_user_name: null
 mssql_ad_sql_password: null
 # Default to CN={{ mssql_ad_sql_user_name }},CN=Users,DC=DOMAIN,DC=SUBDOMAIN...

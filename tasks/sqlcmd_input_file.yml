@@ -4,7 +4,7 @@
     - name: Create a tempfile on the host for {{ item }}
       tempfile:
         state: file
-        prefix: "{{ item | splitext | first }}_"
+        prefix: "{{ item | basename }}_"
         suffix: .sql
       register: __mssql_sql_tempfile
       changed_when: false
