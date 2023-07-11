@@ -200,6 +200,7 @@
         # enable_alwayson.j2 template test
         - name: Enable AlwaysOn event session when it's enabled
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - enable_alwayson.j2
           include_role:
@@ -215,6 +216,7 @@
 
         - name: Disable AlwaysOn event session
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - disable_alwayson.j2
           include_role:
@@ -223,6 +225,7 @@
 
         - name: Enable AlwaysOn event session
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - enable_alwayson.j2
           include_role:
@@ -238,6 +241,7 @@
         # configure_endpoint.j2 template test
         - name: Create endpoint when it exists
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - configure_endpoint.j2
           include_role:
@@ -274,6 +278,7 @@
 
         - name: Alter endpoint to test how template handles incorrect endpoint
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - alter_endpoint.j2
           include_role:
@@ -282,6 +287,7 @@
 
         - name: Configure endpoint correctly
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - configure_endpoint.j2
           include_role:
@@ -316,6 +322,7 @@
 
         - name: Drop the test_cert certificate
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - drop_cert.j2
             mssql_ha_cert_name: test_cert
@@ -326,6 +333,7 @@
         # configure_listener.j2 template test
         - name: Remove a listener for test purposes
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - remove_listener.j2
           include_role:
@@ -334,6 +342,7 @@
 
         - name: Add a listener with a different name
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - add_test_listener.j2
           include_role:
@@ -342,6 +351,7 @@
 
         - name: Modify a listener
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - configure_listener.j2
             mssql_tcp_port: 1434
@@ -372,6 +382,7 @@
 
         - name: Remove a listener to re-create with default values
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - remove_listener.j2
             mssql_listener_name: TEST
@@ -381,6 +392,7 @@
 
         - name: Add a listener with previous settings
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - configure_listener.j2
           include_role:
@@ -401,6 +413,7 @@
 
         - name: Add a listener when it exists
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - configure_listener.j2
           include_role:
@@ -425,6 +438,7 @@
         # create_master_key_encryption.j2 template test
         - name: Create a master key when it exists
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - create_master_key_encryption.j2
           include_role:
@@ -441,6 +455,7 @@
           block:
             - name: Try creating master key with incorrect password
               vars:
+                # noqa var-naming[no-role-prefix]
                 __mssql_sql_files_to_input:
                   - create_master_key_encryption.j2
                 mssql_ha_master_key_password: "p@55w0rD11"
@@ -459,6 +474,7 @@
 
         - name: Drop endpoint
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - create_master_key_encryption.j2
           include_role:
@@ -467,6 +483,7 @@
 
         - name: Remove certs from SQL Server to verify re-creating master key
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - drop_cert.j2
           include_role:
@@ -485,6 +502,7 @@
             Verify creating master key with incorrect password and
             mssql_ha_reset_cert set to true
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - create_master_key_encryption.j2
             mssql_ha_master_key_password: "p@55w0rD11"
@@ -531,6 +549,7 @@
           block:
             - name: Input create_and_back_up_cert.j2 to create cert
               vars:
+                # noqa var-naming[no-role-prefix]
                 __mssql_sql_files_to_input:
                   - create_and_back_up_cert.j2
               include_role:
@@ -550,6 +569,7 @@
 
             - name: Input create_and_back_up_cert.j2 when cert exists
               vars:
+                # noqa var-naming[no-role-prefix]
                 __mssql_sql_files_to_input:
                   - create_and_back_up_cert.j2
               include_role:
@@ -585,6 +605,7 @@
 
             - name: Input create_and_back_up_cert.j2
               vars:
+                # noqa var-naming[no-role-prefix]
                 __mssql_sql_files_to_input:
                   - create_and_back_up_cert.j2
               include_role:
@@ -617,6 +638,7 @@
 
             - name: Input create_and_back_up_cert.j2
               vars:
+                # noqa var-naming[no-role-prefix]
                 __mssql_sql_files_to_input:
                   - create_and_back_up_cert.j2
               include_role:
@@ -644,6 +666,7 @@
 
             - name: Drop certificate from SQL Server
               vars:
+                # noqa var-naming[no-role-prefix]
                 __mssql_sql_files_to_input:
                   - drop_cert.j2
               include_role:
@@ -654,6 +677,7 @@
               block:
                 - name: Input create_and_back_up_cert.j2
                   vars:
+                    # noqa var-naming[no-role-prefix]
                     __mssql_sql_files_to_input:
                       - create_and_back_up_cert.j2
                   include_role:
@@ -683,6 +707,7 @@
 
             - name: Ensure that certificates exist
               vars:
+                # noqa var-naming[no-role-prefix]
                 __mssql_sql_files_to_input:
                   - create_and_back_up_cert.j2
               include_role:
@@ -698,6 +723,7 @@
         # create_ha_login.j2 template test
         - name: Create a login when it already exists {{ mssql_ha_login }}
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - create_ha_login.j2
           include_role:
@@ -720,6 +746,7 @@
           block:
             - name: Input replicate_db.j2
               vars:
+                # noqa var-naming[no-role-prefix]
                 __mssql_sql_files_to_input:
                   - replicate_db.j2
               include_role:
@@ -753,6 +780,7 @@
         # configure_ag.yml template test
         - name: Ensure endpoint exists
           vars:
+            # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - configure_endpoint.j2
           include_role:
@@ -764,6 +792,7 @@
           block:
             - name: Input configure_ag.yml when AG exists
               vars:
+                # noqa var-naming[no-role-prefix]
                 __mssql_sql_files_to_input:
                   - configure_ag.j2
               include_role:
@@ -801,6 +830,7 @@
             # fails with "Replica not Primary"
             - name: Verify configuration of a new ag2
               vars:
+                # noqa var-naming[no-role-prefix]
                 __mssql_sql_files_to_input:
                   - configure_ag_cluster_type_none.j2
                 mssql_ha_ag_name: ag2
@@ -812,6 +842,7 @@
 
                 - name: Input configure_ag.yml with CLUSTER_TYPE = NONE
                   vars:
+                    # noqa var-naming[no-role-prefix]
                     __mssql_sql_files_to_input:
                       - configure_ag.j2
                   include_role:
@@ -837,6 +868,7 @@
 
                 - name: Alter AG
                   vars:
+                    # noqa var-naming[no-role-prefix]
                     __mssql_sql_files_to_input:
                       - alter_ag.j2
                   include_role:
@@ -845,6 +877,7 @@
 
                 - name: Input configure_ag.yml to configure ag properly
                   vars:
+                    # noqa var-naming[no-role-prefix]
                     __mssql_sql_files_to_input:
                       - configure_ag.j2
                   include_role:

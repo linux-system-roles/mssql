@@ -486,6 +486,7 @@
   include_role:
     name: fedora.linux_system_roles.firewall
   vars:
+    # noqa var-naming[no-role-prefix]
     firewall:
       - port: "{{ mssql_tcp_port }}/tcp"
         state: enabled
@@ -501,10 +502,12 @@
 - name: Close the previously set SQL Server TCP port if it changed
   vars:
     # Empty previous tcp port setting means that the port is default 1433
+    # noqa var-naming[no-role-prefix]
     __tcpport: >-
       {{ __mssql_previous_tcp_port.stdout | regex_search('[1-9][0-9]{0,4}')
       if __mssql_previous_tcp_port.stdout
       else '1433' }}
+    # noqa var-naming[no-role-prefix]
     firewall:
       - port: "{{ __tcpport }}/tcp"
         state: disabled
@@ -883,6 +886,7 @@
           include_role:
             name: fedora.linux_system_roles.firewall
           vars:
+            # noqa var-naming[no-role-prefix]
             firewall:
               - port: "{{ mssql_ha_endpoint_port }}/tcp"
                 state: enabled

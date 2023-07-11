@@ -12,6 +12,7 @@
       - create_example_db.j2
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
+    # noqa var-naming[no-role-prefix]
     __mssql_test_db_name: ExampleDB1
 
 - name: Assert the latest script invocation resulted in no changes
