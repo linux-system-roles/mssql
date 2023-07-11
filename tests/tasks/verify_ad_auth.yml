@@ -1,0 +1,71 @@
+# SPDX-License-Identifier: MIT
+---
+- name: Test AD integration with keytab
+  vars:
+    __mssql_kinit_user: >-
+      {{ ad_integration_user }}@{{ ad_integration_realm
+      | upper }}
+  block:
+    - name: Install sshpass for use in the following task
+      package:
+        name: sshpass
+        state: present
+
+    - name: Print credential caches to check if AD principal exists
+      command: klist -l
+      register: __mssql_klist
+      changed_when: false
+      failed_when: false
+
+    # Do not fail when there are no tickets
+    - name: Print status of credential cache for {{ __mssql_kinit_user }}
+      shell: >-
+        set -euo pipefail;
+        klist -l $(klist -l | grep {{ __mssql_kinit_user }}
+        | awk '{print $2}')
+      register: __mssql_klist_kinit_user
+      when: __mssql_kinit_user in __mssql_klist.stdout
+      changed_when: false
+
+    - name: Obtain Kerberos ticket of the AD user {{ ad_integration_user }}
+      shell: >-
+        set -euo pipefail;
+        echo {{ ad_integration_password | quote }}
+        | kinit {{ __mssql_kinit_user }}
+      when: >-
+        (__mssql_kinit_user not in __mssql_klist.stdout)
+        or
+        ("(Expired)" in __mssql_klist_kinit_user.stdout | d())
+      changed_when: true
+
+    - name: Create the privileged account login
+      vars:
+        __mssql_sql_files_to_input:
+          - tests/templates/ad_create_login.j2
+        __mssql_ad_user: >-
+          {{ ad_integration_realm.split('.') | first }}\{{
+          ad_integration_user }}
+      include_role:
+        name: linux-system-roles.mssql
+        tasks_from: input_sql_files.yml
+
+    - name: SSH into AD, kinit as Administrator, verify authentication
+      shell: >-
+        set -euo pipefail;
+        sshpass -p {{ mssql_ad_sql_password | quote }}
+        ssh -o StrictHostKeyChecking=no
+        -l {{ mssql_ad_sql_user_name }}@{{ ad_integration_realm }}
+        {{ ansible_fqdn }}
+        "echo {{ ad_integration_password | quote }}
+        | kinit {{ __mssql_kinit_user }} &&
+        /opt/mssql-tools/bin/sqlcmd -S. -Q 'SELECT SYSTEM_USER'"
+      register: __mssql_ad_test
+      changed_when: false
+  always:
+    - name: Print test results
+      debug:
+        var: __mssql_ad_test.stdout_lines
+
+    - name: Print test results
+      debug:
+        var: __mssql_ad_test.stderr_lines
