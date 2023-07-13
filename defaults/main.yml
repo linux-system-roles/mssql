@@ -64,3 +64,5 @@ mssql_ad_sql_user_dn: >-
   | map("regex_replace", "^", "DC=")
   | join(",") }}
 mssql_ad_netbios_name: "{{ ad_integration_realm.split('.') | first }}"
+mssql_ad_keytab_file: null
+mssql_ad_keytab_remote_src: false

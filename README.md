@@ -1206,12 +1206,7 @@ Optional: Use variables starting with the `mssql_ad_` prefix to configure SQL Se
 
 This role uses the `fedora.linux_system_roles.ad_integration` role to join SQL Server with AD server.
 
-To configure AD integration, provide the following variables:
-* [`mssql_ad_configure: true`](#mssql_ad_configure)
-* [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name)
-* [`mssql_ad_sql_password`](#mssql_ad_sql_password)
-* Optional: [`mssql_ad_sql_user_dn`](#mssql_ad_sql_user_dn)
-* Optional: [`mssql_ad_netbios_name`](#mssql_ad_netbios_name)
+To join to AD server, you must also provide the following variables:
 * `ad_integration_realm`
 * `ad_integration_password`
 * `ad_integration_user`
@@ -1272,6 +1267,32 @@ Default: `false`
 
 Type: `bool`
 
+##### mssql_ad_keytab_file
+
+Optional: You can use this variable if you don't want the role to generate a keytab file and instead want to pass a pre-created keytab file to mssql-server.
+
+A keytab file must be pre-created on AD Server as per [Tutorial: Use Active Directory authentication with SQL Server on Linux](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-active-directory-authentication?view=sql-server-ver16). You must ensure that the keytab file is created for the managed node's hostname and for the user provided with the `mssql_ad_sql_user_name` variable.
+
+For an example playbook, see [Configuring AD integration with a pre-created keytab file](#configuring-ad-integration-with-a-pre-created-keytab-file).
+
+Default: `null`
+
+Type: `string`
+
+##### mssql_ad_keytab_remote_src
+
+Optional: Only applicable when using [`mssql_ad_keytab_file`](#mssql_ad_keytab_file).
+
+Influence whether the `mssql_ad_keytab_file` file needs to be transferred or already is present remotely.
+
+If `false`, the role searches for the `mssql_ad_keytab_file` file on the controller node.
+
+If `true`, the role searches for the `mssql_ad_keytab_file` file on managed nodes.
+
+Default: `false`
+
+Type: `bool`
+
 ##### mssql_ad_sql_user_name
 
 User to be created in SQL Server and used for authentication.
@@ -1283,6 +1304,8 @@ Type: `string`
 ##### mssql_ad_sql_password
 
 Password to be set for the [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name) user.
+
+This variable is not required when using [`mssql_ad_keytab_file`](#mssql_ad_keytab_file).
 
 Default: `null`
 
@@ -1329,7 +1352,7 @@ Type: `string`
 
 #### Example Playbooks
 
-##### Configuring SQL Server with AD Server authentication
+##### Configuring AD integration and generating a keytab file
 
 ```yaml
 - name: Configure with AD server authentication
@@ -1347,6 +1370,31 @@ Type: `string`
     mssql_ad_sql_password: "p@55w0rD1"
     ad_integration_realm: domain.com
     ad_integration_password: Secret123
+    ad_integration_user: Administrator
+    ad_integration_manage_dns: true
+    ad_integration_dns_server: 1.1.1.1
+    ad_integration_dns_connection_name: eth0
+    ad_integration_dns_connection_type: ethernet
+```
+
+##### Configuring AD integration with a pre-created keytab file
+
+```yaml
+- name: Configure with AD server authentication
+  hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2022
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
+    mssql_manage_firewall: true
+    mssql_ad_configure: true
+    mssql_ad_keytab_file: /path/to/file
+    mssql_ad_keytab_remote_src: false
+    mssql_ad_sql_user_name: sqluser
+    ad_integration_realm: domain.com
     ad_integration_user: Administrator
     ad_integration_manage_dns: true
     ad_integration_dns_server: 1.1.1.1
