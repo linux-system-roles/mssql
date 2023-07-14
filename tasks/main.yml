@@ -680,10 +680,11 @@
           failed_when: false
 
         # Do not fail when there are no tickets
-        - name: Print the status of credential cache for {{ __mssql_kinit_user }}
+        - name: Print status of credential cache for {{ __mssql_kinit_user }}
           shell: >-
             set -euo pipefail;
-            klist -l $(klist -l | grep {{ __mssql_kinit_user }} | awk '{print $2}')
+            klist -l $(klist -l | grep {{ __mssql_kinit_user }}
+            | awk '{print $2}')
           register: __mssql_klist_kinit_user
           when: __mssql_kinit_user in __mssql_klist.stdout
           changed_when: false

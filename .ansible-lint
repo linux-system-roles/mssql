@@ -6,6 +6,7 @@ kinds:
   - yaml: "**/tests/collection-requirements.yml"
   - playbook: "**/tests/tests_*.yml"
   - playbook: "**/tests/setup-snapshot.yml"
+  - playbook: "**/tests/ad_integration.yml"
   - tasks: "**/tests/*.yml"
   - playbook: "**/tests/playbooks/*.yml"
   - tasks: "**/tests/tasks/*.yml"
