@@ -92,3 +92,57 @@
         - name: Print test results
           debug:
             var: __mssql_ad_test.stderr_lines
+
+    - name: Fetch keytab file that was prepared above
+      fetch:
+        src: /var/opt/mssql/secrets/mssql.keytab
+        dest: /tmp/mssql.keytab
+        flat: true
+        mode: preserve
+      run_once: true
+
+    - name: Clean up after the role invocation
+      include_tasks: tasks/cleanup.yml
+
+    - name: Set up MSSQL and configure AD authentication with keytab
+      vars:
+        mssql_ad_keytab_file: /tmp/mssql.keytab
+        mssql_ad_keytab_remote_src: false
+        mssql_ad_sql_password: null
+      include_role:
+        name: linux-system-roles.mssql
+
+    - name: Test AD integration with keytab
+      vars:
+        __mssql_kinit_user: >-
+          {{ ad_integration_user }}@{{ ad_integration_realm
+          | upper }}
+      block:
+        - name: Obtain Kerberos ticket of the AD user {{ ad_integration_user }}
+          shell: >-
+            set -euo pipefail;
+            echo {{ ad_integration_password | quote }}
+            | kinit {{ __mssql_kinit_user }}
+          no_log: true
+          changed_when: true
+
+        - name: SSH into AD, kinit as Administrator, verify authentication
+          shell: >-
+            set -euo pipefail;
+            sshpass -p {{ mssql_ad_sql_password | quote }}
+            ssh -o StrictHostKeyChecking=no
+            -l {{ mssql_ad_sql_user_name }}@{{ ad_integration_realm }}
+            {{ ansible_fqdn }}
+            "echo {{ ad_integration_password | quote }}
+            | kinit {{ __mssql_kinit_user }} &&
+            /opt/mssql-tools/bin/sqlcmd -S. -Q 'SELECT SYSTEM_USER'"
+          register: __mssql_ad_test
+          changed_when: false
+      always:
+        - name: Print test results
+          debug:
+            var: __mssql_ad_test.stdout_lines
+
+        - name: Print test results
+          debug:
+            var: __mssql_ad_test.stderr_lines
