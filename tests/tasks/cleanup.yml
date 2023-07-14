@@ -43,21 +43,18 @@
     regexp: '^keepcache='
     line: keepcache=1
 
-- name: Include vars from the role
-  include_vars: "{{ playbook_dir }}/../vars/main.yml"
-
 - name: Remove related packages
   package:
-    name: "{{ item }}"
+    name:
+      - adutil
+      - mssql-server
+      - mssql-tools
+      - unixODBC-devel
+      - mssql-server-fts
+      - mssql-server-ha
+      - powershell
     state: absent
     autoremove: true
-  loop:
-    - "{{ __mssql_server_packages }}"
-    - "{{ __mssql_client_packages }}"
-    - "{{ __mssql_server_fts_packages }}"
-    - "{{ __mssql_server_ha_packages }}"
-    - "{{ __mssql_powershell_packages }}"
-    - adutil
 
 - name: Remove related files
   shell: >-
