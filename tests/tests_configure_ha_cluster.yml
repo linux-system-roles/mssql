@@ -112,6 +112,7 @@
           always:
             - name: Clean up after the role invocation
               include_tasks: tasks/cleanup.yml
+              when: ansible_play_hosts_all | length == 1
 
             # Putting end_host into a rescue block results in a failed task
             - name: End EL 7 host
@@ -172,15 +173,80 @@
           vars:
             mssql_ha_ag_cluster_type: external
 
+        - name: Assert that pcs runs properly when testing against >3 nodes
+          when: ansible_play_hosts_all | length >= 3
+          block:
+            - name: Wait for pcs to finish configuration
+              wait_for:
+                timeout: 200
+
+            - name: Get global pcs status
+              command: pcs status
+              register: __pcs_status
+              changed_when: false
+
+            - name: Print global psc status
+              debug:
+                var: __pcs_status.stdout
+              run_once: true
+
+            - name: Get pcs status for the virtualip resource
+              command: pcs status resources virtualip
+              register: __pcs_status_virtualip
+              changed_when: false
+
+            - name: Print pcs status for the virtualip resource
+              debug:
+                var: __pcs_status_virtualip.stdout
+              run_once: true
+
+            - name: Assert that virtualip is successfully started
+              assert:
+                that: "'Started' in __pcs_status_virtualip.stdout"
+
+            - name: Move the virtualip resource
+              command: pcs resource move virtualip
+              register: __pcs_move
+              run_once: true
+              changed_when: true
+
+            - name: Wait for syncrhonous node to promote for virtualip resource
+              wait_for:
+                timeout: 240
+
+            - name: Get global pcs status
+              command: pcs status resources virtualip
+              register: __pcs_status
+              changed_when: false
+
+            - name: Print global psc status
+              debug:
+                var: __pcs_status.stdout
+              run_once: true
+
+            - name: Get pcs status for the virtualip resource
+              command: pcs status resources virtualip
+              register: __pcs_status_virtualip
+              changed_when: false
+
+            - name: Print pcs status for the virtualip resource
+              debug:
+                var: __pcs_status_virtualip.stdout
+              run_once: true
+
+            - name: Assert that virtualip is successfully started
+              assert:
+                that: "'Started' in __pcs_status_virtualip.stdout"
+
+            - name: Clear constraints for the virtualip resource
+              command: pcs resource clear virtualip
+              changed_when: true
+
         # The following tasks test if templates configure systems correctly
         # Because CI runs on a single node, these templates can't be tested:
         # * remove_from_ag.j2
         # * join_to_ag.j2
         # * removing and adding replicas in configure_ag.j2
-        - name: Clean up after the role invocation
-          include_tasks: tasks/cleanup.yml
-          when: ansible_play_hosts_all | length > 1
-
         - name: >-
             Don't test templates when testing against multiple hosts.
             Testing templates only supported for primary replicas
@@ -914,3 +980,4 @@
       always:
         - name: Clean up after the role invocation
           include_tasks: tasks/cleanup.yml
+          when: ansible_play_hosts_all | length == 1
