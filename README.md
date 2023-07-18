@@ -1289,6 +1289,9 @@ For more information, see [Join SQL Server on a Linux host to an Active Director
       Set-ADUser -Identity <sqluser> -KerberosEncryptionType AES128,AES256
       ```
 
+2. You must create Active Directory-based logins in Transact-SQL as described in [Create Active Directory-based SQL Server logins in Transact-SQL](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-ad-auth-adutil-tutorial?view=sql-server-ver16#create-active-directory-based-sql-server-logins-in-transact-sql) in *Tutorial: Use adutil to configure Active Directory authentication with SQL Server on Linux* in Microsoft documentation.
+To do so, you can write a T-SQL script and input it with the [mssql_post_input_sql_file](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable.
+
 #### Verifying Authentication
 
 After you execute the role to configure AD Server authentication and complete [Post Configuration Tasks](#post-configuration-tasks), you can log in using Azure Data Studio or complete the following procedure to verify that you can log in to SQL Server from your Linux machine using the <sqluser> account.
@@ -1437,18 +1440,6 @@ mssql_ad_sql_user_dn: >-
   | map("regex_replace","^","DC=")
   | join(",") }}
 ```
-
-Type: `string`
-
-##### mssql_ad_netbios_name
-
-Optional: You must set `mssql_ad_netbios_name` if NetBIOS domain name of your AD server does not equal to the first subdomain of the domain name that you provide with the `ad_integration_realm` variable.
-
-For example, if you set `ad_integration_realm` to domain.cortoso.com and your NetBIOS domain name is not `domain`.
-
-This value is used to create the `{{ mssql_ad_netbios_name }}\{{ ad_integration_user }}` login in SQL Server.
-
-Default: `{{ ad_integration_realm.split('.') | first }}`
 
 Type: `string`
 

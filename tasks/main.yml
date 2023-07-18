@@ -856,14 +856,6 @@
       vars:
         __mssql_conf_setting: network privilegedadaccount
         __mssql_conf_setting_value: "{{ mssql_ad_sql_user_name }}"
-
-    - name: Create the privileged account login
-      vars:
-        __mssql_sql_files_to_input:
-          - ad_create_login.j2
-        __mssql_ad_user: >-
-          {{ mssql_ad_netbios_name }}\{{ ad_integration_user }}
-      include_tasks: input_sql_files.yml
   rescue:
     - name: Print output of failed task
       when: item | length > 0
