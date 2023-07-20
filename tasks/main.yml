@@ -656,39 +656,31 @@
         __mssql_conf_setting_value: "{{ '1' if mssql_tls_enable else 'unset' }}"
 
 - name: Configure Active Directory authentication
-  vars:
-    __mssql_kinit_user: >-
-      {{ ad_integration_user }}@{{ ad_integration_realm | upper }}
   when: mssql_ad_configure | bool
   block:
-    - name: Verify that required variables are provided
+    - name: Verify that ad_integration_realm variable is provided
+      when:
+        - mssql_ad_join | bool
+        - mssql_ad_keytab_file is none
       assert:
         that: ad_integration_realm is defined
-
-    - name: Verify if the mssql_ad_obtain_kerberos var is provided correctly
-      when: mssql_ad_obtain_kerberos | bool
-      assert:
-        that:
-          - ad_integration_user is defined
-          - ad_integration_password is defined
-        fail_msg: >-
-          You have mssql_ad_obtain_kerberos set to true.
-          You must set ad_integration_user and ad_integration_password variables
-          to obtain Kerberos ticket.
-
-    - name: Ensure adutil
-      package:
-        name: adutil
-        state: present
+        fail_msg: You must provide the ad_integration_realm variable
 
     - name: Join to realm {{ ad_integration_realm }}
       include_role:
         name: fedora.linux_system_roles.ad_integration
       when: mssql_ad_join | bool
 
-    - name: Obtain Kerberos ticket
-      when: mssql_ad_obtain_kerberos
+    - name: Ensure AD user and create keytab file
+      when: mssql_ad_keytab_file is none
       block:
+        - name: Ensure adutil and krb5-workstation
+          package:
+            name:
+              - adutil
+              - krb5-workstation
+            state: present
+
         - name: Print credential caches to check if AD principal exists
           command: klist -l
           register: __mssql_klist
@@ -696,32 +688,29 @@
           failed_when: false
 
         # Do not fail when there are no tickets
-        - name: Print status of credential cache for {{ __mssql_kinit_user }}
+        - name: Print status of credential cache for {{ __mssql_ad_kinit_user }}
           shell: >-
             set -euo pipefail;
-            klist -l $(klist -l | grep {{ __mssql_kinit_user }}
+            klist -l $(klist -l | grep {{ __mssql_ad_kinit_user }}
             | awk '{print $2}')
           register: __mssql_klist_kinit_user
-          when: __mssql_kinit_user in __mssql_klist.stdout
+          when: __mssql_ad_kinit_user in __mssql_klist.stdout
           changed_when: false
 
-        - name: Obtain Kerberos ticket of the AD user {{ ad_integration_user }}
+        - name: Obtain Kerberos ticket for {{ __mssql_ad_kinit_user }}
           shell: >-
             set -euo pipefail;
-            echo {{ ad_integration_password | quote }}
-            | kinit {{ __mssql_kinit_user }}
+            echo {{ mssql_ad_kerberos_password | quote }}
+            | kinit {{ __mssql_ad_kinit_user }}
           when: >-
-            (__mssql_kinit_user not in __mssql_klist.stdout)
+            (__mssql_ad_kinit_user not in __mssql_klist.stdout)
             or
             ("(Expired)" in __mssql_klist_kinit_user.stdout | d())
           no_log: true
           changed_when: true
 
-    - name: Create keytab file
-      when: mssql_ad_keytab_file is none
-      block:
         # Do not fail if account does not exist
-        - name: Check if SQL user exists {{ mssql_ad_sql_user_name }}
+        - name: Check if AD user exists {{ mssql_ad_sql_user_name }}
           command: >-
             adutil account exists
             --name {{ mssql_ad_sql_user_name }}

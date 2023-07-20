@@ -55,7 +55,6 @@ mssql_ha_cluster_run_role: false
 
 mssql_ad_configure: false
 mssql_ad_join: true
-mssql_ad_obtain_kerberos: true
 mssql_ad_sql_user_name: null
 mssql_ad_sql_password: null
 # Default to CN={{ mssql_ad_sql_user_name }},CN=Users,DC=DOMAIN,DC=SUBDOMAIN...
@@ -68,3 +67,9 @@ mssql_ad_sql_user_dn: >-
 mssql_ad_netbios_name: "{{ ad_integration_realm.split('.') | first }}"
 mssql_ad_keytab_file: null
 mssql_ad_keytab_remote_src: false
+mssql_ad_kerberos_user: >-
+  {{ ad_integration_user if ad_integration_user is defined
+  else mssql_ad_sql_user_name }}
+mssql_ad_kerberos_password: >-
+  {{ ad_integration_password if ad_integration_user is defined
+  else mssql_ad_sql_password }}

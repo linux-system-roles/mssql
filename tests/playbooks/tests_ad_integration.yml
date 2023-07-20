@@ -101,40 +101,9 @@
         name: linux-system-roles.mssql
       vars:
         mssql_ad_join: false
-        ad_integration_manage_dns: null
-        ad_integration_dns_server: null
-        ad_integration_dns_connection_name: null
-        ad_integration_dns_connection_type: null
-
-    - name: Test AD integration
-      include_tasks: ../tasks/verify_ad_auth.yml
-
-    - name: Clean up after the role invocation
-      include_tasks: ../tasks/cleanup.yml
-
-    # Test with mssql_ad_join: false and mssql_ad_obtain_kerberos: false
-    - name: Authenticate to AD
-      include_role:
-        name: linux-system-roles.ad_integration
-
-    - name: Ensure krb5-workstation
-      package:
-        name: krb5-workstation
-        state: present
-
-    - name: Obtain Kerberos ticket of the AD user {{ ad_integration_user }}
-      shell: >-
-        set -euo pipefail;
-        echo {{ ad_integration_password | quote }}
-        | kinit {{ ad_integration_user }}@{{ ad_integration_realm | upper }}
-      changed_when: true
-
-    - name: Configure AD without joining to AD and without obtaining Kerberos
-      include_role:
-        name: linux-system-roles.mssql
-      vars:
-        mssql_ad_join: false
-        mssql_ad_obtain_kerberos: false
+        # Explicitly set kerberos vars, otherwise the value becomes null
+        mssql_ad_kerberos_user: Administrator
+        mssql_ad_kerberos_password: Secret123
         ad_integration_user: null
         ad_integration_password: null
         ad_integration_manage_dns: null
