@@ -1206,12 +1206,12 @@ Optional: Use variables starting with the `mssql_ad_` prefix to configure SQL Se
 
 This role uses the `fedora.linux_system_roles.ad_integration` role to join SQL Server with AD server.
 
-To join to AD server, you must also provide the following variables:
-* `ad_integration_realm`
-* `ad_integration_user`
-* `ad_integration_password`
+To join to AD server, you must also provide the following variables for the `ad_integration` role:
+* `ad_integration_realm` - to optionally join to the AD and create a keytab file
+* `ad_integration_user` - to optionally join to the AD and obtain Kerberos ticket if [mssql_ad_kerberos_user](#mssql_ad_kerberos_user) is not provided
+* `ad_integration_password` - to authenticate `ad_integration_user`
 * Optional, You can configure DNS using ad_integration role by providing the following variables:
-  ```
+  ```yaml
   ad_integration_manage_dns: true
   ad_integration_dns_server: <AD_server_IP>
   ad_integration_dns_connection_name: <linux_network_interface>
@@ -1219,12 +1219,12 @@ To join to AD server, you must also provide the following variables:
   ```
 * Optional: You can provide further variables for the `fedora.linux_system_roles.ad_integration` role if you need.
 
-Optional: If you have already joined managed nodes to AD and you want to skip running the ad_integration role, you can set the [`mssql_ad_join`](#mssql_ad_join) variable to false and omit the `ad_integration_` variables.
+Optional: If you have already joined managed nodes to AD and you want to skip running the ad_integration role, you can set the [`mssql_ad_join`](#mssql_ad_join) variable to false.
 
 #### Prerequisites
 
 Ensure that your AD Server and Linux host meet the prerequisites for joining.
-For more information, see [Join SQL Server on a Linux host to an Active Directory domain](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-active-directory-join-domain?view=sql-server-ver15#prerequisites) and [Troubleshoot Active Directory authentication for SQL Server on Linux and containers](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-ad-auth-troubleshooting?view=sql-server-ver15) in Microsoft documetation.
+For more information, see [Join SQL Server on a Linux host to an Active Directory domain](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-active-directory-join-domain?view=sql-server-ver15#prerequisites) and [Troubleshoot Active Directory authentication for SQL Server on Linux and containers](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-ad-auth-troubleshooting?view=sql-server-ver15) in Microsoft documentation.
 
 #### Finishing AD Server Configuration
 
@@ -1245,7 +1245,7 @@ For more information, see [Join SQL Server on a Linux host to an Active Director
 
 #### Verifying Authentication
 
-After you execute the role to configure AD Server authentication and complete [Post Configuration Tasks](#post-configuration-tasks), you log in using Azure Data Studio or complete the following procedure to verify that you can log in to SQL Server from your Linux machine using the <sqluser> account.
+After you execute the role to configure AD Server authentication and complete [Post Configuration Tasks](#post-configuration-tasks), you can log in using Azure Data Studio or complete the following procedure to verify that you can log in to SQL Server from your Linux machine using the <sqluser> account.
 
 1. SSH into the _<sqluser>@<domain.com>_ user on your Linux _client.domain.com_ machine:
 
@@ -1283,29 +1283,51 @@ Optional: If you have already joined managed nodes to AD and you want to skip ru
 
 For an example playbook, see [Configuring AD integration with a pre-created keytab file](#configuring-ad-integration-without-joining-to-ad).
 
-Default: `true`
 
-Type: `bool`
-
-##### mssql_ad_obtain_kerberos
-
-Optional: If you have already obtained Kerberos ticket on managed nodes and you want to skip obtaining it, you can set this variable to `false`.
-
-By default, when mssql_ad_obtain_kerberos is set to `true`, you must set `ad_integration_user` and `ad_integration_password` variables.
-
-For an example playbook, see [Configuring AD integration with a pre-created keytab file](#configuring-ad-integration-without-joining-to-ad-and-without-obtaining-kerberos-ticket).
+If you define the `ad_integration_user` variable, the role obtains the kerberos ticket for creating keytab for the `ad_integration_user@ad_integration_realm` user with the `ad_integration_password` password.
+If you don't define the `ad_integration_user` variable, the role obtains the kerberos ticket for `mssql_ad_sql_user_name@ad_integration_realm` user with the `mssql_ad_sql_password` password.
 
 Default: `true`
 
 Type: `bool`
+
+##### mssql_ad_kerberos_user
+
+Optional, you can use a specific user for obtaining kerberos ticket for creating the `mssql_ad_sql_user_name` user and keytab.
+
+By default, the role uses the following logic:
+
+1. If you define the `ad_integration_user` variable, the role obtains the kerberos ticket for the `ad_integration_user@ad_integration_realm` user with the `ad_integration_password` password.
+
+2. If you don't define the `ad_integration_user` variable, the role obtains the kerberos ticket for `mssql_ad_sql_user_name@ad_integration_realm` user with the `mssql_ad_sql_password` password.
+
+Default:
+```yaml
+mssql_ad_kerberos_user: >-
+  {{ ad_integration_user if ad_integration_user is defined
+  else mssql_ad_sql_user_name }}
+```
+
+Type: `string`
+
+##### mssql_ad_kerberos_password
+
+Optional, the password to use for obtaining kerberos ticket for the `mssql_ad_kerberos_user` user.
+
+Default:
+```yaml
+mssql_ad_kerberos_password: >-
+  {{ ad_integration_password if ad_integration_user is defined
+  else mssql_ad_sql_password }}
+```
+
+Type: `string`
 
 ##### mssql_ad_keytab_file
 
 Optional: You can use this variable if you don't want the role to generate a keytab file and instead want to pass a pre-created keytab file to mssql-server.
 
 A keytab file must be pre-created on AD Server as per [Tutorial: Use Active Directory authentication with SQL Server on Linux](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-active-directory-authentication?view=sql-server-ver16). You must ensure that the keytab file is created for the managed node's hostname and for the user provided with the `mssql_ad_sql_user_name` variable.
-
-Note that kerberos ticket is not required when the role uses keytab, therefore when you set `mssql_ad_keytab_file: false` you can also set `mssql_ad_obtain_kerberos: false`.
 
 For an example playbook, see [Configuring AD integration with a pre-created keytab file](#configuring-ad-integration-with-a-pre-created-keytab-file).
 
@@ -1456,30 +1478,8 @@ You must join managed host to AD Server yourself prior to running this playbook.
     mssql_ad_configure: true
     mssql_ad_join: false
     mssql_ad_sql_user_name: sqluser
-    ad_integration_realm: domain.com
-    ad_integration_user: Administrator
-    ad_integration_password: Secret123
-```
-
-##### Configuring AD integration without joining to AD and without obtaining Kerberos ticket
-
-You must join managed host to AD Server yourself prior to running this playbook.
-
-```yaml
-- name: Configure with AD server authentication without joining to AD
-  hosts: all
-  vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
-    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
-    mssql_accept_microsoft_sql_server_standard_eula: true
-    mssql_version: 2022
-    mssql_password: "p@55w0rD"
-    mssql_edition: Evaluation
-    mssql_manage_firewall: true
-    mssql_ad_configure: true
-    mssql_ad_join: false
-    mssql_ad_obtain_kerberos: false
-    mssql_ad_sql_user_name: sqluser
+    mssql_ad_kerberos_user: user_administrator
+    mssql_ad_kerberos_password: Secret123
     ad_integration_realm: domain.com
 ```
 
