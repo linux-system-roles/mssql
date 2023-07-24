@@ -187,22 +187,42 @@ This variable is deprecated. Use the below variables instead.
 
 ##### mssql_pre_input_sql_file and mssql_post_input_sql_file
 
+With these variables, enter the path to the files containing SQL scripts.
+
 You can use the role to input a file containing SQL statements or procedures into SQL Server.
 
 * Use `mssql_pre_input_sql_file` to input the SQL file immediately after the role configures SQL Server.
 * Use `mssql_post_input_sql_file` to input the SQL file at the end of the role invocation.
 
-With these variables, enter the path to the files containing SQL scripts.
-
 When specifying any of these variables, you must also specify the `mssql_password` variable because authentication is required to input an SQL file to SQL Server.
-
-If you do not pass these variables, the role only configures the SQL Server and does not input any SQL file.
 
 Note that this task is not idempotent, the role always inputs an SQL file if any of these variables is defined.
 
-You can find an example of an SQL file at `tests/sql_script.sql` at the role directory.
+You can find an example of an SQL script at `tests/sql_script.sql` at the role directory.
 
-You can set these variables to a list of files, or to a string containing single file.
+You can set these variables to a list of files, or to a string containing a single file.
+
+
+Default: `null`
+
+Type: `string` or `list`
+
+##### mssql_pre_input_sql_content and mssql_post_input_sql_content
+
+With these variables, enter SQL scripts directly.
+
+You can use the role to input T-SQL statements or procedures into SQL Server.
+
+* Use `mssql_pre_input_sql_content` to input SQL scripts immediately after the role configures SQL Server.
+* Use `mssql_post_input_sql_content` to input SQL scripts at the end of the role invocation.
+
+When specifying any of these variables, you must also specify the `mssql_password` variable because authentication is required to input an SQL file to SQL Server.
+
+Note that this task is not idempotent, the role always inputs SQL scripts if any of these variables is defined.
+
+You can find an example of an SQL script at `tests/sql_script.sql` at the role directory.
+
+You can set these variables to a list of scripts, or to a string containing a single script.
 
 Default: `null`
 
@@ -211,7 +231,7 @@ Type: `string` or `list`
 ##### mssql_debug
 
 Whether to print the output of sqlcmd commands.
-The role inputs SQL scripts with the sqlcmd command to configure SQL Server for HA or to input users' SQL scripts when you define a [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) or [`mssql_post_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable.
+The role inputs SQL scripts with the sqlcmd command to configure SQL Server for HA or to input users' SQL scripts when you define of of [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file), [`mssql_post_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file), ['mssql_pre_input_sql_content'](#mssql_pre_input_sql_content-and-mssql_post_input_sql_content), ['mssql_post_input_sql_content](#mssql_pre_input_sql_content-and-mssql_post_input_sql_content) variables.
 
 Default: `false`
 
@@ -219,7 +239,9 @@ Type: `bool`
 
 #### Example Playbooks
 
-##### Inputting SQL Files to SQL Server
+##### Inputting SQL script files and content to SQL Server
+
+This example makes use of [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file), [`mssql_post_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file), ['mssql_pre_input_sql_content'](#mssql_pre_input_sql_content-and-mssql_post_input_sql_content), and ['mssql_post_input_sql_content](#mssql_pre_input_sql_content-and-mssql_post_input_sql_content) variables.
 
 ```yaml
 - hosts: all
@@ -234,6 +256,39 @@ Type: `bool`
     mssql_post_input_sql_file:
       - script1.sql
       - script2.sql
+    mssql_pre_input_sql_file: |-
+      USE master;
+      IF NOT EXISTS (
+        SELECT name FROM sys.server_principals
+        WHERE name = 'MyLogin'
+      )
+      BEGIN
+        PRINT 'A MyLogin login does not exist, creating';
+        CREATE LOGIN [MyLogin] FROM WINDOWS;
+        PRINT 'The MyLogin login created successfully';
+      END
+      ELSE
+      BEGIN
+        PRINT 'A MyLogin login already exists, skipping'
+      END
+    mssql_post_input_sql_file:
+      - CREATE DATABASE ExampleDB1
+      - |-
+        IF NOT EXISTS(
+          SELECT name
+          FROM sys.databases
+          WHERE name = 'ExampleDB2'
+        )
+        BEGIN
+          PRINT 'Creating the ExampleDB2 database';
+          CREATE DATABASE ExampleDB2;
+          PRINT 'The ExampleDB2 database created successfully';
+        END
+        ELSE
+        BEGIN
+          PRINT 'The ExampleDB2 database already exists, skipping';
+        END
+        GO
 ```
 
 ### Installing Additional Packages

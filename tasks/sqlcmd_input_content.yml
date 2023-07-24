@@ -1,0 +1,25 @@
+---
+- name: Input script content with sqlcmd
+  block:
+    - name: Input script content
+      command: >-
+        {{ __mssql_sqlcmd_login_cmd }} -Q {{ item | quote }} -b
+      register: __mssql_sqlcmd_input
+      changed_when: '"successfully" in __mssql_sqlcmd_input.stdout'
+      # no_log: true
+  always:
+    # Role prints the output if the input succeeds, otherwise Ansible prints the
+    # output from the failed input tasks
+    - name: Print results and clean up after inputting script content
+      when:
+        - >-
+          (mssql_debug | bool) or
+          (__mssql_sqlcmd_input is failed)
+        - __mssql_sqlcmd_loop | length > 0
+      debug:
+        var: __mssql_sqlcmd_loop
+      loop:
+        - "{{ __mssql_sqlcmd_input.stdout_lines }}"
+        - "{{ __mssql_sqlcmd_input.stderr_lines }}"
+      loop_control:
+        loop_var: __mssql_sqlcmd_loop

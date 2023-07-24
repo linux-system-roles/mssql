@@ -36,6 +36,12 @@
     (__mssql_sqlcmd_login_cmd is none) or
     (__mssql_sqlcmd_login_cmd is not defined)
 
-- name: Input SQL files to MSSQL
+- name: Input SQL script files to MSSQL
   include_tasks: sqlcmd_input_file.yml
   loop: "{{ __mssql_sql_files_to_input }}"
+  when: __mssql_sql_files_to_input is defined
+
+- name: Input SQL script contents to MSSQL
+  include_tasks: sqlcmd_input_content.yml
+  loop: "{{ __mssql_sql_content_to_input }}"
+  when: __mssql_sql_content_to_input is defined

@@ -21,6 +21,8 @@ mssql_logdir_mode: null
 
 mssql_pre_input_sql_file: []
 mssql_post_input_sql_file: []
+mssql_pre_input_sql_content: []
+mssql_post_input_sql_content: []
 mssql_debug: false
 
 mssql_tls_enable: null
