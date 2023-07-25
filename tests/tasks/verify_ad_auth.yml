@@ -38,17 +38,6 @@
         ("(Expired)" in __mssql_klist_kinit_user.stdout | d())
       changed_when: true
 
-    - name: Create the privileged account login
-      vars:
-        __mssql_sql_files_to_input:
-          - tests/templates/ad_create_login.j2
-        __mssql_ad_user: >-
-          {{ ad_integration_realm.split('.') | first }}\{{
-          ad_integration_user }}
-      include_role:
-        name: linux-system-roles.mssql
-        tasks_from: input_sql_files.yml
-
     - name: SSH into AD, kinit as Administrator, verify authentication
       shell: >-
         set -euo pipefail;

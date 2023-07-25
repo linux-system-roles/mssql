@@ -251,16 +251,16 @@ Type: `bool`
       USE master;
       IF NOT EXISTS (
         SELECT name FROM sys.server_principals
-        WHERE name = 'MyLogin'
+        WHERE name = '<mydomain>\<myADlogin>'
       )
       BEGIN
-        PRINT 'A MyLogin login does not exist, creating';
-        CREATE LOGIN [MyLogin] FROM WINDOWS;
-        PRINT 'The MyLogin login created successfully';
+        PRINT 'A <mydomain>\<myADlogin> login does not exist, creating';
+        CREATE LOGIN [<mydomain>\<myADlogin>] FROM WINDOWS;
+        PRINT 'The <mydomain>\<myADlogin> login created successfully';
       END
       ELSE
       BEGIN
-        PRINT 'A MyLogin login already exists, skipping'
+        PRINT 'A <mydomain>\<myADlogin> login already exists, skipping'
       END
     mssql_post_input_sql_file:
       - CREATE DATABASE ExampleDB1
@@ -1290,7 +1290,7 @@ For more information, see [Join SQL Server on a Linux host to an Active Director
       ```
 
 2. You must create Active Directory-based logins in Transact-SQL as described in [Create Active Directory-based SQL Server logins in Transact-SQL](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-ad-auth-adutil-tutorial?view=sql-server-ver16#create-active-directory-based-sql-server-logins-in-transact-sql) in *Tutorial: Use adutil to configure Active Directory authentication with SQL Server on Linux* in Microsoft documentation.
-To do so, you can write a T-SQL script and input it with the [mssql_post_input_sql_file](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable.
+You can write a T-SQL script and input it as described in [mssql_post_input_sql_file](#inputting-sql-scripts-to-sql-server). See example playbooks for how to create logins using the `mssql_post_input_sql_content` variable.
 
 #### Verifying Authentication
 
@@ -1468,6 +1468,21 @@ Type: `string`
     ad_integration_dns_server: 1.1.1.1
     ad_integration_dns_connection_name: eth0
     ad_integration_dns_connection_type: ethernet
+    mssql_post_input_sql_content: |-
+      USE master;
+      IF NOT EXISTS (
+        SELECT name FROM sys.server_principals
+        WHERE name = '<mydomain>\<myADlogin>'
+      )
+      BEGIN
+        PRINT 'A <mydomain>\<myADlogin> login does not exist, creating';
+        CREATE LOGIN [<mydomain>\<myADlogin>] FROM WINDOWS;
+        PRINT 'The <mydomain>\<myADlogin> login created successfully';
+      END
+      ELSE
+      BEGIN
+        PRINT 'A <mydomain>\<myADlogin> login already exists, skipping'
+      END
 ```
 
 ##### Configuring AD integration with a pre-created keytab file
@@ -1495,6 +1510,21 @@ If you received a pre-created keytab file and want the role to use it, set varia
     ad_integration_dns_server: 1.1.1.1
     ad_integration_dns_connection_name: eth0
     ad_integration_dns_connection_type: ethernet
+    mssql_post_input_sql_content: |-
+      USE master;
+      IF NOT EXISTS (
+        SELECT name FROM sys.server_principals
+        WHERE name = '<mydomain>\<myADlogin>'
+      )
+      BEGIN
+        PRINT 'A <mydomain>\<myADlogin> login does not exist, creating';
+        CREATE LOGIN [<mydomain>\<myADlogin>] FROM WINDOWS;
+        PRINT 'The <mydomain>\<myADlogin> login created successfully';
+      END
+      ELSE
+      BEGIN
+        PRINT 'A <mydomain>\<myADlogin> login already exists, skipping'
+      END
 ```
 
 ##### Configuring AD integration without joining to AD
@@ -1518,6 +1548,21 @@ You must join managed host to AD Server yourself prior to running this playbook.
     mssql_ad_kerberos_user: user_administrator
     mssql_ad_kerberos_password: Secret123
     ad_integration_realm: domain.com
+    mssql_post_input_sql_content: |-
+      USE master;
+      IF NOT EXISTS (
+        SELECT name FROM sys.server_principals
+        WHERE name = '<mydomain>\<myADlogin>'
+      )
+      BEGIN
+        PRINT 'A <mydomain>\<myADlogin> login does not exist, creating';
+        CREATE LOGIN [<mydomain>\<myADlogin>] FROM WINDOWS;
+        PRINT 'The <mydomain>\<myADlogin> login created successfully';
+      END
+      ELSE
+      BEGIN
+        PRINT 'A <mydomain>\<myADlogin> login already exists, skipping'
+      END
 ```
 
 ## License
