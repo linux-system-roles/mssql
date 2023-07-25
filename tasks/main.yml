@@ -403,7 +403,7 @@
               not "Unable to set the system administrator password. Please
               consult the ERRORLOG" in __mssql_set_ha_password.stdout
 
-# Input files var as list even when provided as sting
+# Input files var as list even when provided as a string
 # Keep these 2 tasks after setting password
 - name: Pre-input SQL script files to SQL Server
   vars:
@@ -415,7 +415,7 @@
   include_tasks: input_sql_files.yml
   when: mssql_pre_input_sql_file != []
 
-# Input content as list even when provided as sting
+# Input content as list even when provided as a string
 - name: Pre-input SQL script contents to SQL Server
   vars:
     __mssql_sql_content_to_input: "{{
@@ -1212,7 +1212,7 @@
 - name: Flush handlers prior to inputting post SQL scripts
   meta: flush_handlers
 
-# Input files var as list even when provided as sting
+# Input files var as list even when provided as a string
 - name: Post-input SQL scripts to SQL Server
   vars:
     __mssql_sql_files_to_input: "{{
@@ -1223,7 +1223,7 @@
   include_tasks: input_sql_files.yml
   when: mssql_post_input_sql_file != []
 
-# Input content as list even when provided as sting
+# Input content as list even when provided as a string
 - name: Post-input SQL scripts to SQL Server
   vars:
     __mssql_sql_content_to_input: "{{

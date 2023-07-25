@@ -177,7 +177,18 @@ Type: `bool`
 
 ### Inputting SQL Scripts to SQL Server
 
-Optional: Use these variables to input T-SQL scripts to SQL Server.
+Optional: You can use the role to input T-SQL statements or procedures into SQL Server.
+
+You can either input a file containing T-SQL code or the code directly.
+You can use on of the following methods:
+1. With [`mssql_pre_input_sql_file and mssql_post_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file), you can input a file containing T-SQL code.
+2. With [`mssql_pre_input_sql_content and mssql_post_input_sql_content`](#mssql_pre_input_sql_content-and-mssql_post_input_sql_content), you can input T-SQL code directly.
+
+When specifying any of these variables, you must also specify the `mssql_password` variable because authentication is required to input an SQL file to SQL Server.
+
+Note that the input task is not idempotent, the role always inputs an SQL file if any of these variables is defined.
+
+You can find an example of an SQL script at the role's `tests/files` directory.
 
 #### Variables
 
@@ -189,19 +200,10 @@ This variable is deprecated. Use the below variables instead.
 
 With these variables, enter the path to the files containing SQL scripts.
 
-You can use the role to input a file containing SQL statements or procedures into SQL Server.
-
 * Use `mssql_pre_input_sql_file` to input the SQL file immediately after the role configures SQL Server.
 * Use `mssql_post_input_sql_file` to input the SQL file at the end of the role invocation.
 
-When specifying any of these variables, you must also specify the `mssql_password` variable because authentication is required to input an SQL file to SQL Server.
-
-Note that this task is not idempotent, the role always inputs an SQL file if any of these variables is defined.
-
-You can find an example of an SQL script at `tests/sql_script.sql` at the role directory.
-
 You can set these variables to a list of files, or to a string containing a single file.
-
 
 Default: `null`
 
@@ -211,16 +213,8 @@ Type: `string` or `list`
 
 With these variables, enter SQL scripts directly.
 
-You can use the role to input T-SQL statements or procedures into SQL Server.
-
 * Use `mssql_pre_input_sql_content` to input SQL scripts immediately after the role configures SQL Server.
 * Use `mssql_post_input_sql_content` to input SQL scripts at the end of the role invocation.
-
-When specifying any of these variables, you must also specify the `mssql_password` variable because authentication is required to input an SQL file to SQL Server.
-
-Note that this task is not idempotent, the role always inputs SQL scripts if any of these variables is defined.
-
-You can find an example of an SQL script at `tests/sql_script.sql` at the role directory.
 
 You can set these variables to a list of scripts, or to a string containing a single script.
 
@@ -230,8 +224,7 @@ Type: `string` or `list`
 
 ##### mssql_debug
 
-Whether to print the output of sqlcmd commands.
-The role inputs SQL scripts with the sqlcmd command to configure SQL Server for HA or to input users' SQL scripts when you define of of [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file), [`mssql_post_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file), ['mssql_pre_input_sql_content'](#mssql_pre_input_sql_content-and-mssql_post_input_sql_content), ['mssql_post_input_sql_content](#mssql_pre_input_sql_content-and-mssql_post_input_sql_content) variables.
+Whether to print the output of sqlcmd commands when inputting T-SQL statements and procedures.
 
 Default: `false`
 
@@ -240,8 +233,6 @@ Type: `bool`
 #### Example Playbooks
 
 ##### Inputting SQL script files and content to SQL Server
-
-This example makes use of [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file), [`mssql_post_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file), ['mssql_pre_input_sql_content'](#mssql_pre_input_sql_content-and-mssql_post_input_sql_content), and ['mssql_post_input_sql_content](#mssql_pre_input_sql_content-and-mssql_post_input_sql_content) variables.
 
 ```yaml
 - hosts: all
