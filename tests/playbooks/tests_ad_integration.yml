@@ -40,6 +40,23 @@
     ad_integration_dns_server: 1.1.1.1
     ad_integration_dns_connection_name: eth0
     ad_integration_dns_connection_type: ethernet
+    __mssql_ad_login: domain\Administrator
+    mssql_post_input_sql_content: |-
+      USE master;
+      IF NOT EXISTS (
+        SELECT name FROM sys.server_principals
+        WHERE name = '{{ __mssql_ad_login }}'
+      )
+      BEGIN
+        PRINT 'A {{ __mssql_ad_login }} login does not exist, creating';
+        CREATE LOGIN [{{ __mssql_ad_login }}] FROM WINDOWS;
+        PRINT 'The {{ __mssql_ad_login }} login created successfully';
+      END
+      ELSE
+      BEGIN
+        PRINT 'A {{ __mssql_ad_login }} login already exists, skipping'
+      END
+
   tasks:
     # Test general scenario
     - name: Set up MSSQL and configure AD authentication

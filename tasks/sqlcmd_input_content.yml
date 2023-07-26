@@ -6,7 +6,7 @@
         {{ __mssql_sqlcmd_login_cmd }} -Q {{ item | quote }} -b
       register: __mssql_sqlcmd_input
       changed_when: '"successfully" in __mssql_sqlcmd_input.stdout'
-      # no_log: true
+      no_log: true
   always:
     # Role prints the output if the input succeeds, otherwise Ansible prints the
     # output from the failed input tasks
