@@ -11,18 +11,13 @@ The role also optimizes the operating system to improve performance and throughp
 * SQL Server requires a machine with at least 2000 megabytes of memory.
 * Optional: If you want to input T-SQL statements and stored procedures to SQL Server, you must create a file with the `.sql` extension containing these SQL statements and procedures.
 
-## Role Scenarios
-
-This section describes different scenarios that the role can accomplish.
-You can combine the scenarios by combining variables serving different scenarios into a larger playbook.
-
-### Configuring General SQL Server Settings
+## Configuring General SQL Server Settings
 
 These variables apply to general SQL Server configuration.
 
-#### Variables
+### Variables
 
-##### mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula
+#### mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula
 
 Set this variable to `true` to indicate that you accept EULA for installing the `msodbcsql17` package.
 
@@ -32,7 +27,7 @@ Default: `false`
 
 Type: `bool`
 
-##### mssql_accept_microsoft_cli_utilities_for_sql_server_eula
+#### mssql_accept_microsoft_cli_utilities_for_sql_server_eula
 
 Set this variable to `true` to indicate that you accept EULA for installing the `mssql-tools` package.
 
@@ -42,7 +37,7 @@ Default: `false`
 
 Type: `bool`
 
-##### mssql_accept_microsoft_sql_server_standard_eula
+#### mssql_accept_microsoft_sql_server_standard_eula
 
 Set this variable to `true` to indicate that you accept EULA for using Microsoft SQL Server.
 
@@ -53,7 +48,7 @@ Default: `false`
 
 Type: `bool`
 
-##### mssql_password
+#### mssql_password
 
 The password for the database sa user.
 The password must have a minimum length of 8 characters, include uppercase and lowercase letters, base 10 digits or non-alphanumeric symbols.
@@ -67,7 +62,7 @@ Default: `null`
 
 Type: `string`
 
-##### mssql_edition
+#### mssql_edition
 
 The edition of SQL Server to install.
 
@@ -88,7 +83,7 @@ Default: `null`
 
 Type: `string`
 
-##### mssql_enable_sql_agent
+#### mssql_enable_sql_agent
 
 Optional: Set this variable to `true` or `false` to enable or disable the SQL agent.
 
@@ -96,7 +91,7 @@ Default: `null`
 
 Type: `bool`
 
-##### mssql_tune_for_fua_storage
+#### mssql_tune_for_fua_storage
 
 Optional: Set this variable to `true` or `false` to enable or disable settings that improve performance on hosts that support Forced Unit Access (FUA) capability.
 
@@ -120,9 +115,9 @@ Default: `null`
 
 Type: `bool`
 
-#### Example Playbooks
+### Example Playbooks
 
-##### Configuring Basic SQL Server
+#### Configuring Basic SQL Server
 
 This example playbook shows how to use the role to configure SQL Server with the minimum required variables.
 
@@ -139,11 +134,11 @@ This example playbook shows how to use the role to configure SQL Server with the
     - microsoft.sql.server
 ```
 
-### Managing SQL Server version
+## Managing SQL Server version
 
 Use these variables to manage SQL Server version.
 
-#### Considerations
+### Considerations
 
 * The role does not support downgrading SQL Server.
 * SQL Server does not support a direct upgrade from 2017 to 2022.
@@ -151,9 +146,9 @@ Use these variables to manage SQL Server version.
 * SQL Server 2022 does not support EL 7 hosts.
 * The role currently supports installing and configuring SQL Server versions 2017, 2019, and 2022.
 
-#### Variables
+### Variables
 
-##### mssql_version
+#### mssql_version
 
 The version of the SQL Server to configure.
 
@@ -167,7 +162,7 @@ Default: `null`
 
 Type: `int`
 
-##### mssql_upgrade
+#### mssql_upgrade
 
 Optional: If you want to upgrade your SQL Server, set this variable to `true` and the `mssql_version` variable to the version to which you wish to upgrade.
 
@@ -175,14 +170,14 @@ Default: `false`
 
 Type: `bool`
 
-### Inputting SQL Scripts to SQL Server
+## Inputting SQL Scripts to SQL Server
 
 Optional: You can use the role to input T-SQL statements or procedures into SQL Server.
 
 You can either input a file containing T-SQL code or the code directly.
 You can use on of the following methods:
-1. With [`mssql_pre_input_sql_file and mssql_post_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file), you can input a file containing T-SQL code.
-2. With [`mssql_pre_input_sql_content and mssql_post_input_sql_content`](#mssql_pre_input_sql_content-and-mssql_post_input_sql_content), you can input T-SQL code directly.
+1. With [mssql_pre_input_sql_file and mssql_post_input_sql_file](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file), you can input a file containing T-SQL code.
+2. With [mssql_pre_input_sql_content and mssql_post_input_sql_content](#mssql_pre_input_sql_content-and-mssql_post_input_sql_content), you can input T-SQL code directly.
 
 When specifying any of these variables, you must also specify the `mssql_password` variable because authentication is required to input an SQL file to SQL Server.
 
@@ -190,13 +185,13 @@ Note that the input task is not idempotent, the role always inputs an SQL file i
 
 You can find an example of an SQL script at the role's `tests/files` directory.
 
-#### Variables
+### Variables
 
-##### mssql_input_sql_file
+#### mssql_input_sql_file
 
 This variable is deprecated. Use the below variables instead.
 
-##### mssql_pre_input_sql_file and mssql_post_input_sql_file
+#### mssql_pre_input_sql_file and mssql_post_input_sql_file
 
 With these variables, enter the path to the files containing SQL scripts.
 
@@ -209,7 +204,7 @@ Default: `null`
 
 Type: `string` or `list`
 
-##### mssql_pre_input_sql_content and mssql_post_input_sql_content
+#### mssql_pre_input_sql_content and mssql_post_input_sql_content
 
 With these variables, enter SQL scripts directly.
 
@@ -222,7 +217,7 @@ Default: `null`
 
 Type: `string` or `list`
 
-##### mssql_debug
+#### mssql_debug
 
 Whether to print the output of sqlcmd commands when inputting T-SQL statements and procedures.
 
@@ -230,9 +225,9 @@ Default: `false`
 
 Type: `bool`
 
-#### Example Playbooks
+### Example Playbooks
 
-##### Inputting SQL script files and content to SQL Server
+#### Inputting SQL script files and content to SQL Server
 
 ```yaml
 - hosts: all
@@ -282,13 +277,13 @@ Type: `bool`
         GO
 ```
 
-### Installing Additional Packages
+## Installing Additional Packages
 
 Optional: Use these variables to install additional packages to SQL Server host.
 
-#### Variables
+### Variables
 
-##### mssql_install_fts
+#### mssql_install_fts
 
 Set this variable to `true` or `false` to install or remove the `mssql-server-fts` package that provides full-text search.
 
@@ -296,7 +291,7 @@ Default: `null`
 
 Type: `bool`
 
-##### mssql_install_powershell
+#### mssql_install_powershell
 
 Set this variable to `true` or `false` to install or remove the `powershell` package that provides PowerShell.
 
@@ -304,16 +299,16 @@ Default: `null`
 
 Type: `bool`
 
-### Configuring Custom URLs for Packages
+## Configuring Custom URLs for Packages
 
 Optional: Use these variables to configure your host to get packages from custom URLs.
 This is useful if you store packages in a proxy server.
 
 When you do not provide these variables, the role uses default values from the `vars/` directory based on operating system.
 
-#### Variables
+### Variables
 
-##### mssql_rpm_key
+#### mssql_rpm_key
 
 The URL or path to the Microsoft rpm gpg keys.
 
@@ -321,7 +316,7 @@ Default: `https://packages.microsoft.com/keys/microsoft.asc`
 
 Type: `string`
 
-##### mssql_server_repository
+#### mssql_server_repository
 
 The URL to the Microsoft SQL Server repository.
 
@@ -329,7 +324,7 @@ Default: `{{ __mssql_server_repository }}`
 
 Type: `string`
 
-##### mssql_client_repository
+#### mssql_client_repository
 
 The URL to the Microsoft production repository.
 
@@ -337,13 +332,13 @@ Default: `{{ __mssql_client_repository }}`
 
 Type: `string`
 
-### Configuring Custom Data and Logs Storage Paths
+## Configuring Custom Data and Logs Storage Paths
 
 Optional: Use these variables to configure SQL Server to store data and logs in custom paths.
 
-#### Variables
+### Variables
 
-##### mssql_datadir
+#### mssql_datadir
 
 The path to the directory that SQL Server must use to store data.
 When defined, the role creates the provided directory and ensures correct permissions and ownership for it.
@@ -354,7 +349,7 @@ Default: `null`
 
 Type: `string`
 
-##### mssql_datadir_mode
+#### mssql_datadir_mode
 
 The permissions to be set for the `mssql_datadir` path in the format of the Ansible `file` module `mode` variable.
 
@@ -367,7 +362,7 @@ Default: `null`
 
 Type: `string`
 
-##### mssql_logdir
+#### mssql_logdir
 
 The path to the directory that SQL Server must use to store logs.
 When defined, the role creates the provided directory and ensures correct permissions and ownership for it.
@@ -378,7 +373,7 @@ Default: `null`
 
 Type: `string`
 
-##### mssql_logdir_mode
+#### mssql_logdir_mode
 
 The permissions to be set for the `mssql_logdir` path in the format of the Ansible `file` module `mode` variable.
 
@@ -391,13 +386,13 @@ Default: `null`
 
 Type: `string`
 
-### Configuring Network Parameters
+## Configuring Network Parameters
 
 Use these variables to configure TCP port settings.
 
-#### Variables
+### Variables
 
-##### mssql_ip_address
+#### mssql_ip_address
 
 The IP address that SQL Server listens on.
 
@@ -411,7 +406,7 @@ Default: `null`
 
 Type: `string`
 
-##### mssql_tcp_port
+#### mssql_tcp_port
 
 The port that SQL Server listens on.
 
@@ -424,7 +419,7 @@ Default: `1433`
 
 Type: `int`
 
-##### mssql_manage_firewall
+#### mssql_manage_firewall
 
 Whether to open firewall ports required by this role.
 
@@ -438,9 +433,9 @@ Default: `false`
 
 Type: `bool`
 
-#### Example Playbooks
+### Example Playbooks
 
-##### Configuring SQL Server with Custom Network Parameters
+#### Configuring SQL Server with Custom Network Parameters
 
 This example shows how to use the role to configure SQL Server, configure it with a custom IP address and TCP port, and open the TCP port in firewall.
 
@@ -460,15 +455,15 @@ This example shows how to use the role to configure SQL Server, configure it wit
     - microsoft.sql.server
 ```
 
-### Configuring TLS Certificates
+## Configuring TLS Certificates
 
 Use the variables starting with the `mssql_tls_` prefix to configure SQL Server to encrypt connections using TLS certificates.
 
-You can either use existing TLS certificate and private key files by providing them with [`mssql_tls_cert` and `mssql_tls_private_key`](#mssql_tls_cert-and-mssql_tls_private_key), or use the role to create certificates by providing [`mssql_tls_certificates`](#mssql_tls_certificates).
+You can either use existing TLS certificate and private key files by providing them with [mssql_tls_cert` and `mssql_tls_private_key](#mssql_tls_cert-and-mssql_tls_private_key), or use the role to create certificates by providing [mssql_tls_certificates](#mssql_tls_certificates).
 
-#### Variables
+### Variables
 
-##### mssql_tls_enable
+#### mssql_tls_enable
 
 Set to `true` or `false` to enable or disable TLS encryption.
 
@@ -484,7 +479,7 @@ Default: `null`
 
 Type: `bool`
 
-##### mssql_tls_certificates
+#### mssql_tls_certificates
 
 Use this variable to generate certificate and private key for TLS encryption using the `fedora.linux_system_roles.certificate`.
 
@@ -505,7 +500,7 @@ Default: `[]`
 
 Type: `list of dictionaries`
 
-##### mssql_tls_cert and mssql_tls_private_key
+#### mssql_tls_cert and mssql_tls_private_key
 
 Paths to the certificate and private key files to copy to SQL Server.
 
@@ -518,9 +513,9 @@ Default: `null`
 
 Type: `string`
 
-##### mssql_tls_remote_src
+#### mssql_tls_remote_src
 
-Only applicable when using [`mssql_tls_cert` and `mssql_tls_private_key`](#mssql_tls_cert-and-mssql_tls_private_key).
+Only applicable when using [mssql_tls_cert` and `mssql_tls_private_key](#mssql_tls_cert-and-mssql_tls_private_key).
 
 Influence whether files provided with `mssql_tls_cert` and `mssql_tls_private_key` need to be transferred or already are present remotely.
 
@@ -532,7 +527,7 @@ Default: `false`
 
 Type: `bool`
 
-##### mssql_tls_version
+#### mssql_tls_version
 
 TLS version to use.
 
@@ -540,7 +535,7 @@ Default: `1.2`
 
 Type: `string`
 
-##### mssql_tls_force
+#### mssql_tls_force
 
 Set to `true` to replace the existing certificate and private key files on host if they exist at `/etc/pki/tls/certs/` and `/etc/pki/tls/private/` respectively.
 
@@ -548,9 +543,9 @@ Default: `false`
 
 Type: `bool`
 
-#### Example Playbooks
+### Example Playbooks
 
-##### Configuring SQL Server with TLS Encryption with Certificate Files
+#### Configuring SQL Server with TLS Encryption with Certificate Files
 
 This example shows how to use the role to configure SQL Server and configure it to use TLS encryption.
 Certificate files `mycert.pem` and `mykey.key` must exist on the primary node.
@@ -574,7 +569,7 @@ Certificate files `mycert.pem` and `mykey.key` must exist on the primary node.
     - microsoft.sql.server
 ```
 
-##### Configuring SQL Server with TLS Encryption with the Certificate Role
+#### Configuring SQL Server with TLS Encryption with the Certificate Role
 
 This example shows how to use the role to configure SQL Server and configure it with TLS encryption using self-signed certificate and key created by the certificate role.
 
@@ -597,28 +592,28 @@ This example shows how to use the role to configure SQL Server and configure it 
     - microsoft.sql.server
 ```
 
-### Configuring Always On Availability Group
+## Configuring Always On Availability Group
 
 Use the variables starting with the `mssql_ha_` prefix to configure an SQL Server Always On availability group to provide high availability.
 
 Configuring for high availability is not supported on RHEL 7 because the `fedora.linux_system_roles.ha_cluster` role does not support RHEL 7.
 
-#### Prerequisites
+### Prerequisites
 
 * Ensure that your hosts meet the requirements for high availability configuration, namely DNS resolution configured so that hosts can communicate using short names.
   For more information, see Prerequisites in [Configure SQL Server Always On Availability Group for high availability on Linux](https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-availability-group-configure-ha?view=sql-server-ver15#prerequisites).
 * Optional: In SQL Server, create one or more databases to be used for replication.
-  Provide databases names to the role with the [`mssql_ha_db_names`](#mssql_ha_db_names) variable.
-  You can set the [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable to pre-create databases.
-  For more information, see the description of the [`mssql_ha_db_names`](#mssql_ha_db_names) variable.
+  Provide databases names to the role with the [mssql_ha_db_names](#mssql_ha_db_names) variable.
+  You can set the [mssql_pre_input_sql_file](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable to pre-create databases.
+  For more information, see the description of the [mssql_ha_db_names](#mssql_ha_db_names) variable.
 
-  If you do not provide the [`mssql_ha_db_names`](#mssql_ha_db_names) variable, the role creates a cluster without replicating database in it.
+  If you do not provide the [mssql_ha_db_names](#mssql_ha_db_names) variable, the role creates a cluster without replicating database in it.
 
-#### Configuring the Ansible Inventory
+### Configuring the Ansible Inventory
 
 You must set the `mssql_ha_replica_type` variable for each host that you want to configure.
 
-If you set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true`, you can provide variables required by the `fedora.linux_system_roles.ha_cluster` role.
+If you set [mssql_ha_cluster_run_role](#mssql_ha_cluster_run_role) to `true`, you can provide variables required by the `fedora.linux_system_roles.ha_cluster` role.
 If you do not provide names or addresses, the `fedora.linux_system_roles.ha_cluster` uses play's targets, and the high availability setup requires pacemaker to be configured with short names.
 Therefore, if you define hosts in inventory not by short names, or the default hosts' IP address differs from the IP address that pacemaker must use, you must set the corresponding `fedora.linux_system_roles.ha_cluster` role variables.
 
@@ -626,9 +621,9 @@ For an example inventory, see [Example Inventory for HA Configuration](#Example-
 
 See the `fedora.linux_system_roles.ha_cluster` role's documentation for more information.
 
-#### Variables
+### Variables
 
-##### mssql_ha_configure
+#### mssql_ha_configure
 
 Set to `true` to configure for high availability.
 Setting to `false` does not remove configuration for high availability.
@@ -636,22 +631,22 @@ Setting to `false` does not remove configuration for high availability.
 When set to `true`, the role performs the following tasks:
 
 1. Include the `fedora.linux_system_roles.firewall` role to configure firewall:
-     1. Open the firewall port set with the [`mssql_ha_endpoint_port`](#mssql_ha_endpoint_port) variable.
+     1. Open the firewall port set with the [mssql_ha_endpoint_port](#mssql_ha_endpoint_port) variable.
      2. Enable the `high-availability` service in firewall.
 2. Configure SQL Server for high availability:
      1. Enable AlwaysOn Health events.
      2. Create certificate on the primary replica and distribute to other replicas.
      3. Configure endpoint and availability group.
-     4. Configure the user provided with the [`mssql_ha_login`](#mssql_ha_login) variable for
+     4. Configure the user provided with the [mssql_ha_login](#mssql_ha_login) variable for
         Pacemaker.
 3. Optional: Include the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker.
-You must set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true` and provide all variables required by the `fedora.linux_system_roles.ha_cluster` role for a proper Pacemaker cluster configuration based on example playbooks in [Setting Up SQL Server and Configuring for High Availability](#Setting_Up_SQL_Server_and_Configuring_for_High_Availability).
+You must set [mssql_ha_cluster_run_role](#mssql_ha_cluster_run_role) to `true` and provide all variables required by the `fedora.linux_system_roles.ha_cluster` role for a proper Pacemaker cluster configuration based on example playbooks in [Setting Up SQL Server and Configuring for High Availability](#Setting_Up_SQL_Server_and_Configuring_for_High_Availability).
 
 Default: `false`
 
 Type: `bool`
 
-##### mssql_ha_ag_cluster_type
+#### mssql_ha_ag_cluster_type
 
 With this variable, provide a cluster type that you want to configure.
 
@@ -664,11 +659,11 @@ Default: `external`
 
 Type: `string`
 
-##### mssql_ha_replica_type
+#### mssql_ha_replica_type
 
 A host variable that specifies the type of the replica to be configured on this host.
 
-See [`Setting Up SQL Server and Configuring for High Availability`](#Setting-Up-SQL-Server-and-Configuring-for-High-Availability) for an example inventory.
+See [Setting Up SQL Server and Configuring for High Availability](#Setting-Up-SQL-Server-and-Configuring-for-High-Availability) for an example inventory.
 
 The available values are: `primary`, `synchronous`, `asynchronous`, `witness`.
 
@@ -680,7 +675,7 @@ Default: no default
 
 Type: `string`
 
-##### mssql_ha_endpoint_port
+#### mssql_ha_endpoint_port
 
 The TCP port used to replicate data for an Always On availability group.
 
@@ -693,7 +688,7 @@ Default: `5022`
 
 Type: `int`
 
-##### mssql_ha_cert_name
+#### mssql_ha_cert_name
 
 The name of the certificate used to secure transactions between members of an Always On availability group.
 
@@ -701,7 +696,7 @@ Default: `null`
 
 Type: `string`
 
-##### mssql_ha_master_key_password
+#### mssql_ha_master_key_password
 
 The password to set for the master key used with the certificate.
 
@@ -709,7 +704,7 @@ Default: `null`
 
 Type: `string`
 
-##### mssql_ha_private_key_password
+#### mssql_ha_private_key_password
 
 The password to set for the private key used with the certificate.
 
@@ -717,7 +712,7 @@ Default: `null`
 
 Type: `string`
 
-##### mssql_ha_reset_cert
+#### mssql_ha_reset_cert
 
 Whether to reset certificates used by an Always On availability group or not.
 
@@ -725,7 +720,7 @@ Default: `false`
 
 Type: `bool`
 
-##### mssql_ha_endpoint_name
+#### mssql_ha_endpoint_name
 
 The name of the endpoint to be configured.
 
@@ -733,7 +728,7 @@ Default: `null`
 
 Type: `string`
 
-##### mssql_ha_ag_name
+#### mssql_ha_ag_name
 
 The name of the availability group to be configured.
 
@@ -741,7 +736,7 @@ Default: `null`
 
 Type: `string`
 
-##### mssql_ha_db_names
+#### mssql_ha_db_names
 
 This is an optional variable.
 
@@ -752,7 +747,7 @@ If you do not provide this variable when configuring new SQL Server, the role cr
 
 The role does not remove databases not listed with this variable from existing SQL Server clusters.
 
-You can write a T-SQL script that creates database and feed it into the role with the [`mssql_pre_input_sql_file`](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable.
+You can write a T-SQL script that creates database and feed it into the role with the [mssql_pre_input_sql_file](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file) variable.
 This way, the role runs your script to create databases after ensuring that SQL Server is running and then replicate these databases for high availability.
 
 For example, you can write a `create_example_db.sql` SQL script that creates a test database and feed it into the SQL Server from the primary replica with `mssql_pre_input_sql_file` prior to running the role.
@@ -772,7 +767,7 @@ Default: `[]`
 
 Type: `list`
 
-##### mssql_ha_login
+#### mssql_ha_login
 
 The user created for Pacemaker in SQL Server.
 This user is used by the SQL Server Pacemaker resource agent to connect to SQL Server to perform regular database health checks and manage state transitions from replica to primary when needed.
@@ -781,7 +776,7 @@ Default: `null`
 
 Type: `string`
 
-##### mssql_ha_login_password
+#### mssql_ha_login_password
 
 The password for the mssql_ha_login user in SQL Server.
 
@@ -789,7 +784,7 @@ Default: `null`
 
 Type: `string`
 
-##### mssql_ha_cluster_run_role
+#### mssql_ha_cluster_run_role
 
 Whether to run the `fedora.linux_system_roles.ha_cluster` role from this role.
 
@@ -809,7 +804,7 @@ Default: `false`
 
 Type: `bool`
 
-##### mssql_ha_virtual_ip
+#### mssql_ha_virtual_ip
 
 Only applicable when you set `mssql_ha_ag_cluster_type` to `external`.
 
@@ -825,11 +820,11 @@ Default: `null`
 
 Type: `string`
 
-#### Example Playbooks
+### Example Playbooks
 
 Examples in this section show how to use the role to configure SQL Server and configure it for high availability in different environments.
 
-##### Example Inventory for HA Configuration
+#### Example Inventory for HA Configuration
 
 The following example inventory describes different cases:
 
@@ -866,7 +861,7 @@ all:
           - 10.XXX.XXX.333
 ```
 
-##### Configuring SQL Server with a `none` Cluster Type for Read-scale without Pacemaker
+#### Configuring SQL Server with a `none` Cluster Type for Read-scale without Pacemaker
 
 Use the following example to configure SQL Server Always On for read-scale.
 In this case the role does not configure Pacemaker.
@@ -899,9 +894,9 @@ In this case the role does not configure Pacemaker.
     - microsoft.sql.server
 ```
 
-##### Configuring SQL Server with HA and Pacemaker on Bare Metal
+#### Configuring SQL Server with HA and Pacemaker on Bare Metal
 
-If you want to configure Pacemaker from this role, you can set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true` and provide variables required by the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker for your environment properly.
+If you want to configure Pacemaker from this role, you can set [mssql_ha_cluster_run_role](#mssql_ha_cluster_run_role) to `true` and provide variables required by the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker for your environment properly.
 
 This example configures required Pacemaker properties and resources and enables SBD watchdog.
 
@@ -996,9 +991,9 @@ For more information, see the `fedora.linux_system_roles.ha_cluster` role docume
     - microsoft.sql.server
 ```
 
-##### Configuring SQL Server with HA and Pacemaker on VMWare
+#### Configuring SQL Server with HA and Pacemaker on VMWare
 
-If you want to configure Pacemaker from this role, you can set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true` and provide variables required by the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker for your environment properly.
+If you want to configure Pacemaker from this role, you can set [mssql_ha_cluster_run_role](#mssql_ha_cluster_run_role) to `true` and provide variables required by the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker for your environment properly.
 See the `fedora.linux_system_roles.ha_cluster` role documentation for more information.
 
 Note that production environments require Pacemaker configured with fencing agents, this example playbook configures the `stonith:fence_vmware_soap` agent.
@@ -1100,12 +1095,12 @@ Note that production environments require Pacemaker configured with fencing agen
     - microsoft.sql.server
 ```
 
-##### Configuring SQL Server with HA and Pacemaker on Azure
+#### Configuring SQL Server with HA and Pacemaker on Azure
 
-If you want to configure Pacemaker from this role, you can set [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role) to `true` and provide variables required by the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker for your environment properly.
+If you want to configure Pacemaker from this role, you can set [mssql_ha_cluster_run_role](#mssql_ha_cluster_run_role) to `true` and provide variables required by the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker for your environment properly.
 See the `fedora.linux_system_roles.ha_cluster` role documentation for more information.
 
-###### Prerequisites
+#### Prerequisites
 * You must configure all required resources in Azure.
   For more information, see the following articles in Microsoft documentation:
 
@@ -1244,11 +1239,11 @@ This example playbooks sets the `firewall` variables for the `fedora.linux_syste
     - microsoft.sql.server
 ```
 
-### Configuring SQL Server to authenticate with Active Directory (AD) Server
+## Configuring SQL Server to authenticate with Active Directory (AD) Server
 
 Optional: Use variables starting with the `mssql_ad_` prefix to configure SQL Server to authenticate with Microsoft AD Server.
 
-#### Considerations
+### Considerations
 
 This role uses the `fedora.linux_system_roles.ad_integration` role to join SQL Server with AD server.
 
@@ -1265,57 +1260,56 @@ To join to AD server, you must also provide the following variables for the `ad_
   ```
 * Optional: You can provide further variables for the `fedora.linux_system_roles.ad_integration` role if you need.
 
-Optional: If you have already joined managed nodes to AD and you want to skip running the ad_integration role, you can set the [`mssql_ad_join`](#mssql_ad_join) variable to false.
+Optional: If you have already joined managed nodes to AD and you want to skip running the ad_integration role, you can set the [mssql_ad_join](#mssql_ad_join) variable to false.
 
-#### Prerequisites
+### Prerequisites
 
 Ensure that your AD Server and Linux host meet the prerequisites for joining.
 For more information, see [Join SQL Server on a Linux host to an Active Directory domain](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-active-directory-join-domain?view=sql-server-ver15#prerequisites) and [Troubleshoot Active Directory authentication for SQL Server on Linux and containers](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-ad-auth-troubleshooting?view=sql-server-ver15) in Microsoft documentation.
 
-#### Finishing AD Server Configuration
+### Finishing AD Server Configuration
 
-1. After you execute the role to configure AD Server authentication, you must complete one of the following procedures to add AES128 and AES256 kerberos encryption types to the [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name) on AD Server.
+1. After you execute the role to configure AD Server authentication, you must complete one of the following procedures to add AES128 and AES256 kerberos encryption types to the [mssql_ad_sql_user_name](#mssql_ad_sql_user_name) on AD Server.
 
-  * For the RSAT UI users, complete the following steps:
-      1. Launch **Active Directory Users and Computers**
-      2. Navigate to the SQL User (Default: ***domain*** > **Users** > ***sqluser***)
-      3. Right click the SQL User account and select **Properties**
-      4. In the **Account** tab, select **This account supports Kerberos AES 128 bit encryption** and **This account supports Kerberos AES 256 bit encryption**
-      5. Click **Apply**
+    * For the RSAT UI users, complete the following steps:
+        1. Launch **Active Directory Users and Computers**
+        2. Navigate to the SQL User (Default: ***domain*** > **Users** > ***sqluser***)
+        3. Right click the SQL User account and select **Properties**
+        4. In the **Account** tab, select **This account supports Kerberos AES 128 bit encryption** and **This account supports Kerberos AES 256 bit encryption**
+        5. Click **Apply**
 
-  * For the PowerShell users, enter the following command:
-
-      ```powershell
-      Set-ADUser -Identity <sqluser> -KerberosEncryptionType AES128,AES256
-      ```
+    * For the PowerShell users, enter the following command:
+        ```powershell
+        Set-ADUser -Identity <sqluser> -KerberosEncryptionType AES128,AES256
+        ```
 
 2. You must create Active Directory-based logins in Transact-SQL as described in [Create Active Directory-based SQL Server logins in Transact-SQL](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-ad-auth-adutil-tutorial?view=sql-server-ver16#create-active-directory-based-sql-server-logins-in-transact-sql) in *Tutorial: Use adutil to configure Active Directory authentication with SQL Server on Linux* in Microsoft documentation.
 You can write a T-SQL script and input it as described in [mssql_post_input_sql_file](#inputting-sql-scripts-to-sql-server). See example playbooks for how to create logins using the `mssql_post_input_sql_content` variable.
 
-#### Verifying Authentication
+### Verifying Authentication
 
 After you execute the role to configure AD Server authentication and complete [Post Configuration Tasks](#post-configuration-tasks), you can log in using Azure Data Studio or complete the following procedure to verify that you can log in to SQL Server from your Linux machine using the <sqluser> account.
 
 1. SSH into the _<sqluser>@<domain.com>_ user on your Linux _client.domain.com_ machine:
 
-    ```
+    ```bash
     ssh -l <sqluser>@<domain.com> <client.domain.com>
     ```
 
 2. Obtain Kerberos ticket for the Administrator user:
-    ```
+    ```bash
     kinit Administrator@<DOMAIN.COM>
     ```
 
 3. Use `sqlcmd` to log in to SQL Server and, for example, run the query to get current user:
 
-    ```
+    ```bash
     /opt/mssql-tools/bin/sqlcmd -S. -Q 'SELECT SYSTEM_USER'
     ```
 
-#### Variables
+### Variables
 
-##### mssql_ad_configure
+#### mssql_ad_configure
 
 Set this variable to `true` to configure for AD Server authentication.
 Setting to `false` does not remove configuration for AD Server authentication.
@@ -1326,7 +1320,7 @@ Default: `false`
 
 Type: `bool`
 
-##### mssql_ad_join
+#### mssql_ad_join
 
 Optional: If you have already joined managed nodes to AD and you want to skip running the ad_integration role, you can set this variable to `false`.
 
@@ -1340,7 +1334,7 @@ Default: `true`
 
 Type: `bool`
 
-##### mssql_ad_kerberos_user
+#### mssql_ad_kerberos_user
 
 Optional, you can use a specific user for obtaining kerberos ticket for creating the `mssql_ad_sql_user_name` user and keytab.
 
@@ -1359,7 +1353,7 @@ mssql_ad_kerberos_user: >-
 
 Type: `string`
 
-##### mssql_ad_kerberos_password
+#### mssql_ad_kerberos_password
 
 Optional, the password to use for obtaining kerberos ticket for the `mssql_ad_kerberos_user` user.
 
@@ -1372,7 +1366,7 @@ mssql_ad_kerberos_password: >-
 
 Type: `string`
 
-##### mssql_ad_keytab_file
+#### mssql_ad_keytab_file
 
 Optional: You can use this variable if you don't want the role to generate a keytab file and instead want to pass a pre-created keytab file to mssql-server.
 
@@ -1384,9 +1378,9 @@ Default: `null`
 
 Type: `string`
 
-##### mssql_ad_keytab_remote_src
+#### mssql_ad_keytab_remote_src
 
-Optional: Only applicable when using [`mssql_ad_keytab_file`](#mssql_ad_keytab_file).
+Optional: Only applicable when using [mssql_ad_keytab_file](#mssql_ad_keytab_file).
 
 Influence whether the `mssql_ad_keytab_file` file needs to be transferred or already is present remotely.
 
@@ -1398,7 +1392,7 @@ Default: `false`
 
 Type: `bool`
 
-##### mssql_ad_sql_user_name
+#### mssql_ad_sql_user_name
 
 User to be created in SQL Server and used for authentication.
 
@@ -1406,21 +1400,21 @@ Default: `null`
 
 Type: `string`
 
-##### mssql_ad_sql_password
+#### mssql_ad_sql_password
 
-Password to be set for the [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name) user.
+Password to be set for the [mssql_ad_sql_user_name](#mssql_ad_sql_user_name) user.
 
-This variable is not required when using [`mssql_ad_keytab_file`](#mssql_ad_keytab_file).
+This variable is not required when using [mssql_ad_keytab_file](#mssql_ad_keytab_file).
 
 Default: `null`
 
 Type: `string`
 
-##### mssql_ad_sql_user_dn
+#### mssql_ad_sql_user_dn
 
 Optional: You must set `mssql_ad_sql_user_dn` if your AD server stores user account in a custom OU rather than in the `Users` OU.
 
-AD distinguished name to create the [`mssql_ad_sql_user_name`](#mssql_ad_sql_user_name) at.
+AD distinguished name to create the [mssql_ad_sql_user_name](#mssql_ad_sql_user_name) at.
 
 By default, the role builds `mssql_ad_sql_user_dn` the following way:
 
@@ -1432,7 +1426,7 @@ By default, the role builds `mssql_ad_sql_user_dn` the following way:
 For example: `CN=sqluser,CN=Users,DC=DOMAIN,DC=COM`.
 
 Default:
-```
+```yaml
 mssql_ad_sql_user_dn: >-
   CN={{ mssql_ad_sql_user_name }},
   CN=Users,
@@ -1443,9 +1437,9 @@ mssql_ad_sql_user_dn: >-
 
 Type: `string`
 
-#### Example Playbooks
+### Example Playbooks
 
-##### Configuring AD integration with general parameters
+#### Configuring AD integration with general parameters
 
 ```yaml
 - name: Configure with AD server authentication
@@ -1485,7 +1479,7 @@ Type: `string`
       END
 ```
 
-##### Configuring AD integration with a pre-created keytab file
+#### Configuring AD integration with a pre-created keytab file
 
 If you received a pre-created keytab file and want the role to use it, set variables like in this example:
 
@@ -1527,7 +1521,7 @@ If you received a pre-created keytab file and want the role to use it, set varia
       END
 ```
 
-##### Configuring AD integration without joining to AD
+#### Configuring AD integration without joining to AD
 
 You must join managed host to AD Server yourself prior to running this playbook.
 
