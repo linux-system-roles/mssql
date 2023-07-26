@@ -1269,7 +1269,7 @@ For more information, see [Join SQL Server on a Linux host to an Active Director
 
 ### Finishing AD Server Configuration
 
-1. After you execute the role to configure AD Server authentication, you must complete one of the following procedures to add AES128 and AES256 kerberos encryption types to the [mssql_ad_sql_user_name](#mssql_ad_sql_user_name) on AD Server.
+1. After you execute the role to configure AD Server authentication, you must complete one of the following procedures to add AES128 and AES256 kerberos encryption types to the [mssql_ad_sql_user](#mssql_ad_sql_user) on AD Server.
 
     * For the RSAT UI users, complete the following steps:
         1. Launch **Active Directory Users and Computers**
@@ -1328,7 +1328,7 @@ For an example playbook, see [Configuring AD integration with a pre-created keyt
 
 
 If you define the `ad_integration_user` variable, the role obtains the kerberos ticket for creating keytab for the `ad_integration_user@ad_integration_realm` user with the `ad_integration_password` password.
-If you don't define the `ad_integration_user` variable, the role obtains the kerberos ticket for `mssql_ad_sql_user_name@ad_integration_realm` user with the `mssql_ad_sql_password` password.
+If you don't define the `ad_integration_user` variable, the role obtains the kerberos ticket for `mssql_ad_sql_user@ad_integration_realm` user with the `mssql_ad_sql_password` password.
 
 Default: `true`
 
@@ -1336,19 +1336,19 @@ Type: `bool`
 
 #### mssql_ad_kerberos_user
 
-Optional, you can use a specific user for obtaining kerberos ticket for creating the `mssql_ad_sql_user_name` user and keytab.
+Optional, you can use a specific user for obtaining kerberos ticket for creating the `mssql_ad_sql_user` user and keytab.
 
 By default, the role uses the following logic:
 
 1. If you define the `ad_integration_user` variable, the role obtains the kerberos ticket for the `ad_integration_user@ad_integration_realm` user with the `ad_integration_password` password.
 
-2. If you don't define the `ad_integration_user` variable, the role obtains the kerberos ticket for `mssql_ad_sql_user_name@ad_integration_realm` user with the `mssql_ad_sql_password` password.
+2. If you don't define the `ad_integration_user` variable, the role obtains the kerberos ticket for `mssql_ad_sql_user@ad_integration_realm` user with the `mssql_ad_sql_password` password.
 
 Default:
 ```yaml
 mssql_ad_kerberos_user: >-
   {{ ad_integration_user if ad_integration_user is defined
-  else mssql_ad_sql_user_name }}
+  else mssql_ad_sql_user }}
 ```
 
 Type: `string`
@@ -1370,7 +1370,7 @@ Type: `string`
 
 Optional: You can use this variable if you don't want the role to generate a keytab file and instead want to pass a pre-created keytab file to mssql-server.
 
-A keytab file must be pre-created on AD Server as per [Tutorial: Use Active Directory authentication with SQL Server on Linux](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-active-directory-authentication?view=sql-server-ver16). You must ensure that the keytab file is created for the managed node's hostname and for the user provided with the `mssql_ad_sql_user_name` variable.
+A keytab file must be pre-created on AD Server as per [Tutorial: Use Active Directory authentication with SQL Server on Linux](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-active-directory-authentication?view=sql-server-ver16). You must ensure that the keytab file is created for the managed node's hostname and for the user provided with the `mssql_ad_sql_user` variable.
 
 For an example playbook, see [Configuring AD integration with a pre-created keytab file](#configuring-ad-integration-with-a-pre-created-keytab-file).
 
@@ -1392,7 +1392,7 @@ Default: `false`
 
 Type: `bool`
 
-#### mssql_ad_sql_user_name
+#### mssql_ad_sql_user
 
 User to be created in SQL Server and used for authentication.
 
@@ -1402,7 +1402,7 @@ Type: `string`
 
 #### mssql_ad_sql_password
 
-Password to be set for the [mssql_ad_sql_user_name](#mssql_ad_sql_user_name) user.
+Password to be set for the [mssql_ad_sql_user](#mssql_ad_sql_user) user.
 
 This variable is not required when using [mssql_ad_keytab_file](#mssql_ad_keytab_file).
 
@@ -1414,11 +1414,11 @@ Type: `string`
 
 Optional: You must set `mssql_ad_sql_user_dn` if your AD server stores user account in a custom OU rather than in the `Users` OU.
 
-AD distinguished name to create the [mssql_ad_sql_user_name](#mssql_ad_sql_user_name) at.
+AD distinguished name to create the [mssql_ad_sql_user](#mssql_ad_sql_user) at.
 
 By default, the role builds `mssql_ad_sql_user_dn` the following way:
 
-1. `CN={{ mssql_ad_sql_user_name }},` - name of the user created in AD
+1. `CN={{ mssql_ad_sql_user }},` - name of the user created in AD
 2. `CN=Users,` - the `Users` OU where AD stores users by default
 3. `DC=<subdomain1>,DC=<subdomain2>,DC=<subdomainN>,` - all subdomain portions of the AD domain name provided with the `ad_integration_realm` variable
 4. `DC=<TLD>` - top level domain
@@ -1428,7 +1428,7 @@ For example: `CN=sqluser,CN=Users,DC=DOMAIN,DC=COM`.
 Default:
 ```yaml
 mssql_ad_sql_user_dn: >-
-  CN={{ mssql_ad_sql_user_name }},
+  CN={{ mssql_ad_sql_user }},
   CN=Users,
   {{ ad_integration_realm.split(".")
   | map("regex_replace","^","DC=")
@@ -1453,7 +1453,7 @@ Type: `string`
     mssql_edition: Evaluation
     mssql_manage_firewall: true
     mssql_ad_configure: true
-    mssql_ad_sql_user_name: sqluser
+    mssql_ad_sql_user: sqluser
     mssql_ad_sql_password: "p@55w0rD1"
     ad_integration_realm: domain.com
     ad_integration_user: Administrator
@@ -1497,7 +1497,7 @@ If you received a pre-created keytab file and want the role to use it, set varia
     mssql_ad_configure: true
     mssql_ad_keytab_file: /path/to/file
     mssql_ad_keytab_remote_src: false
-    mssql_ad_sql_user_name: sqluser
+    mssql_ad_sql_user: sqluser
     ad_integration_realm: domain.com
     ad_integration_user: Administrator
     ad_integration_manage_dns: true
@@ -1538,7 +1538,7 @@ You must join managed host to AD Server yourself prior to running this playbook.
     mssql_manage_firewall: true
     mssql_ad_configure: true
     mssql_ad_join: false
-    mssql_ad_sql_user_name: sqluser
+    mssql_ad_sql_user: sqluser
     mssql_ad_kerberos_user: user_administrator
     mssql_ad_kerberos_password: Secret123
     ad_integration_realm: domain.com
