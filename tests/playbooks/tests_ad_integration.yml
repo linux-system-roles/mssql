@@ -31,7 +31,7 @@
     mssql_manage_firewall: true
     mssql_debug: true
     mssql_ad_configure: true
-    mssql_ad_sql_user_name: sqluser
+    mssql_ad_sql_user: sqluser
     mssql_ad_sql_password: "p@55w0rD1"
     ad_integration_realm: domain.com
     ad_integration_user: Administrator
@@ -63,18 +63,18 @@
       include_role:
         name: linux-system-roles.mssql
 
-    - name: Get KerberosEncryptionType of user {{ mssql_ad_sql_user_name }}
+    - name: Get KerberosEncryptionType of user {{ mssql_ad_sql_user }}
       ansible.windows.win_shell: >-
-        Get-ADUser -Identity {{ mssql_ad_sql_user_name }}
+        Get-ADUser -Identity {{ mssql_ad_sql_user }}
         -Properties *
         | Format-Table Name,KerberosEncryptionType -A
       register: __mssql_sql_username_enc_type
       changed_when: false
       delegate_to: ad
 
-    - name: Set AES128,AES256 encryption type for {{ mssql_ad_sql_user_name }}
+    - name: Set AES128,AES256 encryption type for {{ mssql_ad_sql_user }}
       ansible.windows.win_shell: >-
-        Set-ADUser -Identity {{ mssql_ad_sql_user_name }}
+        Set-ADUser -Identity {{ mssql_ad_sql_user }}
         -KerberosEncryptionType AES128,AES256
       when: "not 'AES128, AES256' in __mssql_sql_username_enc_type.stdout"
       delegate_to: ad

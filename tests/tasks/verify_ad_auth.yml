@@ -43,7 +43,7 @@
         set -euo pipefail;
         sshpass -p {{ mssql_ad_sql_password | quote }}
         ssh -o StrictHostKeyChecking=no
-        -l {{ mssql_ad_sql_user_name }}@{{ ad_integration_realm }}
+        -l {{ mssql_ad_sql_user }}@{{ ad_integration_realm }}
         {{ ansible_fqdn }}
         "echo {{ ad_integration_password | quote }}
         | kinit {{ __mssql_kinit_user }} &&

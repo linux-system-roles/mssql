@@ -38,6 +38,20 @@
       set_fact:
         mssql_ha_endpoint_port: "{{ mssql_ha_listener_port }}"
 
+- name: Link the deprecated mssql_ad_sql_user_name fact
+  when: mssql_ad_sql_user_name is defined
+  block:
+    - name: Print that the mssql_ad_sql_user_name variable is deprecated
+      debug:
+        msg: >-
+          The mssql_ad_sql_user_name variable is deprecated and will be removed
+          in a future version. Edit your playbook to use
+          mssql_ad_sql_user variable instead.
+
+    - name: Link the deprecated mssql_ad_sql_user_name fact
+      set_fact:
+        mssql_ad_sql_user: "{{ mssql_ad_sql_user_name }}"
+
 - name: Verify that the user accepts EULA variables
   assert:
     that:
@@ -721,19 +735,19 @@
           changed_when: true
 
         # Do not fail if account does not exist
-        - name: Check if AD user exists {{ mssql_ad_sql_user_name }}
+        - name: Check if AD user exists {{ mssql_ad_sql_user }}
           command: >-
             adutil account exists
-            --name {{ mssql_ad_sql_user_name }}
+            --name {{ mssql_ad_sql_user }}
             --accept-eula
           register: __mssql_adutil_account_exists
           changed_when: false
           failed_when: false
 
-        - name: In AD server create user {{ mssql_ad_sql_user_name }}
+        - name: In AD server create user {{ mssql_ad_sql_user }}
           command: >-
             adutil user create
-            --name {{ mssql_ad_sql_user_name }}
+            --name {{ mssql_ad_sql_user }}
             --password {{ mssql_ad_sql_password | quote }}
             --distname {{ mssql_ad_sql_user_dn | quote }}
             --debug
@@ -742,15 +756,15 @@
           no_log: true
           changed_when: true
 
-        - name: Get SPNs for the principal {{ mssql_ad_sql_user_name }}
-          command: adutil spn show --name {{ mssql_ad_sql_user_name }}
+        - name: Get SPNs for the principal {{ mssql_ad_sql_user }}
+          command: adutil spn show --name {{ mssql_ad_sql_user }}
           register: __mssql_adutil_spn_show
           changed_when: false
 
-        - name: Register SPNs to the principal {{ mssql_ad_sql_user_name }}
+        - name: Register SPNs to the principal {{ mssql_ad_sql_user }}
           command: >-
             adutil spn addauto
-            --name {{ mssql_ad_sql_user_name }}
+            --name {{ mssql_ad_sql_user }}
             --spn-service MSSQLSvc
             --spn-host {{ ansible_fqdn }}
             --spn-port {{ mssql_tcp_port }}
@@ -765,7 +779,7 @@
             in __mssql_adutil_spn_show.stdout
 
         - name: Get kvno of the SPN host
-          command: adutil account kvno {{ mssql_ad_sql_user_name }}
+          command: adutil account kvno {{ mssql_ad_sql_user }}
           register: __mssql_kvno
           changed_when: false
 
@@ -811,16 +825,16 @@
             adutil keytab create
             --password {{ mssql_ad_sql_password | quote }}
             --path {{ __mssql_keytab_path }}
-            --principal {{ mssql_ad_sql_user_name }}
+            --principal {{ mssql_ad_sql_user }}
             --kvno {{ __mssql_kvno.stdout }}
             --enctype aes256-cts-hmac-sha1-96,aes128-cts-hmac-sha1-96
           when:
             - >-
-              not __mssql_kvno.stdout ~ " " ~ mssql_ad_sql_user_name ~ "@"
+              not __mssql_kvno.stdout ~ " " ~ mssql_ad_sql_user ~ "@"
               ~ ad_integration_realm | upper ~ " (aes256-cts-hmac-sha1-96)"
               in __mssql_keytab_properties.stdout | d()
             - >-
-              not __mssql_kvno.stdout ~ " " ~ mssql_ad_sql_user_name ~ "@"
+              not __mssql_kvno.stdout ~ " " ~ mssql_ad_sql_user ~ "@"
               ~ ad_integration_realm | upper ~ " (aes128-cts-hmac-sha1-96)"
               in __mssql_keytab_properties.stdout | d()
           notify: Restart the mssql-server service
@@ -855,7 +869,7 @@
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_conf_setting: network privilegedadaccount
-        __mssql_conf_setting_value: "{{ mssql_ad_sql_user_name }}"
+        __mssql_conf_setting_value: "{{ mssql_ad_sql_user }}"
   rescue:
     - name: Print output of failed task
       when: item | length > 0
