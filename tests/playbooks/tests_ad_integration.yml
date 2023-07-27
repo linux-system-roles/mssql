@@ -40,7 +40,11 @@
     ad_integration_dns_server: 1.1.1.1
     ad_integration_dns_connection_name: eth0
     ad_integration_dns_connection_type: ethernet
-    __mssql_ad_login: domain\Administrator
+    # ad_integration_realm is randomized in IDM CI hence need to use variables
+    # Cannot use variable for Administrator because test with
+    # mssql_ad_join: false does ad_integration_user: null
+    __mssql_ad_login: >-
+      {{ ad_integration_realm.split('.') | first + '\Administrator' }}
     mssql_post_input_sql_content: |-
       USE master;
       IF NOT EXISTS (
