@@ -1,6 +1,134 @@
 Changelog
 =========
 
+[2.0.0] - 2023-07-27
+--------------------
+
+### New Features
+
+- feat: Add mssql_ad_join and mssql_ad_kerberos_user to allow using other domain join methods (#211)
+
+  Enhancement:
+  1. Add the `mssql_ad_join` variable to allow using other domain join methods.
+  2. Add the `mssql_ad_kerberos_user` and `mssql_ad_kerberos_password` variables to allow users to specify a user to obtain kerberos ticket for in the case that default user doesn't match.
+  
+  Reason: Sometimes, users use other methods to manage joining to AD that would be broken if that role were to run.
+  
+  Result:
+  1. Users can set `mssql_ad_join` to `false` and join managed nodes to AD themselves prior to running the role. By default, `mssql_ad_join` = `true`, so the current behavior is not changed.
+  2. Users can set `mssql_ad_kerberos_user` and `mssql_ad_kerberos_password` to obtain a kerberos ticket for a specific use if the user that the role selects by default doesn't work for them.
+  
+  Issue Tracker Tickets (Jira or BZ if any):
+  Resolves #210 
+
+- feat: Add mssql_ad_keytab_file to allow users provide a pre-created keytab (#214)
+
+  Enhancement: Add `mssql_ad_keytab_file` and `mssql_ad_keytab_remote_src` variables to allow users to provide a pre-created keytab.
+  
+  Reason: Sometimes users do not want the role to access a privileged AD account with adutil to create the keytab within the role, but instead they receive a pre-created keytab file that they want to input to mssql-server.
+  
+  Result: Users can provide the keytab file with the `mssql_ad_keytab_file` variable according to an example playbook.
+
+- feat: Add the ability to input T-SQL scripts content in addition to files (#218)
+
+  Enhancement: Add the ability to add SQL scripts as a content directly.
+  
+  Reason: Previously, users could save SQL script to a file and input it with `mssql_pre_input_sql_file` and `mssql_post_input_sql_file`. Sometimes for shorter scripts it may be an overkill to create a separate file, and it would be easier to provide the script content to the role directly.
+  
+  Result: With this update, users can provide a T-SQL script directly with `mssql_pre_input_sql_content` and `mssql_post_input_sql_content` variables.
+
+### Bug Fixes
+
+- fix: Only do an upgrade if there is a current version (#208)
+
+  Enhancement:
+  Skip Prepare upgrade step if there is no current version
+  
+  Reason:
+  Having `mssql_upgrade` enabled, while there is no current version installed failed with undefined variable `__mssql_current_version`. 
+  
+  Result:
+  If no current version is installed, the prepare upgrade task is skipped and a fresh installation is done.
+
+- fix: facts being gathered unnecessarily (#215)
+
+  Cause: The comparison of the present facts with the required facts is
+  being done on unsorted lists.
+  
+  Consequence: The comparison may fail if the only difference is the
+  order.  Facts are gathered unnecessarily.
+  
+  Fix: Use `difference` which works no matter what the order is.  Ensure
+  that the fact gathering subsets used are the absolute minimum required.
+  
+  Result: The role gathers only the facts it requires, and does
+  not unnecessarily gather facts.
+  
+  Signed-off-by: Rich Megginson <rmeggins@redhat.com>
+
+- fix!: AD - Remove creating the privileged account login (#217)
+
+  Enhancement: For AD integration - remove the functionality to automatically create privileged account login in SQL Server.
+  
+  Reason: This is required to ensure that the role does not create security leaks by silently creating accounts for users with admin permissions. Least privileged access and separation of duty are core security practices that the role should account.
+  
+  Result: The role now does not create any Active Directory-based SQL Server logins, users are now responsible for doing this and are informed about this in README.md.
+
+### Other Changes
+
+- ci: Implement proper cleanup.yml to run tests in series (#207)
+
+  Enhancement: Add cleanup task to all tests 
+  
+  Reason: Our CI is now capable of running tests in series on a single node to make tests faster. This requires a cleanup 
+  
+  Result: Each test runs a complete cleanup of mssql and related services at it's end
+
+- ci: Rename commitlint to PR title Lint, echo PR titles from env var (#209)
+
+  Signed-off-by: Sergei Petrosian <spetrosi@redhat.com>
+
+- ci: Ignore `var-naming[no-role-prefix] ` ansible-lint checks inline (#212)
+
+  Enhancement: Ignore `var-naming[no-role-prefix] ` ansible-lint checks inline
+  
+  Reason: ansible-lint checks `var-naming[no-role-prefix] ` fail on some lines where the use of vars not starting with `mssql_` is required.
+  
+  Result: The checks are ignored on affected lines.
+
+- ci: ansible-lint - ignore var-naming[no-role-prefix] (#213)
+
+  ansible-lint has recently added a check for this.  It flags a lot of our test
+  code, and some of our role code that uses nested roles.
+  There is no easy way to disable it for these cases only.  It would be a
+  tremendous amount of work to add `# noqa` comments everywhere.
+  The use of `.ansible-lint-ignore` would be a maintenance burden (cannot use
+  tests/tests_*.yml or other similar wildcard to match all test files), would
+  still issue a lot of warning messages, and would not solve all of the problems.
+  The only way for now is to skip this rule.
+  
+  Signed-off-by: Rich Megginson <rmeggins@redhat.com>
+
+- tests: tests_configure_ha_cluster add multi-node verification tasks (#216)
+
+- docs:  Improve README titles indentation and fix syntax (#219)
+
+  Enhancement:
+  - Remove redundant title lvl indentation
+  - Add syntax highlighting to all code blocks
+  - Fix indentation in lists
+  
+  Reason: Improve README readability and fix syntax
+
+- refactor: Deprecate mssql_ad_sql_user_name with mssql_ad_sql_user (#220)
+
+  Enhancement: Deprecate the `mssql_ad_sql_user_name` variable, instead use the `mssql_ad_sql_user` variable for consistency with the `ad_integration_user` variable in the ad_integration system role and with other system roles. 
+  
+  Reason: Generally, system roles use the `_user` variable and not the `user_name`.
+  
+  Result: The previously used `mssql_ad_sql_user_name` is marked as deprecated, when one uses this variable, the role informs that it is deprecated and will be removed in a future release, still the variable works the same way. Documentation now uses the `mssql_ad_sql_user` variable. 
+
+
 [1.4.1] - 2023-06-12
 --------------------
 
