@@ -1,6 +1,21 @@
 Changelog
 =========
 
+[2.0.1] - 2023-07-28
+--------------------
+
+### Other Changes
+
+- ci: fix hardcoded domain name, it is randomized in IDM CI (#222)
+
+  Enhancement: Fix hardcoded domain name, it is randomized in IDM CI
+  
+  Reason: ad_integration_realm is randomized in IDM CI hence need to use variables.
+  Cannot use variable for Administrator because test with `mssql_ad_join: false` does `ad_integration_user: null`
+  
+  Result: Tests in IDM CI pass when run using trigger-test-suite-tool
+
+
 [2.0.0] - 2023-07-27
 --------------------
 
