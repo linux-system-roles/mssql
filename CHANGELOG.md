@@ -1,6 +1,27 @@
 Changelog
 =========
 
+[2.0.2] - 2023-08-16
+--------------------
+
+### Other Changes
+
+- ci: Add markdownlint, test_converting_readme, and build_docs workflows (#224)
+
+  - markdownlint runs against README.md to avoid any issues with
+    converting it to HTML
+  - test_converting_readme converts README.md > HTML and uploads this test
+    artifact to ensure that conversion works fine
+  - build_docs converts README.md > HTML and pushes the result to the
+    docs branch to publish dosc to GitHub pages site.
+  
+  Signed-off-by: Sergei Petrosian <spetrosi@redhat.com>
+
+- docs: Update .collection/README.md (#225)
+
+  Update information in a collection README
+
+
 [2.0.1] - 2023-07-28
 --------------------
 
