@@ -1,32 +1,44 @@
-SQL Ansible Collection
-=====================================
+# Microsoft SQL Ansible Collection
 
-The SQL collection contains a role for managing Microsoft SQL Server.
+This collection contains a role for managing Microsoft SQL Server.
 
 ## Currently supported distributions
 
-* Fedora
 * Red Hat Enterprise Linux 7 (RHEL 7+)
 * Red Hat Enterprise Linux 8 (RHEL 8+)
+* Fedora
 * RHEL derivatives such as CentOS
 
-## Installation
+## Installing the collection
 
-You can install the collection from Ansible Galaxy by entering the following command:
+There are currently two ways to install this collection, using `ansible-galaxy` or RPM package.
 
-```
+### Installing with ansible-galaxy
+
+You can install the collection with `ansible-galaxy` by entering the following command:
+
+```bash
 ansible-galaxy collection install microsoft.sql
 ```
 
+For more information, see [Using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) in the *Ansible* documentation.
+
 After the installation, you can call the server role from playbooks with `microsoft.sql.server`.
 
-Please see the [Using Ansible collections documentation](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for further details.
+When installing using `ansible-galaxy`, by default, you can find the role documentation at `~/.ansible/collections/ansible_collections/microsoft/sql/roles/server/README.md`.
+If you store collections in a custom directory, you can find where `ansible-galaxy` installed the collection by running `ansible-galaxy collection list microsoft.sql`.
 
-## Documentation
+### Installing using RPM package
 
-You can find the documentation for the microsoft.sql.server role in its repository in [README.md](https://github.com/linux-system-roles/mssql/blob/main/README.md).
+You can install the collection with the software package management tool `dnf` by running the following command:
+
+```bash
+dnf install ansible-collection-microsoft-sql
+```
+
+When installing using `dnf`, you can find the role documentation in markdown format at `/usr/share/doc/ansible-collection-microsoft-sql/microsoft.sql-server/README.md` and in HTML format at `/usr/share/doc/ansible-collection-microsoft-sql/microsoft.sql-server/README.html`.
 
 ## Supported Ansible Versions
 
 The supported Ansible versions are aligned with currently maintained Ansible versions that support Collections - Ansible 2.9 and later.
-You can find the list of maintained Ansible versions [here](https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#release-status).
+For the list of maintained Ansible versions, see [Releases and maintenance](https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#release-status) in the *Ansible* documentation.
