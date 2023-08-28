@@ -2,8 +2,6 @@
 
 [![ansible-lint.yml](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-lint.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-lint.yml) [![ansible-test.yml](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-test.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-test.yml) [![markdownlint.yml](https://github.com/linux-system-roles/mssql/actions/workflows/markdownlint.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/markdownlint.yml) [![woke.yml](https://github.com/linux-system-roles/mssql/actions/workflows/woke.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/woke.yml)
 
----
-
 This role installs, configures, and starts Microsoft SQL Server.
 
 The role also optimizes the operating system to improve performance and throughput for SQL Server by applying the `mssql` Tuned profile.
