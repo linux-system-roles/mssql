@@ -1,6 +1,28 @@
 Changelog
 =========
 
+[2.0.3] - 2023-09-08
+--------------------
+
+### Other Changes
+
+- docs: Make badges consistent, run markdownlint on all .md files (#227)
+
+  - Consistently generate badges for GH workflows in README RHELPLAN-146921
+  - Run markdownlint on all .md files
+  - Add custom-woke-action if not used already
+  - Rename woke action to Woke for a pretty badge
+  
+  Signed-off-by: Sergei Petrosian <spetrosi@redhat.com>
+
+- ci: Remove badges from README.md prior to converting to HTML (#228)
+
+  - Remove thematic break after badges
+  - Remove badges from README.md prior to converting to HTML
+  
+  Signed-off-by: Sergei Petrosian <spetrosi@redhat.com>
+
+
 [2.0.2] - 2023-08-16
 --------------------
 
