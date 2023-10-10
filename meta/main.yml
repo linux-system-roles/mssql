@@ -11,6 +11,7 @@ galaxy_info:
         - "35"
     - name: EL
       versions:
+        - "9"
         - "8"
         - "7"
   galaxy_tags:

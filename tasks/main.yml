@@ -122,15 +122,6 @@
       You must set the mssql_version variable to one of
       {{ __mssql_supported_versions | join(", ") }}
 
-- name: Verify that version 2022 is not used with RHEL 7
-  fail:
-    msg: >-
-      SQL Server 2022 does not support EL 7 hosts
-  when:
-    - mssql_version | int == 2022
-    - ansible_distribution in ['CentOS', 'RedHat']
-    - ansible_distribution_major_version is version('8', '<')
-
 - name: >-
     Verify if mssql_version is not smaller then the existing SQL Server version
   fail:
@@ -150,6 +141,8 @@
   rpm_key:
     key: "{{ mssql_rpm_key }}"
     state: present
+  register: __mssql_gpg
+  until: __mssql_gpg is success
 
 - name: Prepare for the upgrade
   when:
@@ -259,7 +252,7 @@
     - name: Set up MSSQL  # noqa command-instead-of-shell
       shell: >-
         MSSQL_SA_PASSWORD={{ mssql_password | quote }}
-        {{ __mssql_conf_cli }} setup
+        {{ __mssql_conf_cli }} --noprompt setup
       environment:
         ACCEPT_EULA: "Y"
         MSSQL_PID: "{{ mssql_edition }}"

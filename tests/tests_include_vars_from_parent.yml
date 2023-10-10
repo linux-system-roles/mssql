@@ -54,7 +54,9 @@
             # noqa var-naming[no-role-prefix]
             mssql_accept_microsoft_sql_server_standard_eula: true
             # noqa var-naming[no-role-prefix]
-            mssql_version: 2019
+            mssql_version: "{{
+              '2022' if ansible_distribution_major_version is version('9', '>=')
+              else '2017' }}"
             # noqa var-naming[no-role-prefix]
             mssql_password: P@55w0rD
             # noqa var-naming[no-role-prefix]
