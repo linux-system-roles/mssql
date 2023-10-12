@@ -74,3 +74,6 @@ mssql_ad_kerberos_user: >-
 mssql_ad_kerberos_password: >-
   {{ ad_integration_password if ad_integration_user is defined
   else mssql_ad_sql_password }}
+
+mssql_manage_selinux: false
+mssql_run_selinux_confined: false

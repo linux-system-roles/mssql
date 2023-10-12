@@ -11,6 +11,7 @@ __mssql_required_facts:
 __mssql_required_facts_subsets: "{{ ['!all', '!min'] +
   __mssql_required_facts }}"
 __mssql_server_packages: mssql-server
+__mssql_server_selinux_packages: mssql-server-selinux
 __mssql_client_packages: [mssql-tools, unixODBC-devel]
 __mssql_server_fts_packages: mssql-server-fts
 __mssql_server_ha_packages: mssql-server-ha

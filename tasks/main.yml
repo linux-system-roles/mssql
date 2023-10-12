@@ -189,9 +189,23 @@
     (__mssql_server_packages not in ansible_facts.packages) or
     (mssql_upgrade | bool)
 
-- name: Ensure the package {{ __mssql_server_packages }}
+- name: Ensure that the system is in SELinux enforcing state
+  when:
+    - mssql_manage_selinux | bool
+    - mssql_run_selinux_confined | bool
+  include_role:
+    name: fedora.linux_system_roles.selinux
+  vars:
+    # noqa var-naming[no-role-prefix]
+    selinux_state: enforcing
+
+- name: Ensure the package {{ __mssql_package }}
+  vars:
+    __mssql_package: "{{ __mssql_server_selinux_packages
+      if mssql_run_selinux_confined | bool
+      else __mssql_server_packages }}"
   package:
-    name: "{{ __mssql_server_packages }}"
+    name: "{{ __mssql_package }}"
     state: "{{ 'latest' if mssql_upgrade else 'present' }}"
 
 # /opt/mssql/bin/sqlservr requires libldap-2.4.so.2. Latest Fedora use newer
