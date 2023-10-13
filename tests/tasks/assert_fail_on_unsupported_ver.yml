@@ -33,5 +33,5 @@
       include_tasks: tasks/cleanup.yml
 
     # Putting end_host into a rescue block results in a failed task
-    - name: End EL < 8 host
+    - name: End unsupported host
       meta: end_host

@@ -6,7 +6,3 @@ __mssql_client_repository: >-
   https://packages.microsoft.com/rhel/9/prod/
 __mssql_supported_versions:
   - 2022
-# Enabling here for now to test CI
-mssql_manage_selinux: true
-mssql_run_selinux_confined: true
-

@@ -192,3 +192,25 @@
         __mssql_conf_setting: forceencryption
         __mssql_conf_value: >-
           {{ true if __verify_mssql_is_tls_encrypted else false }}
+
+- name: Verify configuration for confined application
+  when: __verify_mssql_is_confined is defined
+  block:
+    - name: Get the current mode of SELinux
+      command: getenforce
+      register: __mssql_getenforce
+      changed_when: false
+
+    - name: Verify that SELinux is in the mode {{ __mssql_selinux_mode }}
+      vars:
+        __mssql_selinux_mode: "{{
+          'Enforcing' if __verify_mssql_is_confined
+          else 'Permissive' }}"
+      assert:
+        that: __mssql_getenforce.stdout == __mssql_selinux_mode
+
+    - name: Verify the package {{ __mssql_server_selinux_packages }}
+      include_tasks: verify_package.yml
+      vars:
+        __mssql_verify_package_name: "{{ __mssql_server_selinux_packages }}"
+        __mssql_verify_package_installed: "{{ __verify_mssql_is_confined }}"

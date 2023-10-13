@@ -94,6 +94,21 @@
   run_once: true
   when: mssql_ha_configure | bool
 
+- name: Set __mssql_confined_supported
+  set_fact:
+    __mssql_confined_supported: "{{
+      (ansible_distribution in ['CentOS', 'RedHat']) and
+      (ansible_distribution_major_version is version('9', '>=')) }}"
+
+- name: Verify that selinux variables are used on supported platforms
+  when:
+    - (mssql_manage_selinux | bool) or (mssql_run_selinux_confined | bool)
+    - not __mssql_confined_supported
+  fail:
+    msg: >-
+      mssql_manage_selinux and mssql_run_selinux_confined is supported only on
+      RHEL 9 managed nodes
+
 - name: Gather package facts
   package_facts:
     manager: auto
@@ -189,23 +204,51 @@
     (__mssql_server_packages not in ansible_facts.packages) or
     (mssql_upgrade | bool)
 
-- name: Ensure that the system is in SELinux enforcing state
-  when:
-    - mssql_manage_selinux | bool
-    - mssql_run_selinux_confined | bool
-  include_role:
-    name: fedora.linux_system_roles.selinux
-  vars:
-    # noqa var-naming[no-role-prefix]
-    selinux_state: enforcing
+- name: Configure to run as a confined application with SELinux
+  when: __mssql_confined_supported | bool
+  block:
+    - name: Ensure that the system is in SELinux enforcing state
+      when: mssql_manage_selinux | bool
+      include_role:
+        name: fedora.linux_system_roles.selinux
+      vars:
+        selinux_state: "{{
+          'enforcing' if mssql_run_selinux_confined | bool
+          else 'permissive' }}"
 
-- name: Ensure the package {{ __mssql_package }}
-  vars:
-    __mssql_package: "{{ __mssql_server_selinux_packages
-      if mssql_run_selinux_confined | bool
-      else __mssql_server_packages }}"
+    - name: Get the current mode of SELinux
+      command: getenforce
+      register: __mssql_getenforce
+      changed_when: false
+
+    - name: Verify that SELinux is in enforcing mode
+      when: mssql_run_selinux_confined | bool
+      assert:
+        that: __mssql_getenforce.stdout == 'Enforcing'
+        fail_msg: >-
+          You must configure SELinux to be in Enforcing mode to run SQL Server
+          as a confined application. You can do this with the role by setting
+          the mssql_manage_selinux variable to true
+
+    - name: Verify that SELinux is not in enforcing mode
+      when: not mssql_run_selinux_confined
+      assert:
+        that: __mssql_getenforce.stdout != 'Enforcing'
+        fail_msg: >-
+          SELinux is in enforcing mode.
+          Set mssql_run_selinux_confined to true to run SQL Server as a confined
+          application to work with SELinux in enforcing mode.
+
+    - name: Ensure the package {{ __mssql_server_selinux_packages }}
+      package:
+        name: "{{ __mssql_server_selinux_packages }}"
+        state: "{{
+          'present' if mssql_run_selinux_confined | bool
+          else 'absent' }}"
+
+- name: Ensure the package {{ __mssql_server_packages }}
   package:
-    name: "{{ __mssql_package }}"
+    name: "{{ __mssql_server_packages }}"
     state: "{{ 'latest' if mssql_upgrade else 'present' }}"
 
 # /opt/mssql/bin/sqlservr requires libldap-2.4.so.2. Latest Fedora use newer
