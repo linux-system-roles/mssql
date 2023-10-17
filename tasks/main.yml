@@ -213,8 +213,7 @@
         name: fedora.linux_system_roles.selinux
       vars:
         selinux_state: "{{
-          'enforcing' if mssql_run_selinux_confined | bool
-          else 'permissive' }}"
+          mssql_run_selinux_confined | ternary('enforcing', 'permissive') }}"
 
     - name: Get the current mode of SELinux
       command: getenforce
@@ -242,9 +241,7 @@
     - name: Ensure the package {{ __mssql_server_selinux_packages }}
       package:
         name: "{{ __mssql_server_selinux_packages }}"
-        state: "{{
-          'present' if mssql_run_selinux_confined | bool
-          else 'absent' }}"
+        state: "{{ mssql_run_selinux_confined | ternary('present', 'absent') }}"
 
 - name: Ensure the package {{ __mssql_server_packages }}
   package:
@@ -604,14 +601,14 @@
 - name: Ensure the package {{ __mssql_server_fts_packages }}
   package:
     name: "{{ __mssql_server_fts_packages }}"
-    state: "{{ 'present' if mssql_install_fts | bool else 'absent' }}"
+    state: "{{ mssql_install_fts | ternary('present', 'absent') }}"
   when: mssql_install_fts is not none
   notify: Restart the mssql-server service
 
 - name: Ensure the package {{ __mssql_powershell_packages }}
   package:
     name: "{{ __mssql_powershell_packages }}"
-    state: "{{ 'present' if mssql_install_powershell | bool else 'absent' }}"
+    state: "{{ mssql_install_powershell | ternary('present', 'absent') }}"
   when: mssql_install_powershell is not none
 
 - name: Tune MSSQL for FUA-capable storage
@@ -1024,7 +1021,7 @@
         - name: Ensure the package {{ __mssql_server_ha_packages }}
           package:
             name: "{{ __mssql_server_ha_packages }}"
-            state: "{{ 'present' if mssql_ha_configure | bool else 'absent' }}"
+            state: "{{ mssql_ha_configure | ternary('present', 'absent') }}"
           register: __mssql_server_ha_packages_install
 
         - name: Enable the hadrenabled setting
@@ -1165,7 +1162,7 @@
         - name: Ensure the package {{ __mssql_server_ha_packages }}
           package:
             name: "{{ __mssql_server_ha_packages }}"
-            state: "{{ 'present' if mssql_ha_configure | bool else 'absent' }}"
+            state: "{{ mssql_ha_configure | ternary('present', 'absent') }}"
           register: __mssql_server_ha_packages_install
 
         - name: Enable the hadrenabled setting
