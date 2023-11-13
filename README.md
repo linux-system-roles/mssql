@@ -170,7 +170,7 @@ Default: `false`
 
 Type: `bool`
 
-## Configuring SQL Server as a Confined Application
+## Configuring SQL Server as a Confined Application (EL 9)
 
 Optional: SQL Server on RHEL 9 supports running as a confined application with SELinux enabled.
 For more information, see [Install SQL Server on RHEL 9](https://learn.microsoft.com/en-us/sql/linux/quickstart-install-connect-red-hat?view=sql-server-ver16&tabs=rhel9).
@@ -188,7 +188,8 @@ Whether to run SQL Server as a confined application or not.
 * If set to `true`, the role installs the `mssql-server-selinux` package.
 * If set to `false`, the role removes the `mssql-server-selinux` package.
 
-Default: `false`
+Default: `true` for RHEL 9 managed nodes
+         `false` for not RHEL 9 managed nodes
 
 Type: `bool`
 

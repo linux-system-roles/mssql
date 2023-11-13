@@ -7,3 +7,4 @@ __mssql_client_repository: >-
 __mssql_supported_versions:
   - 2017
   - 2019
+__mssql_confined_supported: false
