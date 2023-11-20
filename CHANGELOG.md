@@ -1,6 +1,60 @@
 Changelog
 =========
 
+[2.1.0] - 2023-11-20
+--------------------
+
+### New Features
+
+- feat: Support mssql-server 2022 preview on RHEL 9 (#237)
+
+  Enhancement: Support mssql-server 2022 preview on RHEL 9
+  
+  Reason: Microsoft added SQL Server 2022 preview for RHEL 9 at https://packages.microsoft.com/rhel/9/mssql-server-preview/
+  
+  Result: You can install SQL Server 2022 on RHEL 9
+  
+  Issue Tracker Tickets (Jira or BZ if any): https://issues.redhat.com/browse/RHELBU-2407
+
+### Other Changes
+
+- chore(deps): bump actions/checkout from 3 to 4 (#230)
+
+  Bumps [actions/checkout](https://github.com/actions/checkout) from 3 to 4.
+
+- ci: ensure dependabot git commit message conforms to commitlint (#233)
+
+  Ensure dependabot git commit message conforms to commitlint
+  
+  Signed-off-by: Rich Megginson <rmeggins@redhat.com>
+
+- ci: use dump_packages.py callback to get packages used by role (#235)
+
+  This adds the dump_packages.py callback which will dump the
+  arguments to the `package` module (except for `state: absent`)
+  to the integration test run logs.  The output looks like this:
+  `lsrpackages: pkg-a pkg-b ...`
+  We will have tooling which will scrape the logs to extract the
+  packages used at runtime and testing for all of the supported
+  combinations of distribution and version.
+  
+  This also ensures the weekly-ci PR git commit message conforms
+  to commitlint.
+  
+  Signed-off-by: Rich Megginson <rmeggins@redhat.com>
+
+- ci: tox-lsr version 3.1.1 (#238)
+
+  This is primarily for the update to ansible-plugin-scan to
+  work with the upcoming ostree changes, but also includes
+  some minor fixes which affect ci.
+  3.1.0 was released but not used due to a bug fixed in 3.1.1
+  See full release notes for 3.1.0 and 3.1.1
+  https://github.com/linux-system-roles/tox-lsr/releases
+  
+  Signed-off-by: Rich Megginson <rmeggins@redhat.com>
+
+
 [2.0.3] - 2023-09-08
 --------------------
 
