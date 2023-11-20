@@ -170,6 +170,54 @@ Default: `false`
 
 Type: `bool`
 
+## Configuring SQL Server as a Confined Application (EL 9)
+
+Optional: SQL Server on RHEL 9 supports running as a confined application with SELinux enabled.
+For more information, see [Install SQL Server on RHEL 9](https://learn.microsoft.com/en-us/sql/linux/quickstart-install-connect-red-hat?view=sql-server-ver16&tabs=rhel9).
+
+You can use the role to configure SELinux with the `enforcing` mode and install the `mssql-server-selinux` package.
+
+**WARNING**: SQL Server supports this functionality only on RHEL 9 running SQL Server version 2022.
+
+### Configuring SQL Server as a Confined Application Variables
+
+#### mssql_run_selinux_confined
+
+Whether to run SQL Server as a confined application or not.
+
+* If set to `true`, the role installs the `mssql-server-selinux` package.
+* If set to `false`, the role removes the `mssql-server-selinux` package.
+
+Default: `true` for RHEL 9 managed nodes
+         `false` for not RHEL 9 managed nodes
+
+Type: `bool`
+
+#### mssql_manage_selinux
+
+Whether to configure SELinux with the `enforcing` or `permissive` mode based on the value of the `mssql_run_selinux_confined` variable.
+
+Default: `false`
+
+Type: `bool`
+
+### Configuring SQL Server as a Confined Application Example Playbook
+
+Run the following playbook against a RHEL 9 system role to configure SQL Server as a confined application.
+
+```yaml
+- hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_version: 2022
+    mssql_password: "p@55w0rD"
+    mssql_edition: Evaluation
+    mssql_run_selinux_confined: true
+    mssql_manage_selinux: true
+```
+
 ## Inputting SQL Scripts to SQL Server
 
 Optional: You can use the role to input T-SQL statements or procedures into SQL Server.

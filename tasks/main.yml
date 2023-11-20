@@ -94,6 +94,15 @@
   run_once: true
   when: mssql_ha_configure | bool
 
+- name: Verify that selinux variables are used on supported platforms
+  when:
+    - (mssql_manage_selinux | bool) or (mssql_run_selinux_confined | bool)
+    - not __mssql_confined_supported
+  fail:
+    msg: >-
+      mssql_manage_selinux and mssql_run_selinux_confined is supported only on
+      RHEL 9 managed nodes
+
 - name: Gather package facts
   package_facts:
     manager: auto
@@ -122,15 +131,6 @@
       You must set the mssql_version variable to one of
       {{ __mssql_supported_versions | join(", ") }}
 
-- name: Verify that version 2022 is not used with RHEL 7
-  fail:
-    msg: >-
-      SQL Server 2022 does not support EL 7 hosts
-  when:
-    - mssql_version | int == 2022
-    - ansible_distribution in ['CentOS', 'RedHat']
-    - ansible_distribution_major_version is version('8', '<')
-
 - name: >-
     Verify if mssql_version is not smaller then the existing SQL Server version
   fail:
@@ -150,6 +150,8 @@
   rpm_key:
     key: "{{ mssql_rpm_key }}"
     state: present
+  register: __mssql_gpg
+  until: __mssql_gpg is success
 
 - name: Prepare for the upgrade
   when:
@@ -195,6 +197,45 @@
   when: >-
     (__mssql_server_packages not in ansible_facts.packages) or
     (mssql_upgrade | bool)
+
+- name: Configure to run as a confined application with SELinux
+  when: __mssql_confined_supported | bool
+  block:
+    - name: Ensure that the system is in SELinux enforcing state
+      when: mssql_manage_selinux | bool
+      include_role:
+        name: fedora.linux_system_roles.selinux
+      vars:
+        selinux_state: "{{
+          mssql_run_selinux_confined | ternary('enforcing', 'permissive') }}"
+
+    - name: Get the current mode of SELinux
+      command: getenforce
+      register: __mssql_getenforce
+      changed_when: false
+
+    - name: Verify that SELinux is in enforcing mode
+      when: mssql_run_selinux_confined | bool
+      assert:
+        that: __mssql_getenforce.stdout == 'Enforcing'
+        fail_msg: >-
+          You must configure SELinux to be in Enforcing mode to run SQL Server
+          as a confined application. You can do this with the role by setting
+          the mssql_manage_selinux variable to true
+
+    - name: Verify that SELinux is not in enforcing mode
+      when: not mssql_run_selinux_confined
+      assert:
+        that: __mssql_getenforce.stdout != 'Enforcing'
+        fail_msg: >-
+          SELinux is in enforcing mode.
+          Set mssql_run_selinux_confined to true to run SQL Server as a confined
+          application to work with SELinux in enforcing mode.
+
+    - name: Ensure the package {{ __mssql_server_selinux_packages }}
+      package:
+        name: "{{ __mssql_server_selinux_packages }}"
+        state: "{{ mssql_run_selinux_confined | ternary('present', 'absent') }}"
 
 - name: Ensure the package {{ __mssql_server_packages }}
   package:
@@ -259,7 +300,7 @@
     - name: Set up MSSQL  # noqa command-instead-of-shell
       shell: >-
         MSSQL_SA_PASSWORD={{ mssql_password | quote }}
-        {{ __mssql_conf_cli }} setup
+        {{ __mssql_conf_cli }} --noprompt setup
       environment:
         ACCEPT_EULA: "Y"
         MSSQL_PID: "{{ mssql_edition }}"
@@ -554,14 +595,14 @@
 - name: Ensure the package {{ __mssql_server_fts_packages }}
   package:
     name: "{{ __mssql_server_fts_packages }}"
-    state: "{{ 'present' if mssql_install_fts | bool else 'absent' }}"
+    state: "{{ mssql_install_fts | ternary('present', 'absent') }}"
   when: mssql_install_fts is not none
   notify: Restart the mssql-server service
 
 - name: Ensure the package {{ __mssql_powershell_packages }}
   package:
     name: "{{ __mssql_powershell_packages }}"
-    state: "{{ 'present' if mssql_install_powershell | bool else 'absent' }}"
+    state: "{{ mssql_install_powershell | ternary('present', 'absent') }}"
   when: mssql_install_powershell is not none
 
 - name: Tune MSSQL for FUA-capable storage
@@ -974,7 +1015,7 @@
         - name: Ensure the package {{ __mssql_server_ha_packages }}
           package:
             name: "{{ __mssql_server_ha_packages }}"
-            state: "{{ 'present' if mssql_ha_configure | bool else 'absent' }}"
+            state: "{{ mssql_ha_configure | ternary('present', 'absent') }}"
           register: __mssql_server_ha_packages_install
 
         - name: Enable the hadrenabled setting
@@ -1115,7 +1156,7 @@
         - name: Ensure the package {{ __mssql_server_ha_packages }}
           package:
             name: "{{ __mssql_server_ha_packages }}"
-            state: "{{ 'present' if mssql_ha_configure | bool else 'absent' }}"
+            state: "{{ mssql_ha_configure | ternary('present', 'absent') }}"
           register: __mssql_server_ha_packages_install
 
         - name: Enable the hadrenabled setting

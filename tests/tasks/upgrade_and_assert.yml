@@ -24,7 +24,7 @@
           'SQL Server 2022 does not support EL 7 hosts'
           in ansible_failed_result.msg
   always:
-    - name: Clean up EL 7after the role invocation
+    - name: Clean up EL 7 after the role invocation
       when:
         - __mssql_version == 2022
         - ansible_distribution in ['CentOS', 'RedHat']

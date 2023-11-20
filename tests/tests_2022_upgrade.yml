@@ -7,6 +7,11 @@
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
   tasks:
+    - name: Assert fail on EL 7 with version=2022 and EL 9 with version!=2022
+      include_tasks: tasks/assert_fail_on_unsupported_ver.yml
+      vars:
+        mssql_version: 2019
+
     - name: Run test in a block to clean up in always
       block:
         - name: Verify the failure when mssql_version is provided incorrectly
