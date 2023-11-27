@@ -106,7 +106,6 @@
 - name: Gather package facts
   package_facts:
     manager: auto
-  no_log: true
 
 - name: Set fact with the currently installed SQL Server version if any
   set_fact:
@@ -270,7 +269,6 @@
 
 - name: Gather system services facts
   service_facts:
-  no_log: true
 
 - name: Set the __mssql_is_setup variable
   set_fact:
@@ -432,7 +430,6 @@
     - name: Gather package facts
       package_facts:
         manager: auto
-      no_log: true
 
     # Setting MSSQL_SA_PASSWORD inline for security because setting it with
     # environment: reveals the value when running playbooks with high verbosity
@@ -509,7 +506,6 @@
     - name: Gather package facts
       package_facts:
         manager: auto
-      no_log: true
 
     - name: Change the edition of MSSQL
       block:
@@ -1049,13 +1045,6 @@
               loop:
                 - "{{ __mssql_ha_cert_dest }}"
                 - "{{ __mssql_ha_private_key_dest }}"
-
-        # Required for configure_ag.j2 to set WRITE_LEASE_VALIDITY based on
-        # mssql-server ver
-        - name: Get mssql-server ver to see if WRITE_LEASE_VALIDITY is available
-          package_facts:
-            manager: auto
-          no_log: true
 
         - name: Configure SQL entities on the primary replica
           vars:
