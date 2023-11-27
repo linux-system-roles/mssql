@@ -818,7 +818,25 @@ Default: `[]`
 
 Type: `list`
 
+#### mssql_ha_virtual_ip
+
+Only applicable when you set `mssql_ha_ag_cluster_type` to `external`.
+
+The virtual IP address to be configured for the SQL cluster.
+
+The role creates an availability group listener using the following values:
+
+* The port provided with the `mssql_tcp_port` variable,
+* The IP address provided with the `mssql_ha_virtual_ip` variable
+* The `255.255.255.0` subnet mask
+
+Default: `null`
+
+Type: `string`
+
 #### mssql_ha_login
+
+Only applicable when you set `mssql_ha_ag_cluster_type` to `external`.
 
 The user created for Pacemaker in SQL Server.
 This user is used by the SQL Server Pacemaker resource agent to connect to SQL Server to perform regular database health checks and manage state transitions from replica to primary when needed.
@@ -829,6 +847,8 @@ Type: `string`
 
 #### mssql_ha_login_password
 
+Only applicable when you set `mssql_ha_ag_cluster_type` to `external`.
+
 The password for the mssql_ha_login user in SQL Server.
 
 Default: `null`
@@ -836,6 +856,8 @@ Default: `null`
 Type: `string`
 
 #### mssql_ha_cluster_run_role
+
+Only applicable when you set `mssql_ha_ag_cluster_type` to `external`.
 
 Whether to run the `fedora.linux_system_roles.ha_cluster` role from this role.
 
@@ -854,22 +876,6 @@ If you do not want the `microsoft.sql.server` to run the `fedora.linux_system_ro
 Default: `false`
 
 Type: `bool`
-
-#### mssql_ha_virtual_ip
-
-Only applicable when you set `mssql_ha_ag_cluster_type` to `external`.
-
-The virtual IP address to be configured for the SQL cluster.
-
-The role creates an availability group listener using the following values:
-
-* The port provided with the `mssql_tcp_port` variable,
-* The IP address provided with the `mssql_ha_virtual_ip` variable
-* The `255.255.255.0` subnet mask
-
-Default: `null`
-
-Type: `string`
 
 ### Always On Availability Group Example Playbooks
 
@@ -939,8 +945,6 @@ In this case the role does not configure Pacemaker.
     mssql_ha_db_names:
       - ExampleDB1
       - ExampleDB2
-    mssql_ha_login: ExamleLogin
-    mssql_ha_login_password: "p@55w0rD3"
   roles:
     - microsoft.sql.server
 ```

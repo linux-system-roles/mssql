@@ -1017,6 +1017,7 @@
             name: "{{ __mssql_server_ha_packages }}"
             state: "{{ mssql_ha_configure | ternary('present', 'absent') }}"
           register: __mssql_server_ha_packages_install
+          when: mssql_ha_ag_cluster_type | lower == 'external'
 
         - name: Enable the hadrenabled setting
           include_tasks: mssql_conf_setting.yml
@@ -1031,7 +1032,7 @@
             state: restarted
           # noqa no-handler
           when: (__mssql_conf_set is changed) or
-            (__mssql_server_ha_packages_install is changed)
+            (__mssql_server_ha_packages_install | d() is changed)
 
         - name: Remove certificates
           when: mssql_ha_reset_cert | bool
@@ -1064,8 +1065,14 @@
               - create_and_back_up_cert.j2
               - enable_alwayson.j2
               - configure_endpoint.j2
+          include_tasks: input_sql_files.yml
+
+        - name: Create login for HA on in SQL Server
+          vars:
+            __mssql_sql_files_to_input:
               - create_ha_login.j2
           include_tasks: input_sql_files.yml
+          when: mssql_ha_ag_cluster_type | lower == 'external'
 
         # changed_when: false because role removes cert files after using them
         - name: Fetch certificate files from the primary to the control node
@@ -1115,14 +1122,32 @@
         # __mssql_single_node_test is to skip __mssql_ha_is_primary check when
         # testing against a single node where SQL Always On cluster breaks and
         # does not report the single node as primary because it needs more nodes
-        - name: Configure ag, grant permissions to login, replicate DBs
+        - name: Configure ag
           when: >-
             __mssql_ha_is_primary | bool
             or __mssql_single_node_test | d(false) | bool
           vars:
             __mssql_sql_files_to_input:
               - configure_ag.j2
+              - replicate_db.j2
+          include_tasks: input_sql_files.yml
+
+        - name: Grant permissions to HA login
+          when: >-
+            - __mssql_ha_is_primary | bool
+              or __mssql_single_node_test | d(false) | bool
+            - mssql_ha_ag_cluster_type | lower == 'external'
+          vars:
+            __mssql_sql_files_to_input:
               - grant_permissions_to_ha_login.j2
+          include_tasks: input_sql_files.yml
+
+        - name: Replicate DBs
+          when: >-
+            __mssql_ha_is_primary | bool
+            or __mssql_single_node_test | d(false) | bool
+          vars:
+            __mssql_sql_files_to_input:
               - replicate_db.j2
           include_tasks: input_sql_files.yml
 
@@ -1136,6 +1161,7 @@
       when:
         - not __mssql_ha_is_primary
         - mssql_ha_replica_type == 'primary'
+        - mssql_ha_ag_cluster_type | lower == 'external'
 
     - name: Configure availability group on not primary replicas
       when: mssql_ha_replica_type in __mssql_ha_replica_types_secondary
@@ -1158,6 +1184,7 @@
             name: "{{ __mssql_server_ha_packages }}"
             state: "{{ mssql_ha_configure | ternary('present', 'absent') }}"
           register: __mssql_server_ha_packages_install
+          when: mssql_ha_ag_cluster_type | lower == 'external'
 
         - name: Enable the hadrenabled setting
           include_tasks: mssql_conf_setting.yml
@@ -1172,7 +1199,7 @@
             state: restarted
           # noqa no-handler
           when: (__mssql_conf_set is changed) or
-            (__mssql_server_ha_packages_install is changed)
+            (__mssql_server_ha_packages_install | d() is changed)
           register: __mssql_replica_restarted
 
         - name: Remove certificate from SQL Server
@@ -1201,10 +1228,27 @@
               - create_master_key_encryption.j2
               - restore_cert.j2
               - configure_endpoint.j2
+          include_tasks: input_sql_files.yml
+
+        - name: Configure SQL entities on not primary replicas
+          vars:
+            __mssql_sql_files_to_input:
               - create_ha_login.j2
+          include_tasks: input_sql_files.yml
+          when: mssql_ha_ag_cluster_type | lower == 'external'
+
+        - name: Configure SQL entities on not primary replicas
+          vars:
+            __mssql_sql_files_to_input:
               - join_to_ag.j2
+          include_tasks: input_sql_files.yml
+
+        - name: Configure SQL entities on not primary replicas
+          vars:
+            __mssql_sql_files_to_input:
               - grant_permissions_to_ha_login.j2
           include_tasks: input_sql_files.yml
+          when: mssql_ha_ag_cluster_type | lower == 'external'
       always:
         # changed_when: false because this task removes remnants of cert files
         - name: Remove certificate and private key from the control node
