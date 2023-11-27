@@ -50,9 +50,11 @@ mssql_ha_reset_cert: false
 mssql_ha_endpoint_name: null
 mssql_ha_ag_name: null
 mssql_ha_db_names: []
+
+mssql_ha_prep_for_pacemaker: "{{ mssql_ha_ag_cluster_type | lower != 'none' }}"
+mssql_ha_virtual_ip: null
 mssql_ha_login: null
 mssql_ha_login_password: null
-mssql_ha_virtual_ip: null
 mssql_ha_cluster_run_role: false
 
 mssql_ad_configure: false

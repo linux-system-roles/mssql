@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 ---
-- name: Verify the role on the primary node
+- name: Verify HA functionality with external clusters and templates
   hosts: all
   vars:
     __mssql_single_node_test: "{{ ansible_play_hosts_all | length == 1 }}"
@@ -28,11 +28,13 @@
     mssql_ha_db_names:
       - ExampleDB1
       - ExampleDB2
+    mssql_ha_ag_cluster_type: external
     mssql_ha_login: ExampleLogin
     mssql_ha_login_password: "p@55w0rD3"
     mssql_ha_virtual_ip: 192.168.122.148
     # ha_cluster doesn't support running against a single host
-    mssql_ha_cluster_run_role: "{{ ansible_play_hosts_all | length > 1 }}"
+    mssql_ha_cluster_run_role: "{{
+      ansible_play_hosts_all | length > 1 }}"
     ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
     ha_cluster_hacluster_password: "p@55w0rD4"
     ha_cluster_sbd_enabled: true
@@ -155,18 +157,6 @@
               - create_ExampleDB2.sql
           when: mssql_ha_replica_type == 'primary'
 
-        # Only when witness node is not specified
-        - name: Run on all hosts to configure read-scale cluster
-          include_role:
-            name: linux-system-roles.mssql
-          vars:
-            mssql_ha_ag_cluster_type: none
-          when: ansible_play_hosts_all |
-            map('extract', hostvars, 'mssql_ha_replica_type') |
-            select('match', '^witness$') |
-            list |
-            length == 0
-
         - name: Set up test environment for the ha_cluster role
           include_role:
             name: fedora.linux_system_roles.ha_cluster
@@ -175,8 +165,6 @@
         - name: Run on all hosts to configure HA cluster
           include_role:
             name: linux-system-roles.mssql
-          vars:
-            mssql_ha_ag_cluster_type: external
 
         - name: Assert that pcs runs properly when testing against >3 nodes
           when: ansible_play_hosts_all | length >= 3
@@ -985,4 +973,3 @@
       always:
         - name: Clean up after the role invocation
           include_tasks: tasks/cleanup.yml
-          when: ansible_play_hosts_all | length == 1
