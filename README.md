@@ -681,17 +681,22 @@ Setting to `false` does not remove configuration for high availability.
 
 When set to `true`, the role performs the following tasks:
 
-1. Include the `fedora.linux_system_roles.firewall` role to configure firewall:
-     1. Open the firewall port set with the [mssql_ha_endpoint_port](#mssql_ha_endpoint_port) variable.
-     2. Enable the `high-availability` service in firewall.
-2. Configure SQL Server for high availability:
-     1. Enable AlwaysOn Health events.
-     2. Create certificate on the primary replica and distribute to other replicas.
-     3. Configure endpoint and availability group.
-     4. Configure the user provided with the [mssql_ha_login](#mssql_ha_login) variable for
-        Pacemaker.
-3. Optional: Include the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker.
-You must set [mssql_ha_cluster_run_role](#mssql_ha_cluster_run_role) to `true` and provide all variables required by the `fedora.linux_system_roles.ha_cluster` role for a proper Pacemaker cluster configuration based on example playbooks in [Always On Availability Group Example Playbooks](#always-on-availability-group-example-playbooks).
+1. Include the `fedora.linux_system_roles.firewall` role to configure firewall.
+    1. Open the firewall port set with the [mssql_ha_endpoint_port](#mssql_ha_endpoint_port) variable.
+    2. Enable the `high-availability` service in firewall.
+2. Configure SQL Server for high availability.
+    1. Enable AlwaysOn Health events.
+    2. Create certificate on the primary replica and distribute to other replicas.
+    3. Configure endpoint.
+    4. Configure availability group with the type based on the value of the [mssql_ha_ag_cluster_type](#mssql_ha_ag_cluster_type) variable.
+    5. Join nodes to the configured availability group.
+3. When `mssql_ha_prep_for_pacemaker = true`: Configure nodes for Pacemaker.
+    1. Install the `mssql-server-ha` package.
+    2. Configure the user provided with the [mssql_ha_login](#mssql_ha_login) variable for
+      Pacemaker.
+    3. Configure virtual IP.
+4. When [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role)`=true`: Include the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker.
+  You must set [mssql_ha_cluster_run_role](#mssql_ha_cluster_run_role) to `true` and provide all variables required by the `fedora.linux_system_roles.ha_cluster` role for a proper Pacemaker cluster configuration based on example playbooks in [Always On Availability Group Example Playbooks](#always-on-availability-group-example-playbooks).
 
 Default: `false`
 
@@ -818,9 +823,28 @@ Default: `[]`
 
 Type: `list`
 
-#### mssql_ha_virtual_ip
+### Configuring Pacemaker Variables
+
+With these variables, you can specify whether to configure Pacemaker HA solution and its configuration.
 
 Only applicable when you set `mssql_ha_ag_cluster_type` to `external`.
+
+#### mssql_ha_prep_for_pacemaker
+
+Whether to configure SQL Server for Pacemaker.
+
+If set to `true`, the role does the following configuration:
+
+1. Configures Virtual IP in SQL Server
+2. Creates a user for Pacemaker in SQL Server
+3. Stores credentials for the Pacemaker user in `/var/opt/mssql/secrets/passwd`
+4. Runs the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker
+
+Default: `true`
+
+Type: `bool`
+
+#### mssql_ha_virtual_ip
 
 The virtual IP address to be configured for the SQL cluster.
 
@@ -836,8 +860,6 @@ Type: `string`
 
 #### mssql_ha_login
 
-Only applicable when you set `mssql_ha_ag_cluster_type` to `external`.
-
 The user created for Pacemaker in SQL Server.
 This user is used by the SQL Server Pacemaker resource agent to connect to SQL Server to perform regular database health checks and manage state transitions from replica to primary when needed.
 
@@ -847,8 +869,6 @@ Type: `string`
 
 #### mssql_ha_login_password
 
-Only applicable when you set `mssql_ha_ag_cluster_type` to `external`.
-
 The password for the mssql_ha_login user in SQL Server.
 
 Default: `null`
@@ -856,8 +876,6 @@ Default: `null`
 Type: `string`
 
 #### mssql_ha_cluster_run_role
-
-Only applicable when you set `mssql_ha_ag_cluster_type` to `external`.
 
 Whether to run the `fedora.linux_system_roles.ha_cluster` role from this role.
 
@@ -921,7 +939,25 @@ all:
 #### Configuring SQL Server with a `none` Cluster Type for Read-scale without Pacemaker
 
 Use the following example to configure SQL Server Always On for read-scale.
-In this case the role does not configure Pacemaker.
+In this case, the role does not configure Pacemaker.
+
+Inventory:
+
+```yaml
+all:
+  hosts:
+    client-mssql-1:
+      ansible_host: <IP or FQDN>
+      mssql_ha_replica_type: primary
+    client-mssql-2:
+      ansible_host: <IP or FQDN>
+      mssql_ha_replica_type: asynchronous
+    client-mssql-3:
+      ansible_host: <IP or FQDN>
+      mssql_ha_replica_type: asynchronous
+```
+
+Playbook:
 
 ```yaml
 - hosts: all
@@ -929,7 +965,7 @@ In this case the role does not configure Pacemaker.
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
-    mssql_version: 2019
+    mssql_version: 2022
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_manage_firewall: true

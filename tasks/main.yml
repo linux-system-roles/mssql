@@ -84,15 +84,26 @@
 - name: Verify that 'mssql_ha_replica_type = primary' is provided once
   assert:
     that: ansible_play_hosts_all |
-        map('extract', hostvars, 'mssql_ha_replica_type') |
-        select('match', '^primary$') |
-        list |
-        length == 1
+      map('extract', hostvars, 'mssql_ha_replica_type') |
+      select('match', '^primary$') |
+      list |
+      length == 1
     fail_msg: >-
       You must set the mssql_ha_replica_type variable to 'primary' for one of
       your managed nodes
   run_once: true
   when: mssql_ha_configure | bool
+
+- name: Verify that mssql_ha_prep_for_pacemaker is provided correctly
+  when:
+    - mssql_ha_ag_cluster_type | lower == 'none'
+    - (mssql_ha_prep_for_pacemaker | bool)
+      or (mssql_ha_cluster_run_role | bool)
+  fail:
+    msg: >-
+      You set mssql_ha_ag_cluster_type to none, in this case you must not set
+      mssql_ha_prep_for_pacemaker and mssql_ha_cluster_run_role to true because
+      read-scale clusters do not require Pacemaker
 
 - name: Verify that selinux variables are used on supported platforms
   when:
@@ -1013,7 +1024,7 @@
             name: "{{ __mssql_server_ha_packages }}"
             state: "{{ mssql_ha_configure | ternary('present', 'absent') }}"
           register: __mssql_server_ha_packages_install
-          when: mssql_ha_ag_cluster_type | lower == 'external'
+          when: mssql_ha_prep_for_pacemaker | bool
 
         - name: Enable the hadrenabled setting
           include_tasks: mssql_conf_setting.yml
@@ -1028,7 +1039,7 @@
             state: restarted
           # noqa no-handler
           when: (__mssql_conf_set is changed) or
-            (__mssql_server_ha_packages_install | d() is changed)
+            (__mssql_server_ha_packages_install | d({}) is changed)
 
         - name: Remove certificates
           when: mssql_ha_reset_cert | bool
@@ -1061,7 +1072,7 @@
             __mssql_sql_files_to_input:
               - create_ha_login.j2
           include_tasks: input_sql_files.yml
-          when: mssql_ha_ag_cluster_type | lower == 'external'
+          when: mssql_ha_prep_for_pacemaker | bool
 
         # changed_when: false because role removes cert files after using them
         - name: Fetch certificate files from the primary to the control node
@@ -1118,14 +1129,13 @@
           vars:
             __mssql_sql_files_to_input:
               - configure_ag.j2
-              - replicate_db.j2
           include_tasks: input_sql_files.yml
 
         - name: Grant permissions to HA login
-          when: >-
+          when:
             - __mssql_ha_is_primary | bool
               or __mssql_single_node_test | d(false) | bool
-            - mssql_ha_ag_cluster_type | lower == 'external'
+            - mssql_ha_prep_for_pacemaker | bool
           vars:
             __mssql_sql_files_to_input:
               - grant_permissions_to_ha_login.j2
@@ -1142,7 +1152,7 @@
 
     # In the case of fail over when primary is moved grant permission task above
     # is not run on primary above hence we need to run it separately
-    - name: Grant permissions to ha login
+    - name: Grant permissions to HA login
       vars:
         __mssql_sql_files_to_input:
           - grant_permissions_to_ha_login.j2
@@ -1150,7 +1160,7 @@
       when:
         - not __mssql_ha_is_primary
         - mssql_ha_replica_type == 'primary'
-        - mssql_ha_ag_cluster_type | lower == 'external'
+        - mssql_ha_prep_for_pacemaker | bool
 
     - name: Configure availability group on not primary replicas
       when: mssql_ha_replica_type in __mssql_ha_replica_types_secondary
@@ -1173,7 +1183,7 @@
             name: "{{ __mssql_server_ha_packages }}"
             state: "{{ mssql_ha_configure | ternary('present', 'absent') }}"
           register: __mssql_server_ha_packages_install
-          when: mssql_ha_ag_cluster_type | lower == 'external'
+          when: mssql_ha_prep_for_pacemaker | bool
 
         - name: Enable the hadrenabled setting
           include_tasks: mssql_conf_setting.yml
@@ -1188,7 +1198,7 @@
             state: restarted
           # noqa no-handler
           when: (__mssql_conf_set is changed) or
-            (__mssql_server_ha_packages_install | d() is changed)
+            (__mssql_server_ha_packages_install | d({}) is changed)
           register: __mssql_replica_restarted
 
         - name: Remove certificate from SQL Server
@@ -1219,25 +1229,25 @@
               - configure_endpoint.j2
           include_tasks: input_sql_files.yml
 
-        - name: Configure SQL entities on not primary replicas
+        - name: Create HA login
           vars:
             __mssql_sql_files_to_input:
               - create_ha_login.j2
           include_tasks: input_sql_files.yml
-          when: mssql_ha_ag_cluster_type | lower == 'external'
+          when: mssql_ha_prep_for_pacemaker | bool
 
-        - name: Configure SQL entities on not primary replicas
+        - name: Join to availability group
           vars:
             __mssql_sql_files_to_input:
               - join_to_ag.j2
           include_tasks: input_sql_files.yml
 
-        - name: Configure SQL entities on not primary replicas
+        - name: Grant permissions to HA login
           vars:
             __mssql_sql_files_to_input:
               - grant_permissions_to_ha_login.j2
           include_tasks: input_sql_files.yml
-          when: mssql_ha_ag_cluster_type | lower == 'external'
+          when: mssql_ha_prep_for_pacemaker | bool
       always:
         # changed_when: false because this task removes remnants of cert files
         - name: Remove certificate and private key from the control node
@@ -1251,7 +1261,7 @@
           changed_when: false
 
     - name: Configure pacemaker
-      when: mssql_ha_ag_cluster_type | lower == 'external'
+      when: mssql_ha_prep_for_pacemaker | bool
       block:
         - name: Save credentials for the SQL Server login {{ mssql_ha_login }}
           copy:
@@ -1277,8 +1287,8 @@
           - configure_listener.j2
       include_tasks: input_sql_files.yml
       when:
-        - mssql_ha_ag_cluster_type | lower == 'external'
         - __mssql_ha_is_primary | bool
+        - mssql_ha_prep_for_pacemaker | bool
 
 - name: Ensure the ansible_managed header in {{ __mssql_conf_path }}
   vars:
