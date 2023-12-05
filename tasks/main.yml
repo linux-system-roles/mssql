@@ -1039,7 +1039,7 @@
             state: restarted
           # noqa no-handler
           when: (__mssql_conf_set is changed) or
-            (__mssql_server_ha_packages_install | d() is changed)
+            (__mssql_server_ha_packages_install | d({}) is changed)
 
         - name: Remove certificates
           when: mssql_ha_reset_cert | bool
@@ -1129,7 +1129,6 @@
           vars:
             __mssql_sql_files_to_input:
               - configure_ag.j2
-              - replicate_db.j2
           include_tasks: input_sql_files.yml
 
         - name: Grant permissions to HA login
@@ -1199,7 +1198,7 @@
             state: restarted
           # noqa no-handler
           when: (__mssql_conf_set is changed) or
-            (__mssql_server_ha_packages_install | d() is changed)
+            (__mssql_server_ha_packages_install | d({}) is changed)
           register: __mssql_replica_restarted
 
         - name: Remove certificate from SQL Server
