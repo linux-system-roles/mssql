@@ -156,6 +156,21 @@
               - create_ExampleDB2.sql
           when: mssql_ha_replica_type == 'primary'
 
+        # Only when witness node is not specified
+        - name: Run on all hosts to configure read-scale cluster
+          include_role:
+            name: linux-system-roles.mssql
+          vars:
+            mssql_ha_ag_cluster_type: none
+            mssql_ha_login: null
+            mssql_ha_login_password: null
+            mssql_ha_virtual_ip: null
+          when: ansible_play_hosts_all |
+            map('extract', hostvars, 'mssql_ha_replica_type') |
+            select('match', '^witness$') |
+            list |
+            length == 0
+
         - name: Set up test environment for the ha_cluster role
           include_role:
             name: fedora.linux_system_roles.ha_cluster
