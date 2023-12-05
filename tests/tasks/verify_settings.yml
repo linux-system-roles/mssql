@@ -94,12 +94,21 @@
       wait_for:
         path: /var/opt/mssql/log/errorlog
         search_regex: SQL Server is now ready for client connections
-        delay: 18
-        timeout: 40
+        delay: 1
 
     - name: Check if the set password matches the existing password
       command: "{{ __mssql_sqlcmd_login_cmd }} -Q 'SELECT @@VERSION'"
       changed_when: false
+      register: __mssql_test_psw_query
+      until: >-
+        "TCP Provider: Error code 0x102" not in __mssql_test_psw_query.stdout
+        and
+        "TCP Provider: Error code 0x102" not in __mssql_test_psw_query.stderr
+        and
+        "TCP Provider: Error code 0x2749" not in __mssql_test_psw_query.stdout
+        and
+        "TCP Provider: Error code 0x2749" not in __mssql_test_psw_query.stderr
+
 
     - name: Set the mssql_password variable to default null
       set_fact:

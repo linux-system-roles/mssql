@@ -14,7 +14,7 @@
       (ansible_distribution_major_version is version('9', '>=')) }}"
     mssql_manage_selinux: "{{ __mssql_test_confined_supported }}"
     mssql_run_selinux_confined: "{{ __mssql_test_confined_supported }}"
-
+    __mssql_gather_facts_no_log: true
   tasks:
     - name: Run test in a block to clean up in always
       block:

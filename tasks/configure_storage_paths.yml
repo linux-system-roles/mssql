@@ -20,6 +20,22 @@
       else
       __mssql_storage_mode_default }}"
 
+- name: Append facts for the selinux role
+  vars:
+    selinux_fcontext:
+      - target: "{{ __mssql_storage_path }}"
+        setype: "{{ 'mssql_db_t' if __mssql_storage_setting == 'defaultlogdir'
+          else 'mssql_var_t' }}"
+        ftype: d
+        state: present
+    selinux_restore_dir:
+      - "{{ __mssql_storage_path }}"
+  set_fact:
+    selinux_fcontexts: "{{
+      (selinux_fcontexts | default([])) + selinux_fcontext }}"
+    selinux_restore_dirs: "{{
+      (selinux_restore_dirs | default([])) + selinux_restore_dir }}"
+
 - name: Configure the setting {{ __mssql_storage_setting }}
   include_tasks: mssql_conf_setting.yml
   vars:

@@ -195,7 +195,14 @@ Type: `bool`
 
 #### mssql_manage_selinux
 
-Whether to configure SELinux with the `enforcing` or `permissive` mode based on the value of the `mssql_run_selinux_confined` variable.
+Only applicable on RHEL 9 when running as a SELinux-confined application.
+
+Whether to manage SELinux.
+
+When set to `true`, configures the following SELinux contexts and settings:
+
+1. SELinux `enforcing` or `permissive` mode based on the value of the [mssql_run_selinux_confined](#mssql_run_selinux_confined) variable.
+2. When you define [mssql_datadir](#mssql_datadir) or [mssql_logdir](#mssql_logdir), configures SELinux context `mssql_db_t` for [mssql_datadir](#mssql_datadir) and `mssql_var_t` for [mssql_logdir](#mssql_logdir).
 
 Default: `false`
 
@@ -386,6 +393,10 @@ Type: `string`
 Optional: Use these variables to configure SQL Server to store data and logs in custom paths.
 
 ### Custom Paths Variables
+
+Use these variables to configure custom storage paths.
+
+On RHEL 9, you can set [mssql_manage_selinux](#mssql_manage_selinux) to `true` to set a correct SELinux context for custom directories.
 
 #### mssql_datadir
 

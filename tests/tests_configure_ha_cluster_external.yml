@@ -15,6 +15,7 @@
     __mssql_test_confined_supported: "{{
       (ansible_distribution in ['CentOS', 'RedHat']) and
       (ansible_distribution_major_version is version('9', '>=')) }}"
+    __mssql_gather_facts_no_log: true
     mssql_manage_selinux: "{{ __mssql_test_confined_supported }}"
     mssql_run_selinux_confined: "{{ __mssql_test_confined_supported }}"
     mssql_ha_configure: true

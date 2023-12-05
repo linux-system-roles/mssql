@@ -116,7 +116,7 @@
 
 - name: Gather package facts
   package_facts:
-    manager: auto
+  no_log: "{{ __mssql_gather_facts_no_log | d(false) }}"
 
 - name: Set fact with the currently installed SQL Server version if any
   set_fact:
@@ -280,6 +280,7 @@
 
 - name: Gather system services facts
   service_facts:
+  no_log: "{{ __mssql_gather_facts_no_log | d(false) }}"
 
 - name: Set the __mssql_is_setup variable
   set_fact:
@@ -340,6 +341,13 @@
     __mssql_storage_path: "{{ item.path }}"
     __mssql_storage_mode: "{{ item.mode }}"
     __mssql_storage_setting: "{{ item.setting }}"
+
+- name: Ensure correct SELinux context for {{ __mssql_storage_path }}
+  when:
+    - mssql_manage_selinux | bool
+    - (mssql_datadir is not none) or (mssql_logdir is not none)
+  include_role:
+    name: fedora.linux_system_roles.selinux
 
 - name: Ensure that the tuned-profiles-mssql package is installed
   package:
@@ -421,8 +429,7 @@
       wait_for:
         path: /var/opt/mssql/log/errorlog
         search_regex: SQL Server is now ready for client connections
-        delay: 15
-        timeout: 40
+        delay: 1
 
     - name: Check if the set password matches the existing password
       command: "{{ __mssql_sqlcmd_login_cmd }} -Q 'SELECT @@VERSION'"
@@ -430,6 +437,14 @@
       changed_when: false
       register: __mssql_password_query
       no_log: true
+      until: >-
+        "TCP Provider: Error code 0x102" not in __mssql_password_query.stdout
+        and
+        "TCP Provider: Error code 0x102" not in __mssql_password_query.stderr
+        and
+        "TCP Provider: Error code 0x2749" not in __mssql_password_query.stdout
+        and
+        "TCP Provider: Error code 0x2749" not in __mssql_password_query.stderr
 
     - name: Ensure that the mssql-server service is stopped
       service:
@@ -440,7 +455,7 @@
 
     - name: Gather package facts
       package_facts:
-        manager: auto
+      no_log: "{{ __mssql_gather_facts_no_log | d(false) }}"
 
     # Setting MSSQL_SA_PASSWORD inline for security because setting it with
     # environment: reveals the value when running playbooks with high verbosity
@@ -516,7 +531,7 @@
 
     - name: Gather package facts
       package_facts:
-        manager: auto
+      no_log: "{{ __mssql_gather_facts_no_log | d(false) }}"
 
     - name: Change the edition of MSSQL
       block:
