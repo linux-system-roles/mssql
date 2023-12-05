@@ -31,6 +31,35 @@
   tasks:
     - name: Run test in a block to clean up in always
       block:
+        - name: Verify that by default the role fails on EL < 8
+          when:
+            - ansible_distribution in ['CentOS', 'RedHat']
+            - ansible_distribution_version is version('8', '<')
+          block:
+            - name: Run the role
+              vars:
+                mssql_ha_configure: true
+              include_role:
+                name: linux-system-roles.mssql
+
+            - name: Unreachable task
+              fail:
+                msg: The above task must fail
+          rescue:
+            - name: Assert that the role failed with EL 7 not supported
+              assert:
+                that: >-
+                  'mssql_ha_configure=true does not support running against EL 7
+                  hosts' in ansible_failed_result.msg
+          always:
+            - name: Clean up after the role invocation
+              include_tasks: tasks/cleanup.yml
+              when: ansible_play_hosts_all | length == 1
+
+            # Putting end_host into a rescue block results in a failed task
+            - name: End EL 7 host
+              meta: end_host
+
         - name: Set the mssql_ha_replica_type fact to appear in hostvars
           set_fact:
             mssql_ha_replica_type: primary
