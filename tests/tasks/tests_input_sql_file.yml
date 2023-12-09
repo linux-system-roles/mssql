@@ -11,6 +11,9 @@
       - create_example_db.j2
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
+    # Enable FTS in the beginning so that it works at the end
+    # It takes some time for mssql-server to configure it after RPM is installed
+    mssql_install_fts: true
     # noqa var-naming[no-role-prefix]
     __mssql_test_db_name: ExampleDB1
 
@@ -24,10 +27,14 @@
         'The Inventory table already exists, skipping' in
         __mssql_sqlcmd_input.stdout
 
-- name: Set up MSSQL and input sql files with post_input
+- name: Input sql files with post_input into custom storage directory
   include_role:
     name: linux-system-roles.mssql
   vars:
+    mssql_datadir: /tmp/mssql_data
+    mssql_logdir: /tmp/mssql_log
+    mssql_datadir_mode: '0700'
+    mssql_logdir_mode: '0700'
     mssql_post_input_sql_file:
       - sql_script.sql
       - sql_script.sql
@@ -42,6 +49,14 @@
       - >-
         'The MyUser user already exists, skipping'
         in __mssql_sqlcmd_input.stdout
+
+- name: Verify custom storage
+  include_tasks: verify_settings.yml
+  vars:
+    __verify_mssql_datadir: /tmp/mssql_data
+    __verify_mssql_logdir: /tmp/mssql_log
+    __verify_mssql_datadir_mode: '0700'
+    __verify_mssql_logdir_mode: '0700'
 
 - name: Set up MSSQL and input sql content with pre_input
   include_role:
@@ -112,11 +127,10 @@
           'You must define the mssql_password variable' in
           ansible_failed_result.msg
 
-- name: Enable FTS and verify that it works when inputting post script
+- name: Verify that FTS was enabled in the beginning of this test playbook
   include_role:
     name: linux-system-roles.mssql
   vars:
-    mssql_install_fts: true
     mssql_post_input_sql_file: verify_fts.sql
     mssql_password: "p@55w0rD"
 

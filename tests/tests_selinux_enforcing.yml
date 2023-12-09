@@ -10,6 +10,7 @@
     mssql_version: 2022
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
+    __mssql_gather_facts_no_log: true
   tasks:
     - name: Assert expected failures on unsupported platforms
       include_tasks: tasks/assert_fail_on_unsupported_ver.yml

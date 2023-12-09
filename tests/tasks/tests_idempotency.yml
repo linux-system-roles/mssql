@@ -14,8 +14,8 @@
     mssql_install_fts: true
     mssql_tune_for_fua_storage: true
     mssql_install_powershell: true
-    mssql_datadir: /tmp/data
-    mssql_logdir: /tmp/log
+    mssql_datadir: /tmp/mssql_data
+    mssql_logdir: /tmp/mssql_log
     mssql_datadir_mode: '0700'
     mssql_logdir_mode: '0700'
 
@@ -34,8 +34,8 @@
     mssql_install_fts: true
     mssql_tune_for_fua_storage: true
     mssql_install_powershell: true
-    mssql_datadir: /tmp/data
-    mssql_logdir: /tmp/log
+    mssql_datadir: /tmp/mssql_data
+    mssql_logdir: /tmp/mssql_log
 
 - name: Verify settings
   include_tasks: verify_settings.yml
@@ -48,8 +48,8 @@
     __verify_mssql_fts_is_installed: true
     __verify_mssql_is_tuned_for_fua: true
     __verify_mssql_powershell_is_installed: true
-    __verify_mssql_datadir: /tmp/data
-    __verify_mssql_logdir: /tmp/log
+    __verify_mssql_datadir: /tmp/mssql_data
+    __verify_mssql_logdir: /tmp/mssql_log
     __verify_mssql_datadir_mode: '0700'
     __verify_mssql_logdir_mode: '0700'
 

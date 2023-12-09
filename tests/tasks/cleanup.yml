@@ -1,7 +1,6 @@
 ---
 - name: Gather package facts
   package_facts:
-    manager: auto
   no_log: true
 
 - name: Purge cluster configuration
@@ -63,11 +62,13 @@
     /var/log/pacemaker/pacemaker.log
     /etc/yum.repos.d/packages-microsoft-com-*
     /tmp/*.j2
+    /tmp/mssql_data
+    /tmp/mssql_log
     /etc/systemd/system/multi-user.target.wants/mssql-server.service
   register: __mssql_cleanup_remove
   changed_when: "'removed' in __mssql_cleanup_remove.stdout"
 
 # On SQL Server 2017, 2019 the service remains after removing RPMs
 - name: Stop the mssql-server service  # noqa command-instead-of-module
-  command: systemctl stop mssql-server  # noqa ignore-errors
-  ignore_errors: true  # noqa no-changed-when
+  shell: systemctl stop mssql-server || true
+  changed_when: false

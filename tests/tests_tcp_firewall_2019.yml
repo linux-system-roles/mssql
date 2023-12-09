@@ -8,6 +8,7 @@
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_manage_firewall: true
     mssql_version: 2019
+    __mssql_gather_facts_no_log: true
   tasks:
     - name: Run test in a block to clean up in always
       block:
