@@ -52,6 +52,20 @@
       set_fact:
         mssql_ad_sql_user: "{{ mssql_ad_sql_user_name }}"
 
+- name: Link the deprecated mssql_ha_cluster_run_role fact
+  when: mssql_ha_cluster_run_role is defined
+  block:
+    - name: Print that the mssql_ha_cluster_run_role variable is deprecated
+      debug:
+        msg: >-
+          The mssql_ha_cluster_run_role variable is deprecated and will be
+          removed in a future version. Edit your playbook to use
+          mssql_manage_ha_cluster variable instead.
+
+    - name: Link the deprecated mssql_ha_cluster_run_role fact
+      set_fact:
+        mssql_manage_ha_cluster: "{{ mssql_ha_cluster_run_role }}"
+
 - name: Verify that the user accepts EULA variables
   assert:
     that:
@@ -98,11 +112,11 @@
   when:
     - mssql_ha_ag_cluster_type | lower == 'none'
     - (mssql_ha_prep_for_pacemaker | bool)
-      or (mssql_ha_cluster_run_role | bool)
+      or (mssql_manage_ha_cluster | bool)
   fail:
     msg: >-
       You set mssql_ha_ag_cluster_type to none, in this case you must not set
-      mssql_ha_prep_for_pacemaker and mssql_ha_cluster_run_role to true because
+      mssql_ha_prep_for_pacemaker and mssql_manage_ha_cluster to true because
       read-scale clusters do not require Pacemaker
 
 - name: Verify that selinux variables are used on supported platforms
@@ -1293,7 +1307,7 @@
         - name: Run ha_cluster to configure pacemaker
           include_role:
             name: fedora.linux_system_roles.ha_cluster
-          when: mssql_ha_cluster_run_role | bool
+          when: mssql_manage_ha_cluster | bool
 
     # Configure on a current primary identified above
     - name: Configure listener for the availability group {{ mssql_ha_ag_name }}
