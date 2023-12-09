@@ -379,8 +379,8 @@ id="toc-mssql_ha_virtual_ip">mssql_ha_virtual_ip</a></li>
 id="toc-mssql_ha_login">mssql_ha_login</a></li>
 <li><a href="#mssql_ha_login_password"
 id="toc-mssql_ha_login_password">mssql_ha_login_password</a></li>
-<li><a href="#mssql_ha_cluster_run_role"
-id="toc-mssql_ha_cluster_run_role">mssql_ha_cluster_run_role</a></li>
+<li><a href="#mssql_manage_ha_cluster"
+id="toc-mssql_manage_ha_cluster">mssql_manage_ha_cluster</a></li>
 </ul></li>
 <li><a href="#always-on-availability-group-example-playbooks"
 id="toc-always-on-availability-group-example-playbooks">Always On
@@ -1120,7 +1120,7 @@ Inventory</h2>
 <p>You must set the <code>mssql_ha_replica_type</code> variable for each
 host that you want to configure.</p>
 <p>If you set <a
-href="#mssql_ha_cluster_run_role">mssql_ha_cluster_run_role</a> to
+href="#mssql_manage_ha_cluster">mssql_manage_ha_cluster</a> to
 <code>true</code>, you can provide variables required by the
 <code>fedora.linux_system_roles.ha_cluster</code> role. If you do not
 provide names or addresses, the
@@ -1171,10 +1171,10 @@ href="#mssql_ha_login">mssql_ha_login</a> variable for Pacemaker.</li>
 <li>Configure virtual IP.</li>
 </ol></li>
 <li>When <a
-href="#mssql_ha_cluster_run_role"><code>mssql_ha_cluster_run_role</code></a><code>=true</code>:
+href="#mssql_manage_ha_cluster"><code>mssql_manage_ha_cluster</code></a><code>=true</code>:
 Include the <code>fedora.linux_system_roles.ha_cluster</code> role to
 configure Pacemaker. You must set <a
-href="#mssql_ha_cluster_run_role">mssql_ha_cluster_run_role</a> to
+href="#mssql_manage_ha_cluster">mssql_manage_ha_cluster</a> to
 <code>true</code> and provide all variables required by the
 <code>fedora.linux_system_roles.ha_cluster</code> role for a proper
 Pacemaker cluster configuration based on example playbooks in <a
@@ -1332,7 +1332,7 @@ replica to primary when needed.</p>
 <p>The password for the mssql_ha_login user in SQL Server.</p>
 <p>Default: <code>null</code></p>
 <p>Type: <code>string</code></p>
-<h3 id="mssql_ha_cluster_run_role">mssql_ha_cluster_run_role</h3>
+<h3 id="mssql_manage_ha_cluster">mssql_manage_ha_cluster</h3>
 <p>Whether to run the <code>fedora.linux_system_roles.ha_cluster</code>
 role from this role.</p>
 <p>Note that the <code>fedora.linux_system_roles.ha_cluster</code> role
@@ -1349,8 +1349,8 @@ role does not set any variables for the
 any existing Pacemaker configuration is not re-written.</p>
 <p>If you want the <code>microsoft.sql.server</code> to run the
 <code>fedora.linux_system_roles.ha_cluster</code> role, set
-<code>mssql_ha_cluster_run_role: true</code> and provide variables for
-the <code>fedora.linux_system_roles.ha_cluster</code> role with the
+<code>mssql_manage_ha_cluster: true</code> and provide variables for the
+<code>fedora.linux_system_roles.ha_cluster</code> role with the
 <code>microsoft.sql.server</code> role invocation based on example
 playbooks in <a
 href="#always-on-availability-group-example-playbooks">Always On
@@ -1359,7 +1359,7 @@ Availability Group Example Playbooks</a>.</p>
 <code>fedora.linux_system_roles.ha_cluster</code> role and instead want
 to run the <code>fedora.linux_system_roles.ha_cluster</code> role
 independently of the <code>microsoft.sql.server</code> role, set
-<code>mssql_ha_cluster_run_role: false</code>.</p>
+<code>mssql_manage_ha_cluster: false</code>.</p>
 <p>Default: <code>false</code></p>
 <p>Type: <code>bool</code></p>
 <h2 id="always-on-availability-group-example-playbooks">Always On
@@ -1449,7 +1449,7 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb11-1"><a href=
 id="configuring-sql-server-with-ha-and-pacemaker-on-bare-metal">Configuring
 SQL Server with HA and Pacemaker on Bare Metal</h3>
 <p>If you want to configure Pacemaker from this role, you can set <a
-href="#mssql_ha_cluster_run_role">mssql_ha_cluster_run_role</a> to
+href="#mssql_manage_ha_cluster">mssql_manage_ha_cluster</a> to
 <code>true</code> and provide variables required by the
 <code>fedora.linux_system_roles.ha_cluster</code> role to configure
 Pacemaker for your environment properly.</p>
@@ -1485,7 +1485,7 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb12-1"><a href=
 <span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_ha_login</span><span class="kw">:</span><span class="at"> ExampleLogin</span></span>
 <span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_ha_login_password</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;p@55w0rD3&quot;</span></span>
 <span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_ha_virtual_ip</span><span class="kw">:</span><span class="at"> 192.XXX.XXX.XXX</span></span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_ha_cluster_run_role</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_manage_ha_cluster</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ha_cluster_cluster_name</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;{{ mssql_ha_ag_name }}&quot;</span></span>
 <span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ha_cluster_hacluster_password</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;p@55w0rD4&quot;</span></span>
 <span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ha_cluster_sbd_enabled</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
@@ -1550,7 +1550,7 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb12-1"><a href=
 id="configuring-sql-server-with-ha-and-pacemaker-on-vmware">Configuring
 SQL Server with HA and Pacemaker on VMWare</h3>
 <p>If you want to configure Pacemaker from this role, you can set <a
-href="#mssql_ha_cluster_run_role">mssql_ha_cluster_run_role</a> to
+href="#mssql_manage_ha_cluster">mssql_manage_ha_cluster</a> to
 <code>true</code> and provide variables required by the
 <code>fedora.linux_system_roles.ha_cluster</code> role to configure
 Pacemaker for your environment properly. See the
@@ -1584,7 +1584,7 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb13-1"><a href=
 <span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_ha_login</span><span class="kw">:</span><span class="at"> ExampleLogin</span></span>
 <span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_ha_login_password</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;p@55w0rD3&quot;</span></span>
 <span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_ha_virtual_ip</span><span class="kw">:</span><span class="at"> 192.XXX.XXX.XXX</span></span>
-<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_ha_cluster_run_role</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_manage_ha_cluster</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ha_cluster_cluster_name</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;{{ mssql_ha_ag_name }}&quot;</span></span>
 <span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ha_cluster_hacluster_password</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;p@55w0rD4&quot;</span></span>
 <span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ha_cluster_cluster_properties</span><span class="kw">:</span></span>
@@ -1658,7 +1658,7 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb13-1"><a href=
 id="configuring-sql-server-with-ha-and-pacemaker-on-azure">Configuring
 SQL Server with HA and Pacemaker on Azure</h3>
 <p>If you want to configure Pacemaker from this role, you can set <a
-href="#mssql_ha_cluster_run_role">mssql_ha_cluster_run_role</a> to
+href="#mssql_manage_ha_cluster">mssql_manage_ha_cluster</a> to
 <code>true</code> and provide variables required by the
 <code>fedora.linux_system_roles.ha_cluster</code> role to configure
 Pacemaker for your environment properly. See the
@@ -1712,7 +1712,7 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb14-1"><a href=
 <span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a><span class="co">    # Set mssql_ha_virtual_ip to the frontend IP address configured in the Azure</span></span>
 <span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a><span class="co">    # load balancer</span></span>
 <span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_ha_virtual_ip</span><span class="kw">:</span><span class="at"> 192.XXX.XXX.XXX</span></span>
-<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_ha_cluster_run_role</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_manage_ha_cluster</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ha_cluster_cluster_name</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;{{ mssql_ha_ag_name }}&quot;</span></span>
 <span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ha_cluster_hacluster_password</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;p@55w0rD4&quot;</span></span>
 <span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ha_cluster_extra_packages</span><span class="kw">:</span></span>
