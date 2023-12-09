@@ -653,9 +653,22 @@ SQL Server as a Confined Application Variables</h2>
 <code>false</code> for not RHEL 9 managed nodes</p>
 <p>Type: <code>bool</code></p>
 <h3 id="mssql_manage_selinux">mssql_manage_selinux</h3>
-<p>Whether to configure SELinux with the <code>enforcing</code> or
-<code>permissive</code> mode based on the value of the
-<code>mssql_run_selinux_confined</code> variable.</p>
+<p>Only applicable on RHEL 9 when running as a SELinux-confined
+application.</p>
+<p>Whether to manage SELinux.</p>
+<p>When set to <code>true</code>, configures the following SELinux
+contexts and settings:</p>
+<ol type="1">
+<li>SELinux <code>enforcing</code> or <code>permissive</code> mode based
+on the value of the <a
+href="#mssql_run_selinux_confined">mssql_run_selinux_confined</a>
+variable.</li>
+<li>When you define <a href="#mssql_datadir">mssql_datadir</a> or <a
+href="#mssql_logdir">mssql_logdir</a>, configures SELinux context
+<code>mssql_db_t</code> for <a href="#mssql_datadir">mssql_datadir</a>
+and <code>mssql_var_t</code> for <a
+href="#mssql_logdir">mssql_logdir</a>.</li>
+</ol>
 <p>Default: <code>false</code></p>
 <p>Type: <code>bool</code></p>
 <h2
@@ -829,6 +842,11 @@ Custom Data and Logs Storage Paths</h1>
 <p>Optional: Use these variables to configure SQL Server to store data
 and logs in custom paths.</p>
 <h2 id="custom-paths-variables">Custom Paths Variables</h2>
+<p>Use these variables to configure custom storage paths.</p>
+<p>On RHEL 9, you can set <a
+href="#mssql_manage_selinux">mssql_manage_selinux</a> to
+<code>true</code> to set a correct SELinux context for custom
+directories.</p>
 <h3 id="mssql_datadir">mssql_datadir</h3>
 <p>The path to the directory that SQL Server must use to store data.
 When defined, the role creates the provided directory and ensures
