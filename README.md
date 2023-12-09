@@ -675,7 +675,7 @@ Configuring for high availability is not supported on RHEL 7 because the `fedora
 
 You must set the `mssql_ha_replica_type` variable for each host that you want to configure.
 
-If you set [mssql_ha_cluster_run_role](#mssql_ha_cluster_run_role) to `true`, you can provide variables required by the `fedora.linux_system_roles.ha_cluster` role.
+If you set [mssql_manage_ha_cluster](#mssql_manage_ha_cluster) to `true`, you can provide variables required by the `fedora.linux_system_roles.ha_cluster` role.
 If you do not provide names or addresses, the `fedora.linux_system_roles.ha_cluster` uses play's targets, and the high availability setup requires pacemaker to be configured with short names.
 Therefore, if you define hosts in inventory not by short names, or the default hosts' IP address differs from the IP address that pacemaker must use, you must set the corresponding `fedora.linux_system_roles.ha_cluster` role variables.
 
@@ -706,8 +706,8 @@ When set to `true`, the role performs the following tasks:
     2. Configure the user provided with the [mssql_ha_login](#mssql_ha_login) variable for
       Pacemaker.
     3. Configure virtual IP.
-4. When [`mssql_ha_cluster_run_role`](#mssql_ha_cluster_run_role)`=true`: Include the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker.
-  You must set [mssql_ha_cluster_run_role](#mssql_ha_cluster_run_role) to `true` and provide all variables required by the `fedora.linux_system_roles.ha_cluster` role for a proper Pacemaker cluster configuration based on example playbooks in [Always On Availability Group Example Playbooks](#always-on-availability-group-example-playbooks).
+4. When [`mssql_manage_ha_cluster`](#mssql_manage_ha_cluster)`=true`: Include the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker.
+  You must set [mssql_manage_ha_cluster](#mssql_manage_ha_cluster) to `true` and provide all variables required by the `fedora.linux_system_roles.ha_cluster` role for a proper Pacemaker cluster configuration based on example playbooks in [Always On Availability Group Example Playbooks](#always-on-availability-group-example-playbooks).
 
 Default: `false`
 
@@ -886,7 +886,7 @@ Default: `null`
 
 Type: `string`
 
-#### mssql_ha_cluster_run_role
+#### mssql_manage_ha_cluster
 
 Whether to run the `fedora.linux_system_roles.ha_cluster` role from this role.
 
@@ -898,9 +898,9 @@ Note that the `fedora.linux_system_roles.ha_cluster` role has the following limi
 
 To work around this limitation, the `microsoft.sql.server` role does not set any variables for the `fedora.linux_system_roles.ha_cluster` role to ensure that any existing Pacemaker configuration is not re-written.
 
-If you want the `microsoft.sql.server` to run the `fedora.linux_system_roles.ha_cluster` role, set `mssql_ha_cluster_run_role: true` and provide variables for the `fedora.linux_system_roles.ha_cluster` role with the `microsoft.sql.server` role invocation based on example playbooks in [Always On Availability Group Example Playbooks](#always-on-availability-group-example-playbooks).
+If you want the `microsoft.sql.server` to run the `fedora.linux_system_roles.ha_cluster` role, set `mssql_manage_ha_cluster: true` and provide variables for the `fedora.linux_system_roles.ha_cluster` role with the `microsoft.sql.server` role invocation based on example playbooks in [Always On Availability Group Example Playbooks](#always-on-availability-group-example-playbooks).
 
-If you do not want the `microsoft.sql.server` to run the `fedora.linux_system_roles.ha_cluster` role and instead want to run the `fedora.linux_system_roles.ha_cluster` role independently of the `microsoft.sql.server` role, set `mssql_ha_cluster_run_role: false`.
+If you do not want the `microsoft.sql.server` to run the `fedora.linux_system_roles.ha_cluster` role and instead want to run the `fedora.linux_system_roles.ha_cluster` role independently of the `microsoft.sql.server` role, set `mssql_manage_ha_cluster: false`.
 
 Default: `false`
 
@@ -998,7 +998,7 @@ Playbook:
 
 #### Configuring SQL Server with HA and Pacemaker on Bare Metal
 
-If you want to configure Pacemaker from this role, you can set [mssql_ha_cluster_run_role](#mssql_ha_cluster_run_role) to `true` and provide variables required by the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker for your environment properly.
+If you want to configure Pacemaker from this role, you can set [mssql_manage_ha_cluster](#mssql_manage_ha_cluster) to `true` and provide variables required by the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker for your environment properly.
 
 This example configures required Pacemaker properties and resources and enables SBD watchdog.
 
@@ -1030,7 +1030,7 @@ For more information, see the `fedora.linux_system_roles.ha_cluster` role docume
     mssql_ha_login: ExampleLogin
     mssql_ha_login_password: "p@55w0rD3"
     mssql_ha_virtual_ip: 192.XXX.XXX.XXX
-    mssql_ha_cluster_run_role: true
+    mssql_manage_ha_cluster: true
     ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
     ha_cluster_hacluster_password: "p@55w0rD4"
     ha_cluster_sbd_enabled: true
@@ -1095,7 +1095,7 @@ For more information, see the `fedora.linux_system_roles.ha_cluster` role docume
 
 #### Configuring SQL Server with HA and Pacemaker on VMWare
 
-If you want to configure Pacemaker from this role, you can set [mssql_ha_cluster_run_role](#mssql_ha_cluster_run_role) to `true` and provide variables required by the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker for your environment properly.
+If you want to configure Pacemaker from this role, you can set [mssql_manage_ha_cluster](#mssql_manage_ha_cluster) to `true` and provide variables required by the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker for your environment properly.
 See the `fedora.linux_system_roles.ha_cluster` role documentation for more information.
 
 Note that production environments require Pacemaker configured with fencing agents, this example playbook configures the `stonith:fence_vmware_soap` agent.
@@ -1125,7 +1125,7 @@ Note that production environments require Pacemaker configured with fencing agen
     mssql_ha_login: ExampleLogin
     mssql_ha_login_password: "p@55w0rD3"
     mssql_ha_virtual_ip: 192.XXX.XXX.XXX
-    mssql_ha_cluster_run_role: true
+    mssql_manage_ha_cluster: true
     ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
     ha_cluster_hacluster_password: "p@55w0rD4"
     ha_cluster_cluster_properties:
@@ -1199,7 +1199,7 @@ Note that production environments require Pacemaker configured with fencing agen
 
 #### Configuring SQL Server with HA and Pacemaker on Azure
 
-If you want to configure Pacemaker from this role, you can set [mssql_ha_cluster_run_role](#mssql_ha_cluster_run_role) to `true` and provide variables required by the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker for your environment properly.
+If you want to configure Pacemaker from this role, you can set [mssql_manage_ha_cluster](#mssql_manage_ha_cluster) to `true` and provide variables required by the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker for your environment properly.
 See the `fedora.linux_system_roles.ha_cluster` role documentation for more information.
 
 #### HA and Pacemaker on Azure Prerequisites
@@ -1241,7 +1241,7 @@ This example playbooks sets the `firewall` variables for the `fedora.linux_syste
     # Set mssql_ha_virtual_ip to the frontend IP address configured in the Azure
     # load balancer
     mssql_ha_virtual_ip: 192.XXX.XXX.XXX
-    mssql_ha_cluster_run_role: true
+    mssql_manage_ha_cluster: true
     ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
     ha_cluster_hacluster_password: "p@55w0rD4"
     ha_cluster_extra_packages:

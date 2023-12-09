@@ -34,7 +34,7 @@
     mssql_ha_login_password: "p@55w0rD3"
     mssql_ha_virtual_ip: 192.168.122.148
     # ha_cluster doesn't support running against a single host
-    mssql_ha_cluster_run_role: "{{ ansible_play_hosts_all | length > 1 }}"
+    mssql_manage_ha_cluster: "{{ ansible_play_hosts_all | length > 1 }}"
     ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
     ha_cluster_hacluster_password: "p@55w0rD4"
     ha_cluster_sbd_enabled: true
