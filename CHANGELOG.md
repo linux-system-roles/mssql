@@ -1,6 +1,86 @@
 Changelog
 =========
 
+[2.2.0] - 2023-12-11
+--------------------
+
+### New Features
+
+- feat: Add mssql_ha_prep_for_pacemaker for configuring HA solution other than Pacemaker (#245)
+
+  Enhancement: Add the `mssql_ha_prep_for_pacemaker` variable to configure SQL Server for Pacemaker.
+  
+  Reason: Previously, the role did not have a variable to control whether to configure SQL Server for Pacemaker. Some users require to not configure for Pacemaker to use some custom HA solution.
+  
+  Result: You can use the `mssql_ha_prep_for_pacemaker` variable to configure SQL Server for Pacemaker.
+
+### Bug Fixes
+
+- fix: Remove no_log: true where it is not required (#241)
+
+  Enhancement: Remove `no_log: true` where it is not required.
+  
+  Reason: `no_log: true` was set on `package_facts` and `service_facts` modules to have cleaner logs because the large output of this task is not helpful for logs. However, users might have issues with Ansible not able to run these modules e.g. because it is not able to find python interpreter, such issues were hard to troubleshoot with a hidden output.
+  
+  Result: Tasks that use `package_facts` and `service_facts` modules do not use `no_log: true`, hence they print output when running `ansible-playbook` with `-v`.
+  
+  Issue Tracker Tickets (Jira or BZ if any): Fixes #240
+
+- fix: Remove unnecessary variable requirements for read-scale clusters (#242)
+
+  Enhancement: Remove unnecessary variable requirements for read-scale clusters
+  
+  Reason: Read-scale clusters do not require creating users for Pacemaker and installing the `mssql-server-ha` package.
+  
+  Result: This remove a requirement for unnecessary variables when running a read-scale cluster and requirement to install the mssql-server-ha, which depends on packages from HA repository.
+
+- fix: Manage selinux context for custom storage directories (#247)
+
+  Enhancement: On RHEL 9, manage SELinux context for custom storage paths
+  
+  Reason: SQL Server runs on RHEL 9 as a SELinux-confined application and requires custom storage paths to have the correct SELinux context.
+  
+  Result: When user sets `mssql_manage_selinux: true`, the role configures directories provided with `mssql_logdir` and `mssql_datadir` with a proper SELinux context.
+
+- fix: Use until instead of `wait_for` to retry when TCP errors occur (#247)
+  
+  Reason: The role used `wait_for` module to work around random TCP errors in `mssql-server`
+
+  Result: Now the role uses the `until` loop to catch errors, which makes the roe much faster
+
+### Other Changes
+
+- chore: Use GA repository for RHEL 9 (#243)
+
+  Enhancement: Use GA repository for RHEL 9
+  
+  Reason: Microsoft created a GA repository for RHEL 9 instead of the tech preview repository
+  
+  Result: On RHEL 9, mssql-server is taken from the GA repository instead of the preview repository.
+
+- ci: bump actions/github-script from 6 to 7 (#246)
+
+- refactor: get_ostree_data.sh use env shebang - remove from .sanity* (#248)
+
+  Use the `#!/usr/bin/env bash` shebang which is ansible-test friendly.
+  This means we can remove get_ostree_data.sh from the .sanity* files.
+  This also means we can remove the .sanity* files if we do not need
+  them otherwise.
+  
+  Rename `pth` to `path` in honor of nscott
+  
+  Signed-off-by: Rich Megginson <rmeggins@redhat.com>
+
+- chore: Deprecate mssql_ha_cluster_run_role for mssql_manage_ha_cluster (#249)
+
+  Enhancement: Deprecate mssql_ha_cluster_run_role for mssql_manage_ha_cluster.
+  
+  Reason: System roles consistently use variables in the form `mssql_manage_<rolename>` for managing components with other system roles. This role already uses `mssql_manage_firewall` and `mssql_manage_selinux`. Renaming `mssql_ha_cluster_run_role` to `mssql_manage_ha_cluster` brings consistency to variables names.
+  
+  Result: When you set the deprecated `mssql_ha_cluster_run_role` variable, the role prints a message that this variable is deprecated and continues. 
+  
+
+
 [2.1.0] - 2023-11-20
 --------------------
 
