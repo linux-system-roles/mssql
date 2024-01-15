@@ -428,7 +428,7 @@
             # noqa var-naming[no-role-prefix]
             __mssql_sql_files_to_input:
               - configure_listener.j2
-            mssql_tcp_port: 1434
+            mssql_tcp_port: 1435
             mssql_ha_virtual_ip: 192.168.122.149
           include_role:
             name: linux-system-roles.mssql
@@ -444,7 +444,7 @@
                 "Modifying the listener port setting"
                 in __mssql_sqlcmd_input.stdout
               - >-
-                "Set listener port to 1434 successfully"
+                "Set listener port to 1435 successfully"
                 in __mssql_sqlcmd_input.stdout
               - >-
                 "Modifying the listener ip address setting"

@@ -17,12 +17,17 @@
 
 - name: Purge firewall configuration
   vars:
-    # noqa var-naming[no-role-prefix]
     firewall:
       - previous: replaced
   include_role:
     name: fedora.linux_system_roles.firewall
   when: ansible_facts.packages.firewalld is defined
+
+- name: Purge selinux configuration
+  vars:
+    selinux_all_purge: true
+  include_role:
+    name: fedora.linux_system_roles.selinux
 
 - name: Leave realm
   command: realm leave
