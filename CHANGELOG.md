@@ -1,6 +1,56 @@
 Changelog
 =========
 
+[2.2.1] - 2024-01-29
+--------------------
+
+### Bug Fixes
+
+- fix: Ensure selinux type for used ports (#253)
+
+  Enhancement: Ensure SELinux type for used ports
+
+  Reason: Custom TCP ports must have `mssql_port_t` SELinux type
+
+  Result: When mssql_manage_selinux is set to `true`, the role configures used ports with the `mssql_port_t` SELinux type
+
+- fix: Set default mode for data and log storage directories (#253)
+
+  Enhancement: Set default mode for data and log storage directories 
+  
+  Reason: `mssql_datadir_mode` and `mssql_logdir_mode` should have a default value for security
+
+  Result: `mssql_datadir_mode` and `mssql_logdir_mode` variables have a default value of `'755'`
+
+### Other Changes
+
+- ci: support ansible-lint and ansible-test 2.16 (#251)
+
+  Fix yamllint issue with markdownlint config
+  
+  Add cleanup for tests_include_vars_from_parent.yml
+  
+  Signed-off-by: Rich Megginson <rmeggins@redhat.com>
+
+- ci: Use supported ansible-lint action; run ansible-lint against the collection (#252)
+
+  The old ansible-community ansible-lint is deprecated.  There is a
+  new ansible-lint github action.
+  
+  The latest Ansible repo gating tests run ansible-lint against
+  the collection format instead of against individual roles.
+  We have to convert the role to collection format before running
+  ansible-test.
+  
+  This also requires tox-lsr 3.2.1 - bump other actions to use 3.2.1
+  
+  Role developers can run this locally using
+  `tox -e collection,ansible-lint-collection`
+  See https://github.com/linux-system-roles/tox-lsr/pull/125
+  
+  Signed-off-by: Rich Megginson <rmeggins@redhat.com>
+
+
 [2.2.0] - 2023-12-11
 --------------------
 

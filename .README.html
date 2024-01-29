@@ -859,14 +859,9 @@ all it's content remains at the original path.</p>
 <p>The permissions to be set for the <code>mssql_datadir</code> path in
 the format of the Ansible <code>file</code> module <code>mode</code>
 variable.</p>
-<p>Quote the mode like <code>'0700'</code> so Ansible parses it as a
+<p>Quote the mode like <code>'755'</code> so Ansible parses it as a
 string to avoid conflicts with octal numbers.</p>
-<p>If mode is not specified and the destination directory <em>does
-not</em> exist, the role uses the default umask on the system when
-setting the mode. If mode is not specified and the destination directory
-<em>does</em> exist, the role uses the mode of the existing
-directory.</p>
-<p>Default: <code>null</code></p>
+<p>Default: <code>'755'</code></p>
 <p>Type: <code>string</code></p>
 <h3 id="mssql_logdir">mssql_logdir</h3>
 <p>The path to the directory that SQL Server must use to store logs.
@@ -880,14 +875,9 @@ all it's content remains at the original path.</p>
 <p>The permissions to be set for the <code>mssql_logdir</code> path in
 the format of the Ansible <code>file</code> module <code>mode</code>
 variable.</p>
-<p>Quote the mode like <code>'0700'</code> so Ansible parses it as a
+<p>Quote the mode like <code>'755'</code> so Ansible parses it as a
 string to avoid conflicts with octal numbers.</p>
-<p>If mode is not specified and the destination directory <em>does
-not</em> exist, the role uses the default umask on the system when
-setting the mode. If mode is not specified and the destination directory
-<em>does</em> exist, the role uses the mode of the existing
-directory.</p>
-<p>Default: <code>null</code></p>
+<p>Default: <code>'755'</code></p>
 <p>Type: <code>string</code></p>
 <h1 id="configuring-network-parameters">Configuring Network
 Parameters</h1>
