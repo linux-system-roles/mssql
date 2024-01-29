@@ -356,10 +356,25 @@
     __mssql_storage_mode: "{{ item.mode }}"
     __mssql_storage_setting: "{{ item.setting }}"
 
-- name: Ensure correct SELinux context for {{ __mssql_storage_path }}
+- name: Set selinux role facts for ports
+  set_fact:
+    selinux_ports:
+      - ports: >-
+          {{ mssql_tcp_port }}
+          {{ mssql_ha_configure | ternary(', ' ~ mssql_ha_endpoint_port, '') }}
+        proto: tcp
+        setype: mssql_port_t
+        state: present
+        local: true
+  when: mssql_manage_selinux | bool
+
+- name: Ensure correct SELinux context for storage paths and ports
   when:
     - mssql_manage_selinux | bool
-    - (mssql_datadir is not none) or (mssql_logdir is not none)
+    - >-
+      (selinux_fcontexts is defined) or
+      (selinux_restore_dirs is defined) or
+      (selinux_ports is defined)
   include_role:
     name: fedora.linux_system_roles.selinux
 

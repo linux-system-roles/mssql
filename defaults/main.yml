@@ -15,9 +15,9 @@ mssql_install_fts: null
 mssql_install_powershell: null
 mssql_tune_for_fua_storage: null
 mssql_datadir: null
-mssql_datadir_mode: null
+mssql_datadir_mode: '755'
 mssql_logdir: null
-mssql_logdir_mode: null
+mssql_logdir_mode: '755'
 
 mssql_pre_input_sql_file: []
 mssql_post_input_sql_file: []

@@ -413,12 +413,9 @@ Type: `string`
 
 The permissions to be set for the `mssql_datadir` path in the format of the Ansible `file` module `mode` variable.
 
-Quote the mode like `'0700'` so Ansible parses it as a string to avoid conflicts with octal numbers.
+Quote the mode like `'755'` so Ansible parses it as a string to avoid conflicts with octal numbers.
 
-If mode is not specified and the destination directory *does not* exist, the role uses the default umask on the system when setting the mode.
-If mode is not specified and the destination directory *does* exist, the role uses the mode of the existing directory.
-
-Default: `null`
+Default: `'755'`
 
 Type: `string`
 
@@ -437,12 +434,9 @@ Type: `string`
 
 The permissions to be set for the `mssql_logdir` path in the format of the Ansible `file` module `mode` variable.
 
-Quote the mode like `'0700'` so Ansible parses it as a string to avoid conflicts with octal numbers.
+Quote the mode like `'755'` so Ansible parses it as a string to avoid conflicts with octal numbers.
 
-If mode is not specified and the destination directory *does not* exist, the role uses the default umask on the system when setting the mode.
-If mode is not specified and the destination directory *does* exist, the role uses the mode of the existing directory.
-
-Default: `null`
+Default: `'755'`
 
 Type: `string`
 

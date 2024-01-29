@@ -16,8 +16,6 @@
     mssql_install_powershell: true
     mssql_datadir: /tmp/mssql_data
     mssql_logdir: /tmp/mssql_log
-    mssql_datadir_mode: '0700'
-    mssql_logdir_mode: '0700'
 
 - name: Configure the mssql-server service start limit interval and burst
   include_tasks: mssql-sever-increase-start-limit.yml
@@ -50,8 +48,6 @@
     __verify_mssql_powershell_is_installed: true
     __verify_mssql_datadir: /tmp/mssql_data
     __verify_mssql_logdir: /tmp/mssql_log
-    __verify_mssql_datadir_mode: '0700'
-    __verify_mssql_logdir_mode: '0700'
 
 - name: Run to edit settings
   include_role:
@@ -67,8 +63,8 @@
     mssql_install_powershell: false
     mssql_datadir: /var/opt/mssql/data
     mssql_logdir: /var/opt/mssql/log
-    mssql_datadir_mode: '0755'
-    mssql_logdir_mode: '0755'
+    mssql_datadir_mode: '755'
+    mssql_logdir_mode: '755'
 
 - name: Run with the edited settings again - should report not changed
   include_role:
