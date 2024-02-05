@@ -1324,6 +1324,11 @@
             name: fedora.linux_system_roles.ha_cluster
           when: mssql_manage_ha_cluster | bool
 
+        - name: Wait for the cluster to finish configuration
+          command: crm_resource --wait
+          changed_when: false
+          when: mssql_manage_ha_cluster | bool
+
     # Configure on a current primary identified above
     - name: Configure listener for the availability group {{ mssql_ha_ag_name }}
       vars:

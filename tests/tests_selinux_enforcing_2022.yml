@@ -98,6 +98,6 @@
                 that: >-
                   'You must configure SELinux to be in Enforcing mode to run SQL
                   Server as a confined application' in ansible_failed_result.msg
-      # always:
-      #   - name: Clean up after the role invocation
-      #     include_tasks: tasks/cleanup.yml
+      always:
+        - name: Clean up after the role invocation
+          include_tasks: tasks/cleanup.yml

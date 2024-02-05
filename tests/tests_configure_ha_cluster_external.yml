@@ -184,9 +184,10 @@
         - name: Assert that pcs runs properly when testing against >3 nodes
           when: ansible_play_hosts_all | length >= 3
           block:
-            - name: Wait for pcs to finish configuration
-              wait_for:
-                timeout: 200
+            - name: Wait for the cluster to finish configuration
+              command: crm_resource --wait
+              changed_when: false
+              when: mssql_manage_ha_cluster | bool
 
             - name: Get global pcs status
               command: pcs status
@@ -218,12 +219,13 @@
               run_once: true
               changed_when: true
 
-            - name: Wait for syncrhonous node to promote for virtualip resource
-              wait_for:
-                timeout: 240
+            - name: Wait for the cluster to finish configuration
+              command: crm_resource --wait
+              changed_when: false
+              when: mssql_manage_ha_cluster | bool
 
             - name: Get global pcs status
-              command: pcs status resources virtualip
+              command: pcs status resources
               register: __pcs_status
               changed_when: false
 
