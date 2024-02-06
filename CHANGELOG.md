@@ -1,6 +1,44 @@
 Changelog
 =========
 
+[2.2.2] - 2024-02-06
+--------------------
+
+### Bug Fixes
+
+- fix: Make the role wait for ha_cluster to finish configuration (#256)
+
+  Enhancement: Make the role wait for ha_cluster to finish configuration
+  
+  Reason: The role does some actions after the `ha_cluster` role finishes, it needs to wait for the `pcs` to finish configuration.
+  
+  Result: Run the  `crm_resource --wait` command after ha_cluster role finishes.
+
+### Other Changes
+
+- ci: fix python unit test - copy pytest config to tests/unit (#255)
+
+  This is fixed by tox-lsr 3.2.2 - all actions that use tox-lsr are updated to
+  3.2.2, not just the python unit tests, even though the fix is only related to
+  pytest.  All roles are updated to use tox-lsr 3.2.2 for the sake of consistency
+  even if not affected by the pytest issue.
+  
+  Something changed recently in the way github actions provisions systems which
+  means some of the directories are not readable by the python unit test actions.
+  In addition, the python unit tests were causing a lot of unnecessary directory
+  traversal doing collection/discovery of unit test files, because of using
+  `pytest -c /path/to/tox-lsr/pytest.ini` Unfortunately, with `pytest`, the
+  directory of the config file is the root directory for the tests and tests
+  discovery, and there is no way around this.
+  
+  Therefore, the only solution is to copy the tox-lsr `pytest.ini` to the
+  `tests/unit` directory, which makes that the test root directory.
+  
+  See also https://github.com/linux-system-roles/tox-lsr/pull/160
+  
+  Signed-off-by: Rich Megginson <rmeggins@redhat.com>
+
+
 [2.2.1] - 2024-01-29
 --------------------
 
