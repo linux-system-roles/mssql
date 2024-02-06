@@ -332,6 +332,11 @@
       register: __mssql_conf_setup
       no_log: true
       changed_when: true
+      until: >-
+        "Initial setup of Microsoft SQL Server failed."
+        not in __mssql_conf_setup.stdout and
+        "Initial setup of Microsoft SQL Server failed."
+        not in __mssql_conf_setup.stderr
   rescue:
     - name: Print output of failed task
       when: item | length > 0
@@ -1322,6 +1327,11 @@
         - name: Run ha_cluster to configure pacemaker
           include_role:
             name: fedora.linux_system_roles.ha_cluster
+          when: mssql_manage_ha_cluster | bool
+
+        - name: Wait for the cluster to finish configuration
+          command: crm_resource --wait
+          changed_when: false
           when: mssql_manage_ha_cluster | bool
 
     # Configure on a current primary identified above
