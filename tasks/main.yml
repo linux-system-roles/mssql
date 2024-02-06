@@ -332,6 +332,11 @@
       register: __mssql_conf_setup
       no_log: true
       changed_when: true
+      until: >-
+        "Initial setup of Microsoft SQL Server failed."
+        not in __mssql_conf_setup.stdout and
+        "Initial setup of Microsoft SQL Server failed."
+        not in __mssql_conf_setup.stderr
   rescue:
     - name: Print output of failed task
       when: item | length > 0
