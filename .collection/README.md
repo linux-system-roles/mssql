@@ -6,6 +6,7 @@ This collection contains a role for managing Microsoft SQL Server.
 
 * Red Hat Enterprise Linux 7 (RHEL 7+)
 * Red Hat Enterprise Linux 8 (RHEL 8+)
+* Red Hat Enterprise Linux 9 (RHEL 9+)
 * Fedora
 * RHEL derivatives such as CentOS
 
