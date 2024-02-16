@@ -1035,6 +1035,12 @@
   any_errors_fatal: true
   when: mssql_ha_configure | bool
   block:
+    # Required for configure_ag.j2 to set WRITE_LEASE_VALIDITY based on
+    # mssql-server version
+    - name: Get mssql-server version to see if WRITE_LEASE_VALIDITY is available
+      package_facts:
+      no_log: "{{ __mssql_gather_facts_no_log | d(false) }}"
+
     - name: Verify that hosts with mssql_ha_replica_type=primary is available
       assert:
         that: ansible_play_hosts |
