@@ -222,7 +222,7 @@ BEGIN
       CLUSTER_TYPE = {{ mssql_ha_ag_cluster_type }},
 {% if ansible_facts.packages['mssql-server'][0]['version']
   is version('15.0.4153.1', '>=') %}
-      WRITE_LEASE_VALIDITY=20
+      WRITE_LEASE_VALIDITY=10
 {% endif %}
     )
     FOR REPLICA ON
