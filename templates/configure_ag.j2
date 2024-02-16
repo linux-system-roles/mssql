@@ -219,7 +219,11 @@ BEGIN
   CREATE AVAILABILITY GROUP {{ mssql_ha_ag_name }}
     WITH (
       DB_FAILOVER = {{ __mssql_ha_db_failover }},
-      CLUSTER_TYPE = {{ mssql_ha_ag_cluster_type }}
+      CLUSTER_TYPE = {{ mssql_ha_ag_cluster_type }},
+{% if ansible_facts.packages['mssql-server'][0]['version']
+  is version('15.0.4153.1', '>=') %}
+      WRITE_LEASE_VALIDITY=20
+{% endif %}
     )
     FOR REPLICA ON
 {# Sort ansible_play_hosts #}
