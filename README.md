@@ -1031,31 +1031,31 @@ For more information, see the `fedora.linux_system_roles.ha_cluster` role docume
     ha_cluster_sbd_enabled: true
     ha_cluster_cluster_properties:
       - attrs:
-          - name: cluster-recheck-interval
-            value: 2min
-          - name: start-failure-is-fatal
-            value: true
-          - name: stonith-enabled
-            value: true
-          - name: stonith-watchdog-timeout
-            value: 10
+        - name: cluster-recheck-interval
+          value: 2min
+        - name: start-failure-is-fatal
+          value: true
+        - name: stonith-enabled
+          value: true
+        - name: stonith-watchdog-timeout
+          value: 10
     ha_cluster_resource_primitives:
       - id: ag_cluster
         agent: ocf:mssql:ag
         instance_attrs:
           - attrs:
-              - name: ag_name
-                value: "{{ mssql_ha_ag_name }}"
+            - name: ag_name
+              value: "{{ mssql_ha_ag_name }}"
         meta_attrs:
           - attrs:
-              - name: failure-timeout
-                value: 60s
+            - name: failure-timeout
+              value: 60s
       - id: virtualip
         agent: ocf:heartbeat:IPaddr2
         instance_attrs:
           - attrs:
-              - name: ip
-                value: "{{ mssql_ha_virtual_ip }}"
+            - name: ip
+              value: "{{ mssql_ha_virtual_ip }}"
         operations:
           - action: monitor
             attrs:
@@ -1066,10 +1066,10 @@ For more information, see the `fedora.linux_system_roles.ha_cluster` role docume
         promotable: yes
         meta_attrs:
           - attrs:
-              - name: notify
-                value: true
-              - name: on_fail
-                value: demote
+            - name: notify
+              value: true
+            - name: on_fail
+              value: demote
     ha_cluster_constraints_colocation:
       - resource_leader:
           id: ag_cluster-clone
@@ -1127,41 +1127,41 @@ Note that production environments require Pacemaker configured with fencing agen
     ha_cluster_hacluster_password: "p@55w0rD4"
     ha_cluster_cluster_properties:
       - attrs:
-          - name: cluster-recheck-interval
-            value: 2min
-          - name: start-failure-is-fatal
-            value: true
-          - name: stonith-enabled
-            value: true
+        - name: cluster-recheck-interval
+          value: 2min
+        - name: start-failure-is-fatal
+          value: true
+        - name: stonith-enabled
+          value: true
     ha_cluster_resource_primitives:
       - id: vmfence
         agent: stonith:fence_vmware_soap
         instance_attrs:
           - attrs:
-              - name: username
-                value: vmware_Login
-              - name: passwd
-                value: vmware_password
-              - name: ip
-                value: vmware_ip
-              - name: ssl_insecure
-                value: 1
+            - name: username
+              value: vmware_Login
+            - name: passwd
+              value: vmware_password
+            - name: ip
+              value: vmware_ip
+            - name: ssl_insecure
+              value: 1
       - id: ag_cluster
         agent: ocf:mssql:ag
         instance_attrs:
           - attrs:
-              - name: ag_name
-                value: "{{ mssql_ha_ag_name }}"
+            - name: ag_name
+              value: "{{ mssql_ha_ag_name }}"
         meta_attrs:
           - attrs:
-              - name: failure-timeout
-                value: 60s
+            - name: failure-timeout
+              value: 60s
       - id: virtualip
         agent: ocf:heartbeat:IPaddr2
         instance_attrs:
           - attrs:
-              - name: ip
-                value: "{{ mssql_ha_virtual_ip }}"
+            - name: ip
+              value: "{{ mssql_ha_virtual_ip }}"
         operations:
           - action: monitor
             attrs:
@@ -1172,10 +1172,10 @@ Note that production environments require Pacemaker configured with fencing agen
         promotable: yes
         meta_attrs:
           - attrs:
-              - name: notify
-                value: true
-              - name: on_fail
-                value: demote
+            - name: notify
+              value: true
+            - name: on_fail
+              value: demote
     ha_cluster_constraints_colocation:
       - resource_leader:
           id: ag_cluster-clone
@@ -1247,33 +1247,33 @@ This example playbooks sets the `firewall` variables for the `fedora.linux_syste
       - fence-agents-azure-arm
     ha_cluster_cluster_properties:
       - attrs:
-          - name: cluster-recheck-interval
-            value: 2min
-          - name: start-failure-is-fatal
-            value: true
-          - name: stonith-enabled
-            value: true
-          - name: stonith-timeout
+        - name: cluster-recheck-interval
+          value: 2min
+        - name: start-failure-is-fatal
+          value: true
+        - name: stonith-enabled
+          value: true
+        - name: stonith-timeout
             value: 900
     ha_cluster_resource_primitives:
       - id: rsc_st_azure
         agent: stonith:fence_azure_arm
         instance_attrs:
           - attrs:
-              - name: login
-                value: ApplicationID
-              - name: passwd
-                value: servicePrincipalPassword
-              - name: resourceGroup
-                value: resourceGroupName
-              - name: tenantId
-                value: tenantID
-              - name: subscriptionId
-                value: subscriptionID
-              - name: power_timeout
-                value: 240
-              - name: pcmk_reboot_timeout
-                value: 900
+            - name: login
+              value: ApplicationID
+            - name: passwd
+              value: servicePrincipalPassword
+            - name: resourceGroup
+              value: resourceGroupName
+            - name: tenantId
+              value: tenantID
+            - name: subscriptionId
+              value: subscriptionID
+            - name: power_timeout
+              value: 240
+            - name: pcmk_reboot_timeout
+              value: 900
       - id: azure_load_balancer
         agent: azure-lb
         instance_attrs:

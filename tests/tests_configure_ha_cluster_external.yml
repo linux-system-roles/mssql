@@ -49,31 +49,31 @@
     ha_cluster_sbd_enabled: true
     ha_cluster_cluster_properties:
       - attrs:
-          - name: cluster-recheck-interval
-            value: 2min
-          - name: start-failure-is-fatal
-            value: true
-          - name: stonith-enabled
-            value: true
-          - name: stonith-watchdog-timeout
-            value: 10
+        - name: cluster-recheck-interval
+          value: 2min
+        - name: start-failure-is-fatal
+          value: true
+        - name: stonith-enabled
+          value: true
+        - name: stonith-watchdog-timeout
+          value: 10
     ha_cluster_resource_primitives:
       - id: ag_cluster
         agent: ocf:mssql:ag
         instance_attrs:
           - attrs:
-              - name: ag_name
-                value: "{{ mssql_ha_ag_name }}"
+            - name: ag_name
+              value: "{{ mssql_ha_ag_name }}"
         meta_attrs:
           - attrs:
-              - name: failure-timeout
-                value: 60s
+            - name: failure-timeout
+              value: 60s
       - id: virtualip
         agent: ocf:heartbeat:IPaddr2
         instance_attrs:
           - attrs:
-              - name: ip
-                value: "{{ mssql_ha_virtual_ip }}"
+            - name: ip
+              value: "{{ mssql_ha_virtual_ip }}"
         operations:
           - action: monitor
             attrs:
@@ -84,10 +84,10 @@
         promotable: true
         meta_attrs:
           - attrs:
-              - name: notify
-                value: true
-              - name: on_fail
-                value: demote
+            - name: notify
+              value: true
+            - name: on_fail
+              value: demote
     ha_cluster_constraints_colocation:
       - resource_leader:
           id: ag_cluster-clone
