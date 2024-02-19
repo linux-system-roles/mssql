@@ -1067,7 +1067,7 @@ For more information, see the `fedora.linux_system_roles.ha_cluster` role docume
           - attrs:
             - name: notify
               value: true
-            - name: on_fail
+            - name: on-fail
               value: demote
     ha_cluster_constraints_colocation:
       - resource_leader:
@@ -1173,7 +1173,7 @@ Note that production environments require Pacemaker configured with fencing agen
           - attrs:
             - name: notify
               value: true
-            - name: on_fail
+            - name: on-fail
               value: demote
     ha_cluster_constraints_colocation:
       - resource_leader:
@@ -1313,7 +1313,7 @@ This example playbooks sets the `firewall` variables for the `fedora.linux_syste
           - attrs:
             - name: notify
               value: true
-            - name: on_fail
+            - name: on-fail
               value: demote
     ha_cluster_constraints_colocation:
       - resource_leader:
