@@ -977,6 +977,7 @@
         - "{{ ansible_failed_result.stdout_lines }}"
 
 - name: Configure for high availability
+  any_errors_fatal: true
   when: mssql_ha_configure | bool
   block:
     # Required for configure_ag.j2 to set WRITE_LEASE_VALIDITY based on
@@ -1071,7 +1072,6 @@
               {%- endif -%}
 
     - name: Configure availability group on the primary node
-      any_errors_fatal: true
       when: mssql_ha_replica_type == 'primary'
       block:
         - name: Ensure the package {{ __mssql_server_ha_packages }}
@@ -1143,7 +1143,6 @@
     # In the case of fail over the primary replica moves to a different server.
     # This block identifies the current primary replica and works on it.
     - name: Configure availability group on the current primary replica
-      any_errors_fatal: true
       block:
         - name: Get the current primary replica in SQL
           vars:
