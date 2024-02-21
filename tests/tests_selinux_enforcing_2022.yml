@@ -30,8 +30,8 @@
         - name: Assert that the role failed with selinux_confined not supported
           assert:
             that: >-
-              'mssql_manage_selinux and mssql_run_selinux_confined is supported
-              only on RHEL 9 managed nodes' in ansible_failed_result.msg
+              'Variables mssql_run_selinux_confined and mssql_manage_selinux are
+              supported only on RHEL 9' in ansible_failed_result.msg
       always:
         - name: Clean up after the role invocation
           include_tasks: tasks/cleanup.yml
@@ -55,26 +55,14 @@
             __verify_mssql_edition: Evaluation
             __verify_mssql_is_confined: true
 
-        - name: While the system is in enforcing, attempt running not confined
-          block:
-            - name: Attempt running not confined
-              include_role:
-                name: linux-system-roles.mssql
-              vars:
-                mssql_manage_selinux: false
-                mssql_run_selinux_confined: false
-          rescue:
-            - name: Assert the role failure with selinux_confined not supported
-              assert:
-                that: >-
-                  'SELinux is in enforcing mode. Set mssql_run_selinux_confined
-                  to true to run SQL Server' in ansible_failed_result.msg
+        - name: Configure the mssql-server service start limit interval and burst
+          include_tasks: tasks/mssql-sever-increase-start-limit.yml
 
         - name: Run without selinux_confined
           include_role:
             name: linux-system-roles.mssql
           vars:
-            mssql_manage_selinux: true
+            mssql_manage_selinux: false
             mssql_run_selinux_confined: false
 
         - name: Verify settings
@@ -83,21 +71,6 @@
             __verify_mssql_password: "p@55w0rD"
             __verify_mssql_edition: Evaluation
             __verify_mssql_is_confined: false
-
-        - name: While the system is in enforcing, attempt running not confined
-          block:
-            - name: Attempt running not confined
-              include_role:
-                name: linux-system-roles.mssql
-              vars:
-                mssql_manage_selinux: false
-                mssql_run_selinux_confined: false
-          rescue:
-            - name: Assert the role failure with selinux_confined not supported
-              assert:
-                that: >-
-                  'You must configure SELinux to be in Enforcing mode to run SQL
-                  Server as a confined application' in ansible_failed_result.msg
       always:
         - name: Clean up after the role invocation
           include_tasks: tasks/cleanup.yml

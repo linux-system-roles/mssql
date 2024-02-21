@@ -24,7 +24,9 @@
       (selinux_fcontexts | default([])) + selinux_fcontext }}"
     selinux_restore_dirs: "{{
       (selinux_restore_dirs | default([])) + selinux_restore_dir }}"
-  when: mssql_manage_selinux | bool
+  when:
+    - mssql_manage_selinux | bool
+    - mssql_run_selinux_confined | bool
 
 - name: Configure the setting {{ __mssql_storage_setting }}
   include_tasks: mssql_conf_setting.yml
