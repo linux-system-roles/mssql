@@ -201,8 +201,9 @@ Whether to manage SELinux.
 
 When set to `true`, configures the following SELinux contexts and settings:
 
-1. SELinux `enforcing` or `permissive` mode based on the value of the [mssql_run_selinux_confined](#mssql_run_selinux_confined) variable.
+1. Ensures the `mssql_port_t` SELinux port type for [mssql_tcp_port](#mssql_tcp_port).
 2. When you define [mssql_datadir](#mssql_datadir) or [mssql_logdir](#mssql_logdir), configures SELinux context `mssql_db_t` for [mssql_datadir](#mssql_datadir) and `mssql_var_t` for [mssql_logdir](#mssql_logdir).
+3. When you set [mssql_ha_configure](#mssql_ha_configure) to `true`, ensures the `mssql_port_t` SELinux port type [mssql_ha_endpoint_port](#mssql_ha_endpoint_port).
 
 Default: `false`
 

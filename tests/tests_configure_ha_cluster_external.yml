@@ -16,8 +16,8 @@
       (ansible_distribution in ['CentOS', 'RedHat']) and
       (ansible_distribution_major_version is version('9', '>=')) }}"
     __mssql_gather_facts_no_log: true
-    mssql_manage_selinux: "{{ __mssql_test_confined_supported }}"
-    mssql_run_selinux_confined: "{{ __mssql_test_confined_supported }}"
+    mssql_manage_selinux: false
+    mssql_run_selinux_confined: false
     mssql_ha_configure: true
     mssql_ha_endpoint_port: 5022
     mssql_ha_cert_name: ExampleCert
@@ -214,7 +214,13 @@
                 that: "'Started' in __pcs_status_virtualip.stdout"
 
             - name: Move the virtualip resource
-              command: pcs resource move virtualip
+              command: >-
+                pcs resource move
+                {% if (ansible_distribution in ['CentOS', 'RedHat']) and
+                (ansible_distribution_major_version is version('9', '>=')) %}
+                move-with-constraint
+                {% endif %}
+                virtualip
               register: __pcs_move
               run_once: true
               changed_when: true
