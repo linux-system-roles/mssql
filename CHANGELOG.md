@@ -1,6 +1,26 @@
 Changelog
 =========
 
+[2.2.3] - 2024-02-22
+--------------------
+
+### Bug Fixes
+
+- fix: Running selinux unconfined is supported with permissive mode (#260)
+
+  Enhancement: Add support for running SQL Server as a SELinux unconfined application with SELinux in enforcing mode on RHEL 9
+  
+  Reason: This support was added by Microsoft
+  
+  Result: Now you can run SQL Server as an unconfined application on RHEL 9 in the default enforcing SELinux mode
+
+### Other Changes
+
+- chore: Add RHEL 9 to supported versions in collection readme (#258)
+
+  Enhancement: Add RHEL 9 to supported versions in collection readme
+
+
 [2.2.2] - 2024-02-06
 --------------------
 

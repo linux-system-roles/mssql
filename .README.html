@@ -659,15 +659,16 @@ application.</p>
 <p>When set to <code>true</code>, configures the following SELinux
 contexts and settings:</p>
 <ol type="1">
-<li>SELinux <code>enforcing</code> or <code>permissive</code> mode based
-on the value of the <a
-href="#mssql_run_selinux_confined">mssql_run_selinux_confined</a>
-variable.</li>
+<li>Ensures the <code>mssql_port_t</code> SELinux port type for <a
+href="#mssql_tcp_port">mssql_tcp_port</a>.</li>
 <li>When you define <a href="#mssql_datadir">mssql_datadir</a> or <a
 href="#mssql_logdir">mssql_logdir</a>, configures SELinux context
 <code>mssql_db_t</code> for <a href="#mssql_datadir">mssql_datadir</a>
 and <code>mssql_var_t</code> for <a
 href="#mssql_logdir">mssql_logdir</a>.</li>
+<li>When you set <a href="#mssql_ha_configure">mssql_ha_configure</a> to
+<code>true</code>, ensures the <code>mssql_port_t</code> SELinux port
+type <a href="#mssql_ha_endpoint_port">mssql_ha_endpoint_port</a>.</li>
 </ol>
 <p>Default: <code>false</code></p>
 <p>Type: <code>bool</code></p>
