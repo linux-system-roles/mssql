@@ -59,3 +59,4 @@ __mssql_ha_private_key_dest: /var/opt/mssql/data/{{ mssql_ha_cert_name }}.pvk
 
 __mssql_ad_kinit_user: >-
   {{ mssql_ad_kerberos_user }}@{{ ad_integration_realm | upper }}
+__mssql_configure_tuned: true

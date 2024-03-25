@@ -24,5 +24,6 @@ exclude_paths:
   - examples/roles/
 mock_modules:
   - ansible.windows.win_shell
+  - community.general.zypper_repository
 mock_roles:
   - linux-system-roles.mssql

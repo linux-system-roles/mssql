@@ -19,6 +19,7 @@ license:
 
 dependencies:
   "fedora.linux_system_roles": "*"
+  "community.general": "*"
 
 tags:
   - "mssql"
