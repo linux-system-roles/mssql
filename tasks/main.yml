@@ -257,7 +257,7 @@
     - name: >-
         Remove the current Microsoft SQL Server repository to upgrade to
         {{ mssql_version }}
-      zypper_repository:
+      community.general.zypper_repository:
         name: "{{ __mssql_curr_repo.stdout }}"
         state: absent
       when: __mssql_curr_repo.stdout | length > 0
@@ -275,7 +275,7 @@
       (mssql_upgrade | bool)
 
 - name: Configure the Microsoft SQL Server repo version {{ mssql_version }}
-  zypper_repository:
+  community.general.zypper_repository:
     name: packages-microsoft-com-mssql-server-{{ mssql_version | int }}
     description: Microsoft SQL Server {{ mssql_version }}
     repo: "{{ mssql_server_repository }}"
@@ -486,7 +486,7 @@
   when: ansible_pkg_mgr == "yum" or ansible_pkg_mgr == "dnf"
 
 - name: Configure the Microsoft SQL Server Tools repository
-  zypper_repository:
+  community.general.zypper_repository:
     name: packages-microsoft-com-prod
     description: Microsoft SQL Server Tools
     repo: "{{ mssql_client_repository }}"
