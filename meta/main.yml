@@ -14,10 +14,18 @@ galaxy_info:
         - "9"
         - "8"
         - "7"
+    - name: SLES
+      versions:
+        - "15SP5"
+    - name: opensuse
+      versions:
+        - "15.5"
   galaxy_tags:
     - rhel
     - fedora
     - centos
+    - sles
+    - opensuse
     - mssql
     - sql
     - microsoft

@@ -7,3 +7,4 @@ __mssql_client_repository: >-
 __mssql_supported_versions:
   - 2022
 __mssql_confined_supported: true
+__mssql_tuned_supported: true
