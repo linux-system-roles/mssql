@@ -2,13 +2,15 @@
 
 This collection contains a role for managing Microsoft SQL Server.
 
-## Currently supported distributions
+## Compatible OS
 
 * Red Hat Enterprise Linux 7 (RHEL 7+)
 * Red Hat Enterprise Linux 8 (RHEL 8+)
 * Red Hat Enterprise Linux 9 (RHEL 9+)
 * Fedora
 * RHEL derivatives such as CentOS
+* Suse Linux Enterprise Server 15 (SLES 15)
+* OpenSUSE 15
 
 ## Installing the collection
 

@@ -188,10 +188,11 @@
   register: __mssql_gpg
   until: __mssql_gpg is success
 
-- name: Prepare for the upgrade
+- name: Prepare for the upgrade on RedHat
   when:
     - __mssql_current_version is defined
     - mssql_upgrade | bool
+    - ansible_pkg_mgr in ["yum", "dnf"]
   block:
     # This works only on systems that use yum or dnf
     - name: >-
@@ -223,15 +224,64 @@
         state: absent
       when: __mssql_curr_repo.stdout | length > 0
 
+- name: Prepare for the upgrade on Suse
+  when:
+    - __mssql_current_version is defined
+    - mssql_upgrade | bool
+    - ansible_pkg_mgr == "zypper"
+  block:
+    - name: >-
+        Update all packages from SQL Server repo
+        version {{ __mssql_current_version }}
+      package:
+        name: "*"
+        extra_args: >-
+          -r packages-microsoft-com-mssql-server-{{ __mssql_current_version }}
+        state: latest  # noqa package-latest
+
+    - name: Get zypper repositories  # noqa command-instead-of-module
+      shell: >-
+        set -euo pipefail;
+        zypper repos -E
+        | grep packages-microsoft-com-mssql-server-
+        | grep -v packages-microsoft-com-mssql-server-{{ mssql_version }}
+        | cut -d" " -f 4
+        || true
+      register: __mssql_zypper_curr_repo
+      changed_when: false
+      check_mode: false
+
+    - name: >-
+        Remove the current Microsoft SQL Server repository to upgrade to
+        {{ mssql_version }}
+      command: "zypper removerepo {{ __mssql_zypper_curr_repo.stdout }}"
+      when: __mssql_zypper_curr_repo.stdout | length > 0
+      changed_when: true
+
 - name: Configure the Microsoft SQL Server repo version {{ mssql_version }}
   yum_repository:
     name: packages-microsoft-com-mssql-server-{{ mssql_version | int }}
     description: Microsoft SQL Server {{ mssql_version }}
     baseurl: "{{ mssql_server_repository }}"
     gpgcheck: true
-  when: >-
-    (__mssql_server_packages not in ansible_facts.packages) or
-    (mssql_upgrade | bool)
+  when:
+    - ansible_pkg_mgr in ["yum", "dnf"]
+    - >-
+      (__mssql_server_packages not in ansible_facts.packages) or
+      (mssql_upgrade | bool)
+
+- name: Configure the Microsoft SQL Server repo version {{ mssql_version }} # noqa command-instead-of-module
+  command: >-
+    zypper addrepo -c -f --name "Microsoft SQL Server {{ mssql_version }}"
+    {{ mssql_server_repository }} packages-microsoft-com-mssql-server-{{ mssql_version | int }}
+  when:
+    - ansible_pkg_mgr == "zypper"
+    - >-
+      (__mssql_server_packages not in ansible_facts.packages) or
+      (mssql_upgrade | bool)
+  register: __zypper_addrepo_server_output
+  failed_when: not __zypper_addrepo_server_output.rc in [0, 4]
+  changed_when: __zypper_addrepo_server_output.rc != 4
 
 - name: Configure to run as a confined application with SELinux
   package:
@@ -268,6 +318,7 @@
     fi
   changed_when: false
   register: __mssql_errorlog
+  check_mode: false
 
 - name: Gather system services facts
   service_facts:
@@ -367,22 +418,27 @@
   package:
     name: tuned-profiles-mssql
     state: present
+  when: __mssql_tuned_supported | bool
 
 - name: Ensure that the tuned service is started and enabled
   service:
     name: tuned
     state: started
     enabled: true
+  when: __mssql_tuned_supported | bool
 
 - name: Get the active Tuned profiles
   command: tuned-adm active
   changed_when: false
   register: __mssql_tuned_active_profiles
+  when: __mssql_tuned_supported | bool
 
 # adding the mssql profile to the end of the list ensures
 # that it overrides conflicting settings in other profiles
 - name: Add mssql to the list of Tuned profiles
-  when: '"mssql" not in __mssql_tuned_active_profiles.stdout'
+  when:
+    - __mssql_tuned_supported | bool
+    - '"mssql" not in __mssql_tuned_active_profiles.stdout'
   block:
     - name: Attempt to add mssql to the list of Tuned profiles
       command: >-
@@ -422,6 +478,16 @@
     description: Microsoft SQL Server Tools
     baseurl: "{{ mssql_client_repository }}"
     gpgcheck: true
+  when: ansible_pkg_mgr in ["yum", "dnf"]
+
+- name: Configure the Microsoft SQL Server Tools repository # noqa command-instead-of-module
+  command: >-
+    zypper addrepo -c -f --name "Microsoft SQL Server Tools"
+    {{ mssql_client_repository }} packages-microsoft-com-prod
+  when: ansible_pkg_mgr == "zypper"
+  register: __zypper_addrepo_tools_output
+  failed_when: not __zypper_addrepo_tools_output.rc in [0, 4]
+  changed_when: __zypper_addrepo_tools_output.rc != 4
 
 - name: Ensure that SQL Server client tools are installed
   package:
@@ -478,7 +544,7 @@
         - name: Change the password of sa user  # noqa command-instead-of-shell
           shell: >-
             MSSQL_SA_PASSWORD={{ mssql_password | quote }}
-            {{ __mssql_conf_cli }} set-sa-password
+            {{ __mssql_conf_cli }} --noprompt set-sa-password
           when: __mssql_password_query is failed
           notify: Restart the mssql-server service
           register: __mssql_set_ha_password
@@ -535,6 +601,7 @@
         echo "${edition_matches}"
       register: __mssql_edition_matches
       changed_when: false
+      check_mode: false
 
     - name: Ensure that the mssql-server service is stopped
       service:
@@ -550,7 +617,7 @@
     - name: Change the edition of MSSQL
       block:
         - name: Change the edition of MSSQL
-          command: "{{ __mssql_conf_cli }} set-edition"
+          command: "{{ __mssql_conf_cli }} --noprompt set-edition"
           environment:
             MSSQL_PID: "{{ mssql_edition }}"
           register: __mssql_conf_set_edition
