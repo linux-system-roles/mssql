@@ -787,7 +787,7 @@
           else 'private' }}/{{ item | basename }}
         owner: mssql
         group: mssql
-        mode: 0600
+        mode: "0600"
         force: "{{ mssql_tls_force }}"
       with_items:
         - "{{ mssql_tls_cert }}"
@@ -990,7 +990,7 @@
             path: "{{ __mssql_keytab_path }}"
             owner: mssql
             group: mssql
-            mode: 0440
+            mode: "0440"
           notify: Restart the mssql-server service
 
     - name: Fetch keytab file to host
@@ -1001,7 +1001,7 @@
         dest: "{{ __mssql_keytab_path }}"
         owner: mssql
         group: mssql
-        mode: 0440
+        mode: "0440"
 
     - name: Configure the network.kerberoskeytabfile setting
       include_tasks: mssql_conf_setting.yml
@@ -1309,7 +1309,7 @@
             dest: "{{ item.value }}"
             owner: mssql
             group: mssql
-            mode: 0660
+            mode: "0660"
             force: true
           with_dict:
             cert: "{{ __mssql_ha_cert_dest }}"
@@ -1366,7 +1366,7 @@
             dest: /var/opt/mssql/secrets/passwd
             owner: root
             group: root
-            mode: 0400
+            mode: "0400"
             force: true
           no_log: true
 
