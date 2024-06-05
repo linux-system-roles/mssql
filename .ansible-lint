@@ -26,3 +26,5 @@ mock_modules:
   - ansible.windows.win_shell
 mock_roles:
   - linux-system-roles.mssql
+supported_ansible_also:
+  - "2.14.0"
