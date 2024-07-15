@@ -1,6 +1,23 @@
 Changelog
 =========
 
+[2.3.0] - 2024-07-15
+--------------------
+
+### New Features
+
+- feat: support OpenSUSE/SLES (#265)
+
+### Other Changes
+
+- test: fix pcs resource move/move-with-constraint logic (#262)
+- ci: bump ansible/ansible-lint from 6 to 24 (#263)
+- ci: bump mathieudutour/github-tag-action from 6.1 to 6.2 (#266)
+- ci: use tox-lsr 3.3.0 which uses ansible-test 2.17 (#268)
+- ci: tox-lsr 3.4.0 - fix py27 tests; move other checks to py310 (#270)
+- ci: Add supported_ansible_also to .ansible-lint (#271)
+- ci: ansible-lint action now requires absolute directory (#272)
+
 [2.2.3] - 2024-02-22
 --------------------
 
@@ -19,7 +36,6 @@ Changelog
 - chore: Add RHEL 9 to supported versions in collection readme (#258)
 
   Enhancement: Add RHEL 9 to supported versions in collection readme
-
 
 [2.2.2] - 2024-02-06
 --------------------
@@ -57,7 +73,6 @@ Changelog
   See also https://github.com/linux-system-roles/tox-lsr/pull/160
   
   Signed-off-by: Rich Megginson <rmeggins@redhat.com>
-
 
 [2.2.1] - 2024-01-29
 --------------------
@@ -107,7 +122,6 @@ Changelog
   See https://github.com/linux-system-roles/tox-lsr/pull/125
   
   Signed-off-by: Rich Megginson <rmeggins@redhat.com>
-
 
 [2.2.0] - 2023-12-11
 --------------------
@@ -188,7 +202,6 @@ Changelog
   Result: When you set the deprecated `mssql_ha_cluster_run_role` variable, the role prints a message that this variable is deprecated and continues. 
   
 
-
 [2.1.0] - 2023-11-20
 --------------------
 
@@ -242,7 +255,6 @@ Changelog
   
   Signed-off-by: Rich Megginson <rmeggins@redhat.com>
 
-
 [2.0.3] - 2023-09-08
 --------------------
 
@@ -264,7 +276,6 @@ Changelog
   
   Signed-off-by: Sergei Petrosian <spetrosi@redhat.com>
 
-
 [2.0.2] - 2023-08-16
 --------------------
 
@@ -285,7 +296,6 @@ Changelog
 
   Update information in a collection README
 
-
 [2.0.1] - 2023-07-28
 --------------------
 
@@ -299,7 +309,6 @@ Changelog
   Cannot use variable for Administrator because test with `mssql_ad_join: false` does `ad_integration_user: null`
   
   Result: Tests in IDM CI pass when run using trigger-test-suite-tool
-
 
 [2.0.0] - 2023-07-27
 --------------------
@@ -428,7 +437,6 @@ Changelog
   
   Result: The previously used `mssql_ad_sql_user_name` is marked as deprecated, when one uses this variable, the role informs that it is deprecated and will be removed in a future release, still the variable works the same way. Documentation now uses the `mssql_ad_sql_user` variable. 
 
-
 [1.4.1] - 2023-06-12
 --------------------
 
@@ -453,7 +461,6 @@ Changelog
   https://linux-system-roles.github.io/contribute.html#write-a-good-pr-title-and-description
   
   Signed-off-by: Sergei Petrosian <spetrosi@redhat.com>
-
 
 [1.4.0] - 2023-05-31
 --------------------
@@ -830,7 +837,6 @@ mssql_ha_db_names got replicated
 ### Other Changes
 
 - none
-
 
 [1.2.1] - 2022-08-23
 --------------------
