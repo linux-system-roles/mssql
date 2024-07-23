@@ -21,13 +21,16 @@ galaxy_info:
       versions:
         - "15.5"
   galaxy_tags:
-    - rhel
-    - fedora
     - centos
-    - sles
-    - opensuse
-    - mssql
-    - sql
-    - microsoft
     - database
+    - el7
+    - el8
+    - el9
+    - fedora35
+    - microsoft
+    - mssql
+    - opensuse15dot5
+    - rhel
+    - sles15sp5
+    - sql
 dependencies: []
