@@ -9,7 +9,8 @@ permissions:
   statuses: write
 # The concurrency key is used to prevent multiple workflows from running at the same time
 concurrency:
-  group: testing-farm-tests
+  # group name contains reponame-pr_num to allow simualteneous runs in different PRs
+  group: testing-farm-${{ github.event.repository.name }}-${{ github.event.issue.number }}
   cancel-in-progress: true
 jobs:
   prepare_vars:
@@ -27,6 +28,12 @@ jobs:
       datetime: ${{ steps.datetime.outputs.datetime }}
       memory: ${{ steps.memory.outputs.memory }}
     steps:
+      - name: Dump github context
+        run: echo "$GITHUB_CONTEXT"
+        shell: bash
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
       - name: Checkout repo
         uses: actions/checkout@v4
 
