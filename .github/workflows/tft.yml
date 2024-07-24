@@ -148,7 +148,7 @@ jobs:
 
       - name: Set final commit status
         uses: myrotvorets/set-commit-status-action@master
-        if: contains(needs.prepare_vars.outputs.supported_platforms, matrix.platform)
+        if: always() && contains(needs.prepare_vars.outputs.supported_platforms, matrix.platform)
         env:
           ARTIFACTS_URL: https://dl.fedoraproject.org/pub/alt/linuxsystemroles/logs/${{ env.ARTIFACTS_DIR_NAME }}
         with:
