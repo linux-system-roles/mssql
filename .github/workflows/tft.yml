@@ -19,13 +19,19 @@ jobs:
     if: |
       github.event.issue.pull_request
       && (contains(github.event.comment.body, '[citest]') || contains(github.event.comment.body, '[citest-all]'))
-      && contains(fromJson('["OWNER", "MEMBER"]'), github.event.comment.author_association)
+      && (contains(fromJson('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association) || (contains("systemroller", github.event.comment.user.login))
     runs-on: ubuntu-latest
     outputs:
       supported_platforms: ${{ steps.supported_platforms.outputs.supported_platforms }}
       head_sha: ${{ steps.head_sha.outputs.head_sha }}
       datetime: ${{ steps.datetime.outputs.datetime }}
     steps:
+      - name: Dump github context
+        run: echo "$GITHUB_CONTEXT"
+        shell: bash
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
       - name: Checkout repo
         uses: actions/checkout@v4
 
