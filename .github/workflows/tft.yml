@@ -45,9 +45,6 @@ jobs:
           printf -v datetime '%(%Y%m%d-%H%M%S)T' -1
           echo "datetime=$datetime" >> $GITHUB_OUTPUT
 
-      - name: Install yq
-        run: sudo apt install -y yq
-
       - name: Get supported platforms
         id: supported_platforms
         run: |
