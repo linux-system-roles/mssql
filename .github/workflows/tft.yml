@@ -135,6 +135,7 @@ jobs:
           status: success
           context: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
           description: The role does not support this platform. Skipping.
+          targetUrl: ""
 
       - uses: sclorg/testing-farm-as-github-action@v2
         if: contains(needs.prepare_vars.outputs.supported_platforms, matrix.platform)
