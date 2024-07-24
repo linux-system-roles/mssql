@@ -25,6 +25,7 @@ jobs:
       supported_platforms: ${{ steps.supported_platforms.outputs.supported_platforms }}
       head_sha: ${{ steps.head_sha.outputs.head_sha }}
       datetime: ${{ steps.datetime.outputs.datetime }}
+      memory: ${{ steps.memory.outputs.memory }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -44,6 +45,16 @@ jobs:
         run: |
           printf -v datetime '%(%Y%m%d-%H%M%S)T' -1
           echo "datetime=$datetime" >> $GITHUB_OUTPUT
+
+      - name: Get memory
+        id: memory
+        run: |
+          memory=$(grep -rPo '    m: \K(.*)' tests/provision.fmf)
+          if [ -n "$memory" ]; then
+            echo "memory=$memory" >> $GITHUB_OUTPUT
+          else
+            echo "memory=2048" >> $GITHUB_OUTPUT
+          fi
 
       - name: Get supported platforms
         id: supported_platforms
@@ -144,7 +155,7 @@ jobs:
           tf_scope: private
           api_key: ${{ secrets.TF_API_KEY_RH }}
           update_pull_request_status: false
-          tmt_hardware: '{ "memory": ">= 8 GB" }'
+          tmt_hardware: '{ "memory": ">= ${{ needs.prepare_vars.outputs.memory }} MB" }'
 
       - name: Set final commit status
         uses: myrotvorets/set-commit-status-action@master

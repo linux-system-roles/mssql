@@ -26,7 +26,6 @@ galaxy_info:
     - el7
     - el8
     - el9
-    - el10
     - fedora35
     - microsoft
     - mssql
