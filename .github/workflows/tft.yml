@@ -50,9 +50,16 @@ jobs:
         run: |
           supported_platforms=""
           meta_main=meta/main.yml
-          if yq '.galaxy_info.galaxy_tags[]' "$meta_main" | grep -qi fedora; then
+          # All Fedora are supported, add latest Fedora versions to supported_platforms
+          if yq '.galaxy_info.galaxy_tags[]' "$meta_main" | grep -qi fedora$; then
             supported_platforms+=" Fedora-39"
             supported_platforms+=" Fedora-40"
+          fi
+          # Specific Fedora versions supported
+          if yq '.galaxy_info.galaxy_tags[]' "$meta_main" | grep -qiP 'fedora\d+$'; then
+            for fedora_ver in $(yq '.galaxy_info.galaxy_tags[]' "$meta_main" | grep -iPo 'fedora\K(\d+$)'); do
+              supported_platforms+=" Fedora-$fedora_ver"
+            done
           fi
           if yq '.galaxy_info.galaxy_tags[]' "$meta_main" | grep -qi el7; then
             supported_platforms+=" CentOS-7-latest"
@@ -94,12 +101,22 @@ jobs:
       ARTIFACT_TARGET_DIR: /srv/pub/alt/linuxsystemroles/logs
     steps:
       - name: Set commit status as pending
+        if: contains(needs.prepare_vars.outputs.supported_platforms, matrix.platform)
         uses: myrotvorets/set-commit-status-action@master
         with:
           sha: ${{ needs.prepare_vars.outputs.head_sha }}
-          token: ${{ secrets.GITHUB_TOKEN }}
           status: pending
           context: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
+          description: Pending — Test started
+
+      - name: Set commit status as success with a description that platform is skipped
+        if: "!contains(needs.prepare_vars.outputs.supported_platforms, matrix.platform)"
+        uses: myrotvorets/set-commit-status-action@master
+        with:
+          sha: ${{ needs.prepare_vars.outputs.head_sha }}
+          status: success
+          context: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
+          description: The role does not support this platform. Skipping.
 
       - uses: sclorg/testing-farm-as-github-action@v2
         if: contains(needs.prepare_vars.outputs.supported_platforms, matrix.platform)
@@ -126,12 +143,12 @@ jobs:
           # 2. Security issue that leaks long secrets - Jira TFT-2698
           tf_scope: private
           api_key: ${{ secrets.TF_API_KEY_RH }}
-          update_pull_request_status: true
+          update_pull_request_status: false
           tmt_hardware: '{ "memory": ">= 8 GB" }'
 
       - name: Set final commit status
         uses: myrotvorets/set-commit-status-action@master
-        if: always()
+        if: contains(needs.prepare_vars.outputs.supported_platforms, matrix.platform)
         env:
           ARTIFACTS_URL: https://dl.fedoraproject.org/pub/alt/linuxsystemroles/logs/${{ env.ARTIFACTS_DIR_NAME }}
         with:
