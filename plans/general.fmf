@@ -13,7 +13,7 @@ environment:
     ANSIBLE_VER: 2.17
     REPO_NAME: mssql
     PYTHON_VERSION: 3.12
-    SYSTEM_ROLES_ONLY_TESTS: ""
+    SYSTEM_ROLES_ONLY_TESTS: "tests_default_2019.yml"
     PR_NUM: ""
 prepare:
   - name: Use vault.centos.org repos (CS 7, 8 EOL workaround)
