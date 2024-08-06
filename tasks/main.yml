@@ -66,6 +66,13 @@
       set_fact:
         mssql_manage_ha_cluster: "{{ mssql_ha_cluster_run_role }}"
 
+- name: Fail on RHEL or CentOS 10 because it's not supported
+  fail:
+    msg: This role does not support running against RHEL or CentOS 10 hosts
+  when:
+    - ansible_distribution in ['CentOS', 'RedHat']
+    - ansible_distribution_major_version is version('10', '=')
+
 - name: Verify that the user accepts EULA variables
   assert:
     that:
