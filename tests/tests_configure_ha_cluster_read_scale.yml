@@ -1,4 +1,19 @@
 # SPDX-License-Identifier: MIT
+# Example test inventory:
+# all:
+#   hosts:
+#     managed_host1:
+#       ansible_host: <ip_address1>
+#       mssql_ha_replica_type: primary
+#       mssql_version: <version_to_test>
+#     managed_host2:
+#       ansible_host: <ip_address2>
+#       mssql_ha_replica_type: synchronous
+#       mssql_version: <version_to_test>
+#     managed_host3:
+#       ansible_host: <ip_address3>
+#       mssql_ha_replica_type: asynchronous
+#       mssql_version: <version_to_test>
 ---
 - name: Verify HA functionality with read-scale clusters
   hosts: all
@@ -28,7 +43,17 @@
     mssql_ha_ag_cluster_type: none
   tasks:
     - name: Run test in a block to clean up in always
+      when: ansible_play_hosts_all | length >= 3
       block:
+        - name: Clusters of a read_scale type must not have a witness node
+          meta:
+            end_host
+          when: ansible_play_hosts_all |
+            map('extract', hostvars, 'mssql_ha_replica_type') |
+            select('match', '^witness$') |
+            list |
+            length == 0
+
         - name: Verify that by default the role fails on EL < 8
           when:
             - ansible_distribution in ['CentOS', 'RedHat']
@@ -58,13 +83,6 @@
             - name: End EL 7 host
               meta: end_host
 
-        - name: Set the mssql_ha_replica_type fact to appear in hostvars
-          set_fact:
-            mssql_ha_replica_type: primary
-          when:
-            - ansible_play_hosts_all | length == 1
-            - mssql_ha_replica_type is not defined
-
         - name: Set facts to create test DBs on primary as a pre task
           set_fact:
             mssql_pre_input_sql_file:
@@ -72,7 +90,6 @@
               - create_ExampleDB2.sql
           when: mssql_ha_replica_type == 'primary'
 
-        # Only when witness node is not specified
         - name: Run on all hosts to configure read-scale cluster
           include_role:
             name: linux-system-roles.mssql
