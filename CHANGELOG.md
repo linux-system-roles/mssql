@@ -1,6 +1,14 @@
 Changelog
 =========
 
+[2.3.1] - 2024-08-15
+--------------------
+
+### Other Changes
+
+- chore: Fail on RHEL or CentOS 10 because it's not supported (#290)
+- tests: Fix HA tests (#291)
+
 [2.3.0] - 2024-07-15
 --------------------
 
