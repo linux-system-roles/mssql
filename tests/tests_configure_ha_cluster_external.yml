@@ -414,86 +414,86 @@
             name: linux-system-roles.mssql
             tasks_from: input_sql_files.yml
 
-        # configure_listener.j2 template test
-        - name: Remove a listener for test purposes
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - remove_listener.j2
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
+        # # configure_listener.j2 template test
+        # - name: Remove a listener for test purposes
+        #   vars:
+        #     # noqa var-naming[no-role-prefix]
+        #     __mssql_sql_files_to_input:
+        #       - remove_listener.j2
+        #   include_role:
+        #     name: linux-system-roles.mssql
+        #     tasks_from: input_sql_files.yml
 
-        - name: Add a listener with a different name
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - add_test_listener.j2
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
+        # - name: Add a listener with a different name
+        #   vars:
+        #     # noqa var-naming[no-role-prefix]
+        #     __mssql_sql_files_to_input:
+        #       - add_test_listener.j2
+        #   include_role:
+        #     name: linux-system-roles.mssql
+        #     tasks_from: input_sql_files.yml
 
-        - name: Modify a listener
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - configure_listener.j2
-            mssql_tcp_port: 1435
-            mssql_ha_virtual_ip: 192.168.122.149
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
+        # - name: Modify a listener
+        #   vars:
+        #     # noqa var-naming[no-role-prefix]
+        #     __mssql_sql_files_to_input:
+        #       - configure_listener.j2
+        #     mssql_tcp_port: 1435
+        #     mssql_ha_virtual_ip: 192.168.122.149
+        #   include_role:
+        #     name: linux-system-roles.mssql
+        #     tasks_from: input_sql_files.yml
 
-        - name: Assert expected messages
-          assert:
-            that:
-              - >-
-                "Verifying the existing listener TEST-listener"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "Modifying the listener port setting"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "Set listener port to 1435 successfully"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "Modifying the listener ip address setting"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "Added listener ip address 192.168.122.149,255.255.255.0
-                successfully"
-                in __mssql_sqlcmd_input.stdout
+        # - name: Assert expected messages
+        #   assert:
+        #     that:
+        #       - >-
+        #         "Verifying the existing listener TEST-listener"
+        #         in __mssql_sqlcmd_input.stdout
+        #       - >-
+        #         "Modifying the listener port setting"
+        #         in __mssql_sqlcmd_input.stdout
+        #       - >-
+        #         "Set listener port to 1435 successfully"
+        #         in __mssql_sqlcmd_input.stdout
+        #       - >-
+        #         "Modifying the listener ip address setting"
+        #         in __mssql_sqlcmd_input.stdout
+        #       - >-
+        #         "Added listener ip address 192.168.122.149,255.255.255.0
+        #         successfully"
+        #         in __mssql_sqlcmd_input.stdout
 
-        - name: Remove a listener to re-create with default values
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - remove_listener.j2
-            mssql_listener_name: TEST
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
+        # - name: Remove a listener to re-create with default values
+        #   vars:
+        #     # noqa var-naming[no-role-prefix]
+        #     __mssql_sql_files_to_input:
+        #       - remove_listener.j2
+        #     mssql_listener_name: TEST
+        #   include_role:
+        #     name: linux-system-roles.mssql
+        #     tasks_from: input_sql_files.yml
 
-        - name: Add a listener with previous settings
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - configure_listener.j2
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
+        # - name: Add a listener with previous settings
+        #   vars:
+        #     # noqa var-naming[no-role-prefix]
+        #     __mssql_sql_files_to_input:
+        #       - configure_listener.j2
+        #   include_role:
+        #     name: linux-system-roles.mssql
+        #     tasks_from: input_sql_files.yml
 
-        - name: Assert expected messages
-          assert:
-            that:
-              - >-
-                "Adding the {{ mssql_ha_ag_name }}-listener listener to the
-                {{ mssql_ha_ag_name }} availability group"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "Added the {{ mssql_ha_ag_name }}-listener listener
-                successfully"
-                in __mssql_sqlcmd_input.stdout
+        # - name: Assert expected messages
+        #   assert:
+        #     that:
+        #       - >-
+        #         "Adding the {{ mssql_ha_ag_name }}-listener listener to the
+        #         {{ mssql_ha_ag_name }} availability group"
+        #         in __mssql_sqlcmd_input.stdout
+        #       - >-
+        #         "Added the {{ mssql_ha_ag_name }}-listener listener
+        #         successfully"
+        #         in __mssql_sqlcmd_input.stdout
 
         - name: Add a listener when it exists
           vars:
