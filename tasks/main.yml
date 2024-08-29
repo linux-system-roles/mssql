@@ -1198,7 +1198,6 @@
               - ha_is_primary.sql
           include_tasks: input_sql_files.yml
 
-        # [2] because ha_is_primary.sql returns required value on this line
         - name: Set fact with the current primary replica
           set_fact:
             __mssql_ha_is_primary: |-
@@ -1211,7 +1210,7 @@
               {% endfor %}
               {%- if hadr_curr_primary | length > 0
                 and
-                hadr_curr_primary[0] == ansible_hostname %}
+                hadr_curr_primary[0] == inventory_hostname %}
               true
               {%- elif hadr_curr_primary | length == 0
                 and
@@ -1220,6 +1219,17 @@
               {%- else %}
               false
               {%- endif %}
+
+        - name: Verify that primary instance hosts is available
+          assert:
+            that: ansible_play_hosts |
+                map('extract', hostvars, '__mssql_ha_is_primary') |
+                select('match', '^True$') |
+                list |
+                length == 1
+            fail_msg:
+              - The role was not able to identify primary replica.
+          run_once: true
 
         # __mssql_single_node_test is to skip __mssql_ha_is_primary check when
         # testing against a single node where SQL Always On cluster breaks and
