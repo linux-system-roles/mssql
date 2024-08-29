@@ -1224,7 +1224,7 @@
           assert:
             that: ansible_play_hosts |
                 map('extract', hostvars, '__mssql_ha_is_primary') |
-                select('match', '^True$') |
+                select('match', '^[Tt]rue$') |
                 list |
                 length == 1
             fail_msg:
