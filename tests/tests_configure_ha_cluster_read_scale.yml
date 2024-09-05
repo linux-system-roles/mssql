@@ -46,13 +46,12 @@
       when: ansible_play_hosts_all | length >= 3
       block:
         - name: Clusters of a read_scale type must not have a witness node
-          meta:
-            end_host
+          meta: end_play
           when: ansible_play_hosts_all |
             map('extract', hostvars, 'mssql_ha_replica_type') |
             select('match', '^witness$') |
             list |
-            length == 0
+            length > 0
 
         - name: Verify that by default the role fails on EL < 8
           when:
