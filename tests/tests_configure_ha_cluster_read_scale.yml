@@ -5,15 +5,12 @@
 #     managed_host1:
 #       ansible_host: <ip_address1>
 #       mssql_ha_replica_type: primary
-#       mssql_version: <version_to_test>
 #     managed_host2:
 #       ansible_host: <ip_address2>
 #       mssql_ha_replica_type: synchronous
-#       mssql_version: <version_to_test>
 #     managed_host3:
 #       ansible_host: <ip_address3>
 #       mssql_ha_replica_type: asynchronous
-#       mssql_version: <version_to_test>
 ---
 - name: Verify HA functionality with read-scale clusters
   hosts: all
@@ -27,8 +24,11 @@
     mssql_version: 2022
     mssql_manage_firewall: true
     __mssql_gather_facts_no_log: true
-    mssql_manage_selinux: false
-    mssql_run_selinux_confined: false
+    __mssql_test_confined_supported: "{{
+      (ansible_distribution in ['CentOS', 'RedHat']) and
+      (ansible_distribution_major_version is version('9', '>=')) }}"
+    mssql_manage_selinux: "{{ __mssql_test_confined_supported }}"
+    mssql_run_selinux_confined: "{{ __mssql_test_confined_supported }}"
     mssql_ha_configure: true
     mssql_ha_endpoint_port: 5022
     mssql_ha_cert_name: ExampleCert
