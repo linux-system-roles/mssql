@@ -25,11 +25,8 @@
     mssql_version: 2022
     mssql_manage_firewall: true
     __mssql_gather_facts_no_log: true
-    __mssql_test_confined_supported: "{{
-      (ansible_distribution in ['CentOS', 'RedHat']) and
-      (ansible_distribution_major_version is version('9', '>=')) }}"
-    mssql_manage_selinux: "{{ __mssql_test_confined_supported }}"
-    mssql_run_selinux_confined: "{{ __mssql_test_confined_supported }}"
+    mssql_manage_selinux: false
+    mssql_run_selinux_confined: false
     mssql_ha_configure: true
     mssql_ha_endpoint_port: 5022
     mssql_ha_cert_name: ExampleCert
