@@ -850,11 +850,14 @@
     - name: Ensure AD user and create keytab file
       when: mssql_ad_keytab_file is none
       block:
+        - name: Ensure krb5-workstation
+          package:
+            name: krb5-workstation
+            state: present
+
         - name: Ensure adutil and krb5-workstation
           package:
-            name:
-              - adutil
-              - krb5-workstation
+            name: adutil>=1.1.83
             state: present
 
         - name: Print credential caches to check if AD principal exists
@@ -894,6 +897,16 @@
           register: __mssql_adutil_account_exists
           changed_when: false
           failed_when: false
+
+        - name: Ensure that the existing user has proper configuration
+          command: >-
+            adutil user modify
+            --name {{ mssql_ad_sql_user }}
+            --distname {{ mssql_ad_sql_user_dn | quote }}
+            --enableaessupport
+            --debug
+          when: __mssql_adutil_account_exists.stdout | bool
+          changed_when: true
 
         - name: In AD server create user {{ mssql_ad_sql_user }}
           command: >-
