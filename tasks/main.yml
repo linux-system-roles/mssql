@@ -1396,6 +1396,8 @@
           command: crm_resource --wait
           changed_when: false
           when: mssql_manage_ha_cluster | bool
+          register: __mssql_crm_resource_wait
+          until: __mssql_crm_resource_wait is success
 
     # Configure on a current primary identified above
     - name: Configure listener for the availability group {{ mssql_ha_ag_name }}

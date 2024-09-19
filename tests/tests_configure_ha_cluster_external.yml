@@ -186,6 +186,8 @@
               command: crm_resource --wait
               changed_when: false
               when: mssql_manage_ha_cluster | bool
+              register: __mssql_crm_resource_wait
+              until: __mssql_crm_resource_wait is success
 
             - name: Get global pcs status
               command: pcs status
@@ -229,6 +231,8 @@
               command: crm_resource --wait
               changed_when: false
               when: mssql_manage_ha_cluster | bool
+              register: __mssql_crm_resource_wait
+              until: __mssql_crm_resource_wait is success
 
             - name: Get global pcs status
               command: pcs status resources
