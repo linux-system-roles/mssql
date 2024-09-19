@@ -853,7 +853,7 @@
         - name: Ensure adutil and krb5-workstation
           package:
             name:
-              - adutil
+              - adutil >= 1.1.143-1
               - krb5-workstation
             state: present
 
@@ -905,6 +905,18 @@
           register: __mssql_adutil_user_create
           when: not __mssql_adutil_account_exists.stdout | bool
           no_log: true
+          changed_when: true
+
+        # adutil cli doesn't provide functionality to get info about user
+        # configuration, hence need to force set it not idempotently
+        - name: Ensure proper configuration on user {{ mssql_ad_sql_user }}
+          command: >-
+            adutil user modify
+            --name {{ mssql_ad_sql_user }}
+            --distname {{ mssql_ad_sql_user_dn | quote }}
+            --enableaessupport
+            --debug
+          when: __mssql_adutil_user_create is not changed
           changed_when: true
 
         - name: Get SPNs for the principal {{ mssql_ad_sql_user }}

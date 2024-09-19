@@ -885,7 +885,7 @@ Type: `string`
 
 Whether to run the `fedora.linux_system_roles.ha_cluster` role from this role.
 
-Note that the `fedora.linux_system_roles.ha_cluster` role has the following limitation:
+Note that the `fedora.linux_system_roles.ha_cluster` role has the following limitations:
 
 * This role replaces the configuration of HA Cluster on specified nodes.
   Any settings not specified in the role variables will be lost.
@@ -1341,6 +1341,9 @@ This example playbooks sets the `firewall` variables for the `fedora.linux_syste
 
 Optional: Use variables starting with the `mssql_ad_` prefix to configure SQL Server to authenticate with Microsoft AD Server.
 
+Note that creating users in Active Directory is not idempotent - it always return changed status.
+This is because the `adutil` tool is not able to return statuses of users, hence the role must force-configure users.
+
 ### AD Considerations
 
 This role uses the `fedora.linux_system_roles.ad_integration` role to join SQL Server with AD server.
@@ -1370,23 +1373,8 @@ For more information, see [Join SQL Server on a Linux host to an Active Director
 
 ### Finishing AD Server Configuration
 
-1. After you execute the role to configure AD Server authentication, you must complete one of the following procedures to add AES128 and AES256 kerberos encryption types to the [mssql_ad_sql_user](#mssql_ad_sql_user) on AD Server.
-
-    * For the RSAT UI users, complete the following steps:
-        1. Launch **Active Directory Users and Computers**
-        2. Navigate to the SQL User (Default: ***domain*** > **Users** > ***sqluser***)
-        3. Right click the SQL User account and select **Properties**
-        4. In the **Account** tab, select **This account supports Kerberos AES 128 bit encryption** and **This account supports Kerberos AES 256 bit encryption**
-        5. Click **Apply**
-
-    * For the PowerShell users, enter the following command:
-
-        ```powershell
-        Set-ADUser -Identity <sqluser> -KerberosEncryptionType AES128,AES256
-        ```
-
-2. You must create Active Directory-based logins in Transact-SQL as described in [Create Active Directory-based SQL Server logins in Transact-SQL](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-ad-auth-adutil-tutorial?view=sql-server-ver16#create-active-directory-based-sql-server-logins-in-transact-sql) in *Tutorial: Use adutil to configure Active Directory authentication with SQL Server on Linux* in Microsoft documentation.
-You can write a T-SQL script and input it as described in [mssql_post_input_sql_file](#inputting-sql-scripts-to-sql-server). See example playbooks for how to create logins using the `mssql_post_input_sql_content` variable.
+* You must create Active Directory-based logins in Transact-SQL as described in [Create Active Directory-based SQL Server logins in Transact-SQL](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-ad-auth-adutil-tutorial?view=sql-server-ver16#create-active-directory-based-sql-server-logins-in-transact-sql) in *Tutorial: Use adutil to configure Active Directory authentication with SQL Server on Linux* in Microsoft documentation.
+  You can write a T-SQL script and input it as described in [mssql_post_input_sql_file](#inputting-sql-scripts-to-sql-server). See example playbooks for how to create logins using the `mssql_post_input_sql_content` variable.
 
 ### Verifying Authentication
 
@@ -1499,6 +1487,7 @@ Type: `bool`
 #### mssql_ad_sql_user
 
 User to be created in SQL Server and used for authentication.
+The role configures this user with `Kerberos AES 128 bit encryption` and `Kerberos AES 256 bit encryption` enabled.
 
 Default: `null`
 
