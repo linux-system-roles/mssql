@@ -62,22 +62,17 @@
       END
 
   tasks:
-    # Test general scenario
-    - name: Set up MSSQL and configure AD authentication
+    - name: Set up MSSQL and configure AD authentication with keytab
+      vars:
+        # /tmp/mssql.keytab is created in tests_ad_integration.yml
+        mssql_ad_keytab_file: /tmp/mssql.keytab
+        mssql_ad_keytab_remote_src: false
+        mssql_ad_sql_password: null
       include_role:
         name: linux-system-roles.mssql
 
     - name: Test AD integration
       include_tasks: ../tasks/verify_ad_auth.yml
-
-    # Test with mssql_ad_keytab_file
-    - name: Fetch keytab file that was prepared above
-      fetch:
-        src: /var/opt/mssql/secrets/mssql.keytab
-        dest: /tmp/mssql.keytab
-        flat: true
-        mode: preserve
-      run_once: true
 
     - name: Clean up after the role invocation
       include_tasks: ../tasks/cleanup.yml
