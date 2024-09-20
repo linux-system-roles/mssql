@@ -855,10 +855,10 @@
             name: krb5-workstation
             state: present
 
-        - name: Ensure adutil and krb5-workstation
-          package:
-            name: adutil>=1.1.83
-            state: present
+        # - name: Ensure adutil and krb5-workstation
+        #   package:
+        #     name: adutil>=1.1.83
+        #     state: present
 
         - name: Print credential caches to check if AD principal exists
           command: klist -l
