@@ -62,22 +62,25 @@
       END
 
   tasks:
-    # Test general scenario
-    - name: Set up MSSQL and configure AD authentication
+    # Test with mssql_ad_join: false
+    - name: Authenticate to AD
+      include_role:
+        name: linux-system-roles.ad_integration
+
+    - name: Set up MSSQL and configure AD authentication without joining to AD
       include_role:
         name: linux-system-roles.mssql
+      vars:
+        mssql_ad_join: false
+        # Explicitly set kerberos vars, otherwise the value becomes null
+        mssql_ad_kerberos_user: Administrator
+        mssql_ad_kerberos_password: Secret123
+        ad_integration_user: null
+        ad_integration_password: null
+        ad_integration_manage_dns: null
+        ad_integration_dns_server: null
+        ad_integration_dns_connection_name: null
+        ad_integration_dns_connection_type: null
 
     - name: Test AD integration
       include_tasks: ../tasks/verify_ad_auth.yml
-
-    # Test with mssql_ad_keytab_file
-    - name: Fetch keytab file that was prepared above
-      fetch:
-        src: /var/opt/mssql/secrets/mssql.keytab
-        dest: /tmp/mssql.keytab
-        flat: true
-        mode: preserve
-      run_once: true
-
-    - name: Clean up after the role invocation
-      include_tasks: ../tasks/cleanup.yml
