@@ -83,6 +83,26 @@ Default: `null`
 
 Type: `string`
 
+#### mssql_tools_versions
+
+List of versions of SQL Tools package (mssql-tools) to install and use `sqlcmd` from.
+
+The role uses `sqlcmd` for the following tasks:
+
+* Checking password for the sa user.
+* Running T-SQL scripts with variables [mssql_pre_input_sql_file and mssql_post_input_sql_file](#mssql_pre_input_sql_file-and-mssql_post_input_sql_file), [mssql_pre_input_sql_content and mssql_post_input_sql_content](#mssql_pre_input_sql_content-and-mssql_post_input_sql_content).
+
+By default, installs and uses the latest version 18.
+
+You can set this variable to `[17, 18]` to install two versions in parallel.
+In the case when this variable contains multiple elements, the role instals both but uses latest provided version.
+
+The role does not remove mssql-tools packages if you unset a version with this variable.
+
+Default: `[18]`
+
+Type: `list`
+
 #### mssql_enable_sql_agent
 
 Optional: Set this variable to `true` or `false` to enable or disable the SQL agent.
