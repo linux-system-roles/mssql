@@ -7,11 +7,13 @@
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_version: "{{
-      '2022' if ansible_distribution_major_version is version('9', '>=')
+      '2022' if (ansible_distribution_major_version is version('9', '>=') or
+      ansible_distribution in ['Fedora'])
       else '2017' }}"
     __mssql_test_confined_supported: "{{
-      (ansible_distribution in ['CentOS', 'RedHat']) and
-      (ansible_distribution_major_version is version('9', '>=')) }}"
+      ((ansible_distribution in ['CentOS', 'RedHat']) and
+      (ansible_distribution_major_version is version('9', '>='))) or
+      (ansible_distribution in ['Fedora']) }}"
     mssql_manage_selinux: "{{ __mssql_test_confined_supported }}"
     mssql_run_selinux_confined: "{{ __mssql_test_confined_supported }}"
     __mssql_gather_facts_no_log: true
