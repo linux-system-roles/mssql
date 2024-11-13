@@ -41,12 +41,6 @@
   command: kdestroy -A
   when: ansible_facts.packages["krb5-workstation"] is defined
 
-- name: Ensure that yum and dnf caching is enabled
-  lineinfile:
-    path: /etc/yum.conf
-    regexp: '^keepcache='
-    line: keepcache=1
-
 - name: Remove related packages
   package:
     name:
