@@ -1,6 +1,31 @@
 Changelog
 =========
 
+[2.4.0] - 2024-11-14
+--------------------
+
+### New Features
+
+- feat: Use new adutil functionality to enable AES encryption (#301)
+- feat: Add support for Fedora (#308)
+
+### Bug Fixes
+
+- fix: Discover primary based on inventory_hostname (#295)
+- fix: Retry waiting for pacemaker with `crm_resource --wait` (#300)
+
+### Other Changes
+
+- ci: Configure Packit propose_downstream job (#293)
+- ci: Add tags to TF workflow, allow more [citest bad] formats (#294)
+- tests: fix check for witness node in read_scale test (#296)
+- test: Improve HA tests (#297)
+- docs: Update collection readme to comply with the template (#298)
+- tests:  In HA tests, revert mssql_run_selinux_confined: true on EL 9 (#299)
+- ci: ansible-test action now requires ansible-core version (#303)
+- ci: add YAML header to github action workflow files (#304)
+- refactor: Use vars/RedHat_N.yml symlink for CentOS, Rocky, Alma wherever possible (#306)
+
 [2.3.1] - 2024-08-15
 --------------------
 
