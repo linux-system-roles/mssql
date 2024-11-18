@@ -99,6 +99,8 @@ In the case when this variable contains multiple elements, the role instals both
 
 The role does not remove mssql-tools packages if you unset a version with this variable.
 
+If you use version 18 and [mssql_tls_enable](#mssql_tls_enable) with self-signed certificates, you must set [mssql_tls_self_sign](#mssql_tls_self_sign) to `true`.
+
 Default: `[18]`
 
 Type: `list`
@@ -615,6 +617,16 @@ Type: `string`
 #### mssql_tls_force
 
 Set to `true` to replace the existing certificate and private key files on host if they exist at `/etc/pki/tls/certs/` and `/etc/pki/tls/private/` respectively.
+
+Default: `false`
+
+Type: `bool`
+
+#### mssql_tls_self_sign
+
+Whether certificates that you use are self-signed or not.
+
+Based on this, the role decides whether to run `sqlcmd` with the `-C` argument to trust certificates.
 
 Default: `false`
 

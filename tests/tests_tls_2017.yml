@@ -10,6 +10,7 @@
     mssql_edition: Evaluation
     mssql_tcp_port: 1433
     mssql_version: 2017
+    mssql_tls_self_sign: true
     __mssql_gather_facts_no_log: true
   tasks:
     - name: Run test in a block to clean up in always

@@ -33,6 +33,7 @@ mssql_tls_force: false
 mssql_tls_version: 1.2
 mssql_tls_remote_src: false
 mssql_tls_certificates: []
+mssql_tls_self_sign: false
 
 mssql_rpm_key: https://packages.microsoft.com/keys/microsoft.asc
 mssql_server_repository: "{{ __mssql_server_repository }}"

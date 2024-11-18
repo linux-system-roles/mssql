@@ -3,14 +3,6 @@
 - name: Ensure ansible_facts and variables used by role
   include_tasks: set_vars.yml
 
-- name: Temporary debug
-  debug:
-    var: "{{ item }}"
-  loop:
-    - mssql_tools_versions
-    - __sqlcmd_ver
-    - __sqlcmd_cli
-    - __mssql_client_packages
 # This is required to prevent the role from using a __mssql_sqlcmd_login_cmd
 # variable value from a previous role invocation
 - name: Unset the __mssql_sqlcmd_login_cmd fact
@@ -578,10 +570,8 @@
         __mssql_conf_setting: "network forceencryption"
         __mssql_conf_setting_value: "{{ '1' if mssql_tls_enable else 'unset' }}"
 
-- name: Append -C to sqlcmd if encryption is not requested and not in place
-  when:
-    - mssql_tls_enable is not true
-    - __sqlcmd_ver | int == 18
+- name: Append -C to sqlcmd
+  when: __sqlcmd_ver | int == 18
   block:
     - name: Get the setting forceencryption
       shell: >-
@@ -592,9 +582,17 @@
       failed_when: false
       register: __mssql_forceencryption_val
 
-    - name: Append -C to sqlcmd
+    - name: Append -No to sqlcmd when TLS is not configured
       when:
         - __mssql_forceencryption_val.stdout != '1'
+        - "'-No' not in __sqlcmd_cli"
+      set_fact:
+        __sqlcmd_cli: "{{ __sqlcmd_cli + ' -No' }}"
+
+    - name: Append -C to sqlcmd when TLS is configured but certs are self-signed
+      when:
+        - __mssql_forceencryption_val.stdout == '1'
+        - mssql_tls_self_sign | bool
         - "'-C' not in __sqlcmd_cli"
       set_fact:
         __sqlcmd_cli: "{{ __sqlcmd_cli + ' -C' }}"
