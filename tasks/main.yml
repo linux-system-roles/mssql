@@ -500,6 +500,105 @@
   environment:
     ACCEPT_EULA: Y
 
+- name: Configure TLS encryption
+  when: mssql_tls_enable is not none
+  block:
+    - name: >-
+        Create certificate and private_key files and set mssql_tls_cert
+        and _private_key
+      when:
+        - mssql_tls_enable | bool
+        - mssql_tls_certificates | length > 0
+      block:
+        - name: Create certificates using the certificate role
+          include_role:
+            name: fedora.linux_system_roles.certificate
+          vars:
+            certificate_requests: |
+              {% for _cert in mssql_tls_certificates %}
+              {%   set _basename = _cert.name | basename %}
+              {%   set _ = _cert.__setitem__('name', _basename) %}
+              {%   set _ = _cert.__setitem__('owner', 'mssql') %}
+              {%   set _ = _cert.__setitem__('group', 'mssql') %}
+              {%   set _ = _cert.__setitem__('mode', '0600') %}
+              {% endfor %}
+              {{ mssql_tls_certificates }}
+
+        - name: Set mssql_tls_cert and _private_key based on the cert name
+          set_fact:
+            mssql_tls_cert: "{{ mssql_tls_certificates.0.name }}.crt"
+            mssql_tls_private_key: "{{ mssql_tls_certificates.0.name }}.key"
+
+    - name: Copy certificate and private_key files to the host
+      when:
+        - mssql_tls_enable | bool
+        - mssql_tls_certificates | length == 0
+      copy:
+        src: "{{ item }}"
+        remote_src: "{{ mssql_tls_remote_src }}"
+        dest: >-
+          /etc/pki/tls/{{ 'certs' if item == mssql_tls_cert
+          else 'private' }}/{{ item | basename }}
+        owner: mssql
+        group: mssql
+        mode: "0600"
+        force: "{{ mssql_tls_force }}"
+      with_items:
+        - "{{ mssql_tls_cert }}"
+        - "{{ mssql_tls_private_key }}"
+
+    - name: Configure the tlscert setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_tls_cert_dest: >-
+          /etc/pki/tls/certs/{{ mssql_tls_cert | basename }}
+        __mssql_conf_setting: "network tlscert"
+        __mssql_conf_setting_value: >-
+          {{ __mssql_tls_cert_dest if mssql_tls_enable else 'unset' }}
+
+    - name: Configure the tlskey setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_tls_private_key_dest: >-
+          /etc/pki/tls/private/{{ mssql_tls_private_key | basename }}
+        __mssql_conf_setting: "network tlskey"
+        __mssql_conf_setting_value: >-
+          {{ __mssql_tls_private_key_dest if mssql_tls_enable else 'unset' }}
+
+    - name: Configure the tlsprotocols setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: "network tlsprotocols"
+        __mssql_conf_setting_value: >-
+          {{ mssql_tls_version if mssql_tls_enable else 'unset' }}
+
+    - name: Configure the forceencryption setting
+      include_tasks: mssql_conf_setting.yml
+      vars:
+        __mssql_conf_setting: "network forceencryption"
+        __mssql_conf_setting_value: "{{ '1' if mssql_tls_enable else 'unset' }}"
+
+- name: Append -C to sqlcmd if encryption is not requested and not in place
+  when:
+    - mssql_tls_enable is not true
+    - __sqlcmd_ver | int == 18
+  block:
+    - name: Get the setting forceencryption
+      shell: >-
+        set -euo pipefail;
+        grep '^forceencryption' {{ __mssql_conf_path }}
+        | sed 's/forceencryption = //g'
+      changed_when: false
+      failed_when: false
+      register: __mssql_forceencryption_val
+
+    - name: Append -C to sqlcmd
+      when:
+        - __mssql_forceencryption_val.stdout != '1'
+        - "'-C' not in __sqlcmd_cli"
+      set_fact:
+        __sqlcmd_cli: "{{ __sqlcmd_cli + ' -C' }}"
+
 - name: Set a new password for the MSSQL sa user
   when:
     - __mssql_conf_setup is skipped
@@ -748,85 +847,6 @@
         __mssql_conf_setting: "control writethrough"
         __mssql_conf_setting_value: >-
           {{ 1 if mssql_tune_for_fua_storage else 0 }}
-
-- name: Configure TLS encryption
-  when:
-    - mssql_tls_enable is not none
-  block:
-    - name: >-
-        Create certificate and private_key files and set mssql_tls_cert
-        and _private_key
-      when:
-        - mssql_tls_enable | bool
-        - mssql_tls_certificates | length > 0
-      block:
-        - name: Create certificates using the certificate role
-          include_role:
-            name: fedora.linux_system_roles.certificate
-          vars:
-            certificate_requests: |
-              {% for _cert in mssql_tls_certificates %}
-              {%   set _basename = _cert.name | basename %}
-              {%   set _ = _cert.__setitem__('name', _basename) %}
-              {%   set _ = _cert.__setitem__('owner', 'mssql') %}
-              {%   set _ = _cert.__setitem__('group', 'mssql') %}
-              {%   set _ = _cert.__setitem__('mode', '0600') %}
-              {% endfor %}
-              {{ mssql_tls_certificates }}
-
-        - name: Set mssql_tls_cert and _private_key based on the cert name
-          set_fact:
-            mssql_tls_cert: "{{ mssql_tls_certificates.0.name }}.crt"
-            mssql_tls_private_key: "{{ mssql_tls_certificates.0.name }}.key"
-
-    - name: Copy certificate and private_key files to the host
-      when:
-        - mssql_tls_enable | bool
-        - mssql_tls_certificates | length == 0
-      copy:
-        src: "{{ item }}"
-        remote_src: "{{ mssql_tls_remote_src }}"
-        dest: >-
-          /etc/pki/tls/{{ 'certs' if item == mssql_tls_cert
-          else 'private' }}/{{ item | basename }}
-        owner: mssql
-        group: mssql
-        mode: "0600"
-        force: "{{ mssql_tls_force }}"
-      with_items:
-        - "{{ mssql_tls_cert }}"
-        - "{{ mssql_tls_private_key }}"
-
-    - name: Configure the tlscert setting
-      include_tasks: mssql_conf_setting.yml
-      vars:
-        __mssql_tls_cert_dest: >-
-          /etc/pki/tls/certs/{{ mssql_tls_cert | basename }}
-        __mssql_conf_setting: "network tlscert"
-        __mssql_conf_setting_value: >-
-          {{ __mssql_tls_cert_dest if mssql_tls_enable else 'unset' }}
-
-    - name: Configure the tlskey setting
-      include_tasks: mssql_conf_setting.yml
-      vars:
-        __mssql_tls_private_key_dest: >-
-          /etc/pki/tls/private/{{ mssql_tls_private_key | basename }}
-        __mssql_conf_setting: "network tlskey"
-        __mssql_conf_setting_value: >-
-          {{ __mssql_tls_private_key_dest if mssql_tls_enable else 'unset' }}
-
-    - name: Configure the tlsprotocols setting
-      include_tasks: mssql_conf_setting.yml
-      vars:
-        __mssql_conf_setting: "network tlsprotocols"
-        __mssql_conf_setting_value: >-
-          {{ mssql_tls_version if mssql_tls_enable else 'unset' }}
-
-    - name: Configure the forceencryption setting
-      include_tasks: mssql_conf_setting.yml
-      vars:
-        __mssql_conf_setting: "network forceencryption"
-        __mssql_conf_setting_value: "{{ '1' if mssql_tls_enable else 'unset' }}"
 
 - name: Configure Active Directory authentication
   when: mssql_ad_configure | bool

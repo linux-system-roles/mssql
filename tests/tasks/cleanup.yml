@@ -46,7 +46,7 @@
     name:
       - adutil
       - mssql-server
-      - mssql-tools
+      - mssql-tools*
       - unixODBC-devel
       - mssql-server-fts
       - mssql-server-ha
