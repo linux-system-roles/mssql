@@ -7,6 +7,7 @@ mssql_version: null
 mssql_upgrade: false
 mssql_password: null
 mssql_edition: null
+mssql_tools_versions: [18]
 mssql_tcp_port: 1433
 mssql_manage_firewall: false
 mssql_ip_address: null
@@ -32,6 +33,7 @@ mssql_tls_force: false
 mssql_tls_version: 1.2
 mssql_tls_remote_src: false
 mssql_tls_certificates: []
+mssql_tls_self_sign: false
 
 mssql_rpm_key: https://packages.microsoft.com/keys/microsoft.asc
 mssql_server_repository: "{{ __mssql_server_repository }}"

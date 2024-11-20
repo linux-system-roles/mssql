@@ -8,9 +8,9 @@
     (ansible_distribution in ['CentOS', 'RedHat'] and
     ansible_distribution_major_version is version('7', '=') and
     mssql_version | int == 2022) or
-    ((ansible_distribution in ['CentOS', 'RedHat'] and
+    (((ansible_distribution in ['CentOS', 'RedHat'] and
     ansible_distribution_major_version is version('9', '=')) or
-    (ansible_distribution in ['Fedora'])
+    (ansible_distribution in ['Fedora']))
     and
     mssql_version | int != 2022)
   block:
