@@ -1,6 +1,13 @@
 Changelog
 =========
 
+[2.5.0] - 2024-11-20
+--------------------
+
+### New Features
+
+- feat: Add mssql_tools_versions, mssql_tls_self_sign to allow installing different versions of mssql-tools (#307)
+
 [2.4.0] - 2024-11-14
 --------------------
 
