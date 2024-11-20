@@ -153,6 +153,8 @@ id="toc-mssql_accept_microsoft_sql_server_standard_eula">mssql_accept_microsoft_
 id="toc-mssql_password">mssql_password</a></li>
 <li><a href="#mssql_edition"
 id="toc-mssql_edition">mssql_edition</a></li>
+<li><a href="#mssql_tools_versions"
+id="toc-mssql_tools_versions">mssql_tools_versions</a></li>
 <li><a href="#mssql_enable_sql_agent"
 id="toc-mssql_enable_sql_agent">mssql_enable_sql_agent</a></li>
 <li><a href="#mssql_tune_for_fua_storage"
@@ -315,6 +317,8 @@ id="toc-mssql_tls_remote_src">mssql_tls_remote_src</a></li>
 id="toc-mssql_tls_version">mssql_tls_version</a></li>
 <li><a href="#mssql_tls_force"
 id="toc-mssql_tls_force">mssql_tls_force</a></li>
+<li><a href="#mssql_tls_self_sign"
+id="toc-mssql_tls_self_sign">mssql_tls_self_sign</a></li>
 </ul></li>
 <li><a href="#tls-certificates-example-playbooks"
 id="toc-tls-certificates-example-playbooks">TLS Certificates Example
@@ -542,6 +546,31 @@ SQL Server settings with environment variables on Linux</a>.</li>
 </ul>
 <p>Default: <code>null</code></p>
 <p>Type: <code>string</code></p>
+<h3 id="mssql_tools_versions">mssql_tools_versions</h3>
+<p>List of versions of SQL Tools package (mssql-tools) to install and
+use <code>sqlcmd</code> from.</p>
+<p>The role uses <code>sqlcmd</code> for the following tasks:</p>
+<ul>
+<li>Checking password for the sa user.</li>
+<li>Running T-SQL scripts with variables <a
+href="#mssql_pre_input_sql_file-and-mssql_post_input_sql_file">mssql_pre_input_sql_file
+and mssql_post_input_sql_file</a>, <a
+href="#mssql_pre_input_sql_content-and-mssql_post_input_sql_content">mssql_pre_input_sql_content
+and mssql_post_input_sql_content</a>.</li>
+</ul>
+<p>By default, installs and uses the latest version 18.</p>
+<p>You can set this variable to <code>[17, 18]</code> to install two
+versions in parallel. In the case when this variable contains multiple
+elements, the role instals both but uses latest provided version.</p>
+<p>The role does not remove mssql-tools packages if you unset a version
+with this variable.</p>
+<p>If you use version 18 and <a
+href="#mssql_tls_enable">mssql_tls_enable</a> with self-signed
+certificates, you must set <a
+href="#mssql_tls_self_sign">mssql_tls_self_sign</a> to
+<code>true</code>.</p>
+<p>Default: <code>[18]</code></p>
+<p>Type: <code>list</code></p>
 <h3 id="mssql_enable_sql_agent">mssql_enable_sql_agent</h3>
 <p>Optional: Set this variable to <code>true</code> or
 <code>false</code> to enable or disable the SQL agent.</p>
@@ -1025,6 +1054,12 @@ managed nodes.</p>
 private key files on host if they exist at
 <code>/etc/pki/tls/certs/</code> and <code>/etc/pki/tls/private/</code>
 respectively.</p>
+<p>Default: <code>false</code></p>
+<p>Type: <code>bool</code></p>
+<h3 id="mssql_tls_self_sign">mssql_tls_self_sign</h3>
+<p>Whether certificates that you use are self-signed or not.</p>
+<p>Based on this, the role decides whether to run <code>sqlcmd</code>
+with the <code>-C</code> argument to trust certificates.</p>
 <p>Default: <code>false</code></p>
 <p>Type: <code>bool</code></p>
 <h2 id="tls-certificates-example-playbooks">TLS Certificates Example
