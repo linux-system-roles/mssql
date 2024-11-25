@@ -66,6 +66,25 @@
       set_fact:
         mssql_manage_ha_cluster: "{{ mssql_ha_cluster_run_role }}"
 
+- name: >-
+    Link the deprecated
+    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula fact
+  when: mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula is defined
+  block:
+    - name: Print that variable is deprecated
+      debug:
+        msg: >-
+          The variable
+          mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula
+          is deprecated and will be removed in a future version.
+          Edit your playbook to use new variable
+          mssql_accept_microsoft_odbc_driver_for_sql_server_eula
+
+    - name: Link the deprecated fact
+      set_fact:
+        mssql_accept_microsoft_odbc_driver_for_sql_server_eula: "{{
+          mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula }}"
+
 - name: Fail on RHEL or CentOS 10 because it's not supported
   fail:
     msg: This role does not support running against RHEL or CentOS 10 hosts
@@ -76,12 +95,12 @@
 - name: Verify that the user accepts EULA variables
   assert:
     that:
-      - mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula | bool
+      - mssql_accept_microsoft_odbc_driver_for_sql_server_eula | bool
       - mssql_accept_microsoft_cli_utilities_for_sql_server_eula | bool
       - mssql_accept_microsoft_sql_server_standard_eula | bool
     fail_msg:
       - "You must accept EULA by setting the following variables to true:"
-      - "mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula"
+      - "mssql_accept_microsoft_odbc_driver_for_sql_server_eula"
       - "mssql_accept_microsoft_cli_utilities_for_sql_server_eula"
       - "mssql_accept_microsoft_sql_server_standard_eula"
 
