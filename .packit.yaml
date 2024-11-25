@@ -11,12 +11,8 @@ upstream_project_url: https://github.com/linux-system-roles/mssql
 
 actions:
   post-upstream-clone:
-    - "wget https://src.fedoraproject.org/rpms/ansible-collection-microsoft-sql/raw/rawhide/f/ansible-collection-microsoft-sql.spec -O ansible-collection-microsoft-sql.spec.in"
+    - "wget https://src.fedoraproject.org/rpms/ansible-collection-microsoft-sql/raw/rawhide/f/ansible-collection-microsoft-sql.spec -O ansible-collection-microsoft-sql.spec"
     - "wget https://src.fedoraproject.org/rpms/ansible-collection-microsoft-sql/raw/rawhide/f/ansible-packaging.inc -O ansible-packaging.inc"
-    - "wget https://raw.githubusercontent.com/linux-system-roles/auto-maintenance/main/generate_spec_sources.py -O generate_spec_sources.py"
-    - "wget https://raw.githubusercontent.com/linux-system-roles/auto-maintenance/main/generate_rpm_changelog.py -O generate_rpm_changelog.py"
-    - "./generate_spec_sources.py ansible-collection-microsoft-sql.spec.in ansible-collection-microsoft-sql.spec"
-  changelog-entry: "./generate_rpm_changelog.py"
 jobs:
   - job: propose_downstream
     trigger: release
