@@ -4,7 +4,7 @@
   hosts: all
   gather_facts: false
   vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_version: 2022

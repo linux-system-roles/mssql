@@ -17,11 +17,14 @@ These variables apply to general SQL Server configuration.
 
 ### General Settings Variables
 
-#### mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula
+#### mssql_accept_microsoft_odbc_driver_for_sql_server_eula
 
-Set this variable to `true` to indicate that you accept EULA for installing the `msodbcsql17` package.
+Set this variable to `true` to indicate that you accept EULA for installing  packages `msodbcsql17`, `msodbcsql18`.
 
-The license terms for this product can be downloaded from <https://aka.ms/odbc17eula> and found in `/usr/share/doc/msodbcsql17/LICENSE.txt`.
+The license terms for this product can be found in the following places:
+
+* For version 17, online at <https://aka.ms/odbc17eula> and locally in `/usr/share/doc/msodbcsql17/LICENSE.txt`.
+* For version 18, online at <https://aka.ms/odbc18eula> and locally in `/usr/share/doc/msodbcsql18/LICENSE.txt`.
 
 Default: `false`
 
@@ -146,7 +149,7 @@ This example playbook shows how to use the role to configure SQL Server with the
 ```yaml
 - hosts: all
   vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_version: 2019
@@ -238,7 +241,7 @@ Run the following playbook against a RHEL 9 system role to configure SQL Server 
 ```yaml
 - hosts: all
   vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_version: 2022
@@ -311,7 +314,7 @@ Type: `bool`
 ```yaml
 - hosts: all
   vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_version: 2019
@@ -519,7 +522,7 @@ This example shows how to use the role to configure SQL Server, configure it wit
 ```yaml
 - hosts: all
   vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_version: 2019
@@ -642,7 +645,7 @@ Certificate files `mycert.pem` and `mykey.key` must exist on the primary node.
 ```yaml
 - hosts: all
   vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_version: 2019
@@ -665,7 +668,7 @@ This example shows how to use the role to configure SQL Server and configure it 
 ```yaml
 - hosts: all
   vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_version: 2019
@@ -1000,7 +1003,7 @@ Playbook:
 ```yaml
 - hosts: all
   vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_version: 2022
@@ -1035,7 +1038,7 @@ For more information, see the `fedora.linux_system_roles.ha_cluster` role docume
 ```yaml
 - hosts: all
   vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_version: 2019
@@ -1130,7 +1133,7 @@ Note that production environments require Pacemaker configured with fencing agen
 ```yaml
 - hosts: all
   vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_version: 2019
@@ -1244,7 +1247,7 @@ This example playbooks sets the `firewall` variables for the `fedora.linux_syste
 ```yaml
 - hosts: all
   vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_version: 2019
@@ -1571,7 +1574,7 @@ Type: `string`
 - name: Configure with AD server authentication
   hosts: all
   vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_version: 2022
@@ -1613,7 +1616,7 @@ If you received a pre-created keytab file and want the role to use it, set varia
 - name: Configure with AD server authentication with a pre-created keytab file
   hosts: all
   vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_version: 2022
@@ -1655,7 +1658,7 @@ You must join managed host to AD Server yourself prior to running this playbook.
 - name: Configure with AD server authentication without joining to AD
   hosts: all
   vars:
-    mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
+    mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
     mssql_version: 2022
