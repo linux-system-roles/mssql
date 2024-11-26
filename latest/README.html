@@ -143,8 +143,8 @@ Server Settings</a>
 <li><a href="#general-settings-variables"
 id="toc-general-settings-variables">General Settings Variables</a>
 <ul>
-<li><a href="#mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula"
-id="toc-mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula">mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula</a></li>
+<li><a href="#mssql_accept_microsoft_odbc_driver_for_sql_server_eula"
+id="toc-mssql_accept_microsoft_odbc_driver_for_sql_server_eula">mssql_accept_microsoft_odbc_driver_for_sql_server_eula</a></li>
 <li><a href="#mssql_accept_microsoft_cli_utilities_for_sql_server_eula"
 id="toc-mssql_accept_microsoft_cli_utilities_for_sql_server_eula">mssql_accept_microsoft_cli_utilities_for_sql_server_eula</a></li>
 <li><a href="#mssql_accept_microsoft_sql_server_standard_eula"
@@ -484,12 +484,20 @@ Server Settings</h1>
 <p>These variables apply to general SQL Server configuration.</p>
 <h2 id="general-settings-variables">General Settings Variables</h2>
 <h3
-id="mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula">mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula</h3>
+id="mssql_accept_microsoft_odbc_driver_for_sql_server_eula">mssql_accept_microsoft_odbc_driver_for_sql_server_eula</h3>
 <p>Set this variable to <code>true</code> to indicate that you accept
-EULA for installing the <code>msodbcsql17</code> package.</p>
-<p>The license terms for this product can be downloaded from <a
-href="https://aka.ms/odbc17eula">https://aka.ms/odbc17eula</a> and found
-in <code>/usr/share/doc/msodbcsql17/LICENSE.txt</code>.</p>
+EULA for installing packages <code>msodbcsql17</code>,
+<code>msodbcsql18</code>.</p>
+<p>The license terms for this product can be found in the following
+places:</p>
+<ul>
+<li>For version 17, online at <a
+href="https://aka.ms/odbc17eula">https://aka.ms/odbc17eula</a> and
+locally in <code>/usr/share/doc/msodbcsql17/LICENSE.txt</code>.</li>
+<li>For version 18, online at <a
+href="https://aka.ms/odbc18eula">https://aka.ms/odbc18eula</a> and
+locally in <code>/usr/share/doc/msodbcsql18/LICENSE.txt</code>.</li>
+</ul>
 <p>Default: <code>false</code></p>
 <p>Type: <code>bool</code></p>
 <h3
@@ -618,7 +626,7 @@ Server with the minimum required variables.</p>
 <div class="sourceCode" id="cb1"><pre
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_cli_utilities_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_sql_server_standard_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_version</span><span class="kw">:</span><span class="at"> </span><span class="dv">2019</span></span>
@@ -709,7 +717,7 @@ SQL Server as a confined application.</p>
 <div class="sourceCode" id="cb2"><pre
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_cli_utilities_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_sql_server_standard_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_version</span><span class="kw">:</span><span class="at"> </span><span class="dv">2022</span></span>
@@ -785,7 +793,7 @@ SQL script files and content to SQL Server</h3>
 <div class="sourceCode" id="cb3"><pre
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_cli_utilities_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_sql_server_standard_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_version</span><span class="kw">:</span><span class="at"> </span><span class="dv">2019</span></span>
@@ -960,7 +968,7 @@ port in firewall.</p>
 <div class="sourceCode" id="cb4"><pre
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_cli_utilities_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_sql_server_standard_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_version</span><span class="kw">:</span><span class="at"> </span><span class="dv">2019</span></span>
@@ -1074,7 +1082,7 @@ primary node.</p>
 <div class="sourceCode" id="cb6"><pre
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_cli_utilities_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_sql_server_standard_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_version</span><span class="kw">:</span><span class="at"> </span><span class="dv">2019</span></span>
@@ -1097,7 +1105,7 @@ created by the certificate role.</p>
 <div class="sourceCode" id="cb7"><pre
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_cli_utilities_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_sql_server_standard_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_version</span><span class="kw">:</span><span class="at"> </span><span class="dv">2019</span></span>
@@ -1450,7 +1458,7 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb10-1"><a href=
 <div class="sourceCode" id="cb11"><pre
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_cli_utilities_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_sql_server_standard_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_version</span><span class="kw">:</span><span class="at"> </span><span class="dv">2022</span></span>
@@ -1489,7 +1497,7 @@ role documentation.</p>
 <div class="sourceCode" id="cb12"><pre
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_cli_utilities_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_sql_server_standard_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_version</span><span class="kw">:</span><span class="at"> </span><span class="dv">2019</span></span>
@@ -1588,7 +1596,7 @@ fencing agents, this example playbook configures the
 <div class="sourceCode" id="cb13"><pre
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_cli_utilities_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_sql_server_standard_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_version</span><span class="kw">:</span><span class="at"> </span><span class="dv">2019</span></span>
@@ -1714,7 +1722,7 @@ this role to open the probe port configured in Azure.</p>
 <div class="sourceCode" id="cb14"><pre
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_cli_utilities_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_sql_server_standard_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_version</span><span class="kw">:</span><span class="at"> </span><span class="dv">2019</span></span>
@@ -2048,7 +2056,7 @@ AD integration with general parameters</h3>
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Configure with AD server authentication</span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_cli_utilities_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_sql_server_standard_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_version</span><span class="kw">:</span><span class="at"> </span><span class="dv">2022</span></span>
@@ -2089,7 +2097,7 @@ it, set variables like in this example:</p>
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Configure with AD server authentication with a pre-created keytab file</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_cli_utilities_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_sql_server_standard_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_version</span><span class="kw">:</span><span class="at"> </span><span class="dv">2022</span></span>
@@ -2129,7 +2137,7 @@ this playbook.</p>
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Configure with AD server authentication without joining to AD</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_odbc_driver_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_cli_utilities_for_sql_server_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_accept_microsoft_sql_server_standard_eula</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mssql_version</span><span class="kw">:</span><span class="at"> </span><span class="dv">2022</span></span>
