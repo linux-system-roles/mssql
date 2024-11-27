@@ -175,5 +175,5 @@ jobs:
         with:
           tag: ${{ steps.tag.outputs.tagname }}
           name: Version ${{ steps.tag.outputs.tagname }}
-          bodyFile: ./.tagmsg.txt
+          bodyFile: mssql/.tagmsg.txt
           makeLatest: true
