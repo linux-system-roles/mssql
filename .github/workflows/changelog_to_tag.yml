@@ -20,7 +20,7 @@ jobs:
           set -euxo pipefail
           sudo apt-get update
           sudo apt install -y git
-          pip install --upgrade pip ansible-core 'pyyaml<6,>=5.4.1' ruamel_yaml
+          pip install --upgrade pip galaxy-importer ansible-core 'pyyaml<6,>=5.4.1' ruamel_yaml
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -131,6 +131,9 @@ jobs:
           rm -r "$coll_path"/.[A-Za-z]*
           rm -r "$coll_path"/tests/"$collection_rolename"/.[A-Za-z]*
 
+          # Copy .ansible-lint to collection dir
+          cp "$coll_path"/roles/"$collection_rolename"/.ansible-lint "$coll_path"
+
           # Copy CHANGELOG.md from collection role to parent collection dir
           cp "$coll_path"/roles/"$collection_rolename"/CHANGELOG.md \
               "$coll_path"
@@ -147,6 +150,13 @@ jobs:
             echo ::error::"Did not find tarball to publish: ${_tarball}"
             exit 1
           fi
+
+          echo ::group::Run galaxy-importer against collection tarball
+          GALAXY_IMPORTER_CONFIG=auto-maintenance/lsr_role2collection/galaxy-importer.cfg \
+            python3 -m galaxy_importer.main \
+            "$_tarball"
+          echo ::endgroup::
+
           echo ::group::Publish Collection to Galaxy
           ansible-galaxy collection publish -vv --token "${{ secrets.GALAXY_API_KEY }}" "$_tarball"
           echo ::endgroup::
