@@ -1,6 +1,14 @@
 Changelog
 =========
 
+[2.5.2] - 2024-11-27
+--------------------
+
+### Other Changes
+
+- chore: Deprecate mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula (#318)
+- ci: Add job for publishing collection to Galaxy on new tag (#319)
+
 [2.5.1] - 2024-11-25
 --------------------
 
