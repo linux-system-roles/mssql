@@ -8,7 +8,7 @@ galaxy_info:
   platforms:
     - name: Fedora
       versions:
-        - "35"
+        - all
     - name: EL
       versions:
         - "9"
@@ -26,7 +26,7 @@ galaxy_info:
     - el7
     - el8
     - el9
-    - fedora35
+    - fedora
     - microsoft
     - mssql
     - opensuse15dot5
