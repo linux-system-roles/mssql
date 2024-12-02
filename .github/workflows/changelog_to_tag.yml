@@ -15,32 +15,19 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Install dependencies
+      - name: Update pip, git
         run: |
           set -euxo pipefail
-          sudo apt-get update
+          sudo apt update
           sudo apt install -y git
-          pip install --upgrade pip galaxy-importer ansible-core 'pyyaml<6,>=5.4.1' ruamel_yaml
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
 
       - name: checkout PR
         uses: actions/checkout@v4
-        with:
-          path: mssql
-
-      - name: checkout auto-maintenance
-        uses: actions/checkout@v4
-        with:
-          repository: linux-system-roles/auto-maintenance
-          path: auto-maintenance
 
       - name: Get tag and message from the latest CHANGELOG.md commit
         id: tag
         run: |
           set -euxo pipefail
-          pushd mssql
           print=false
           while read -r line; do
               if [[ "$line" =~ ^\[([0-9]+\.[0-9]+\.[0-9]+)\]\ -\ [0-9-]+ ]]; then
@@ -81,8 +68,27 @@ jobs:
           fi
           echo "tagname=$_tagname" >> "$GITHUB_OUTPUT"
           echo "branch=$_branch" >> "$GITHUB_OUTPUT"
-          popd
 
+      - name: Install dependencies
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo apt install -y git
+          pip install --upgrade pip galaxy-importer ansible-core 'pyyaml<6,>=5.4.1' ruamel_yaml
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+
+      - name: checkout auto-maintenance
+        uses: actions/checkout@v4
+        with:
+          repository: linux-system-roles/auto-maintenance
+          path: auto-maintenance
+
+      - name: checkout mssql into a separate directory
+        uses: actions/checkout@v4
+        with:
+          path: mssql
       - name: Build and publish the collection
         shell: bash
         id: build
@@ -139,7 +145,7 @@ jobs:
               "$coll_path"
 
           # Copy galaxy.yml to the collection directory
-          cp -p mssql/.collection/galaxy.yml "$coll_path"
+          cp -p "$rolename"/.collection/galaxy.yml "$coll_path"
 
           pushd "$coll_path"
           ansible-galaxy collection build
@@ -175,5 +181,5 @@ jobs:
         with:
           tag: ${{ steps.tag.outputs.tagname }}
           name: Version ${{ steps.tag.outputs.tagname }}
-          bodyFile: mssql/.tagmsg.txt
+          bodyFile: ./.tagmsg.txt
           makeLatest: true
