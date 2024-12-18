@@ -17,7 +17,7 @@ __sqlcmd_cli: "{{
   '/opt/mssql-tools/bin/sqlcmd' if __sqlcmd_ver == '17'
   else '/opt/mssql-tools' + __sqlcmd_ver + '/bin/sqlcmd' }}"
 __mssql_client_packages:
-  - mssql-tools{{ ''  if __sqlcmd_ver == '17' else __sqlcmd_ver }}
+  - mssql-tools{{ '' if __sqlcmd_ver == '17' else __sqlcmd_ver }}
   - unixODBC-devel
 __mssql_server_fts_packages: mssql-server-fts
 __mssql_server_ha_packages: mssql-server-ha
