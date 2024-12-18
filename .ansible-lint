@@ -16,14 +16,11 @@ skip_list:
   - fqcn-builtins
   - var-naming[no-role-prefix]
   - galaxy[no-changelog]
-  - galaxy[no-runtime]
 exclude_paths:
   - tests/roles/
   - .github/
   - .markdownlint.yaml
   - examples/roles/
-mock_modules:
-  - ansible.windows.win_shell
 mock_roles:
   - linux-system-roles.mssql
 supported_ansible_also:
