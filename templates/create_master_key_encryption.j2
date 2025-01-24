@@ -4,6 +4,7 @@ IF NOT EXISTS (
   WHERE name LIKE '%databaseMasterkey%'
 )
 BEGIN
+{# codespell:ignore-begin #}
   PRINT 'Master key does not exist, creating';
   CREATE MASTER KEY ENCRYPTION BY PASSWORD =
     '{{ mssql_ha_master_key_password }}';
@@ -32,6 +33,7 @@ dropping master key to re-create it';
     CREATE MASTER KEY ENCRYPTION BY PASSWORD =
       '{{ mssql_ha_master_key_password }}';
     PRINT 'Master key created successfully';
+{# codespell:ignore-end #}
 {% endif %}
   END CATCH
 END
