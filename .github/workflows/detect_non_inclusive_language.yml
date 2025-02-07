@@ -1,0 +1,27 @@
+# Codespell configuration is within .codespellrc
+---
+name: Detect non-inclusive language
+on:  # yamllint disable-line rule:truthy
+  - pull_request
+permissions:
+  contents: read
+jobs:
+  codespell:
+    name: Detect non-inclusive language
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get variable with regex values
+        id: regexvar
+        run: |
+          curl -L -s -o dictionary_usage.txt https://raw.githubusercontent.com/codespell-project/codespell/refs/heads/main/codespell_lib/data/dictionary_usage.txt
+          regexvar=$(sed 's/->.*//g' dictionary_usage.txt | sed 's/$/|/' | tr -d '\n' | sed 's/.$//')
+          rm dictionary_usage.txt
+          echo "regex = $regexvar" >> .codespellrc
+
+      - name: Detect non-inclusive language with codespell
+        uses: codespell-project/actions-codespell@v2
+        with:
+          builtin: usage

@@ -1,0 +1,4 @@
+[codespell]
+ignore-multiline-regex = codespell:ignore-begin.*codespell:ignore-end
+context = 0
+ignore-words = .codespell_ignores
