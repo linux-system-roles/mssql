@@ -3,9 +3,9 @@
 SET NOCOUNT ON;
 
 DECLARE @cerExists INT;
-EXEC master.dbo.xp_fileexist '{{ __mssql_ha_cert_dest }}', @cerExists OUTPUT;
+EXEC master.dbo.xp_fileexist '{{ __mssql_ha_cert_dest }}', @cerExists OUTPUT;  {# codespell:ignore master #}
 DECLARE @pvkExists INT;
-EXEC master.dbo.xp_fileexist '{{ __mssql_ha_private_key_dest }}',
+EXEC master.dbo.xp_fileexist '{{ __mssql_ha_private_key_dest }}',  {# codespell:ignore master #}
   @pvkExists OUTPUT;
 
 IF NOT EXISTS(
