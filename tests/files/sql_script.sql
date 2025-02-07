@@ -1,6 +1,6 @@
 IF NOT EXISTS (
   SELECT name
-  FROM master.sys.server_principals
+  FROM master.sys.server_principals  {# codespell:ignore master #}
   WHERE name = 'MyLogin'
 )
 BEGIN

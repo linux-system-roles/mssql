@@ -1,4 +1,4 @@
-USE master;
+USE master;  {# codespell:ignore master #}
 IF NOT EXISTS (
   SELECT name FROM sys.server_principals
   WHERE name = '{{ mssql_ha_login }}'

@@ -1210,7 +1210,7 @@
         - name: Configure SQL entities on the primary replica
           vars:
             __mssql_sql_files_to_input:
-              - create_master_key_encryption.j2
+              - create_master_key_encryption.j2  # codespell:ignore master
               - create_and_back_up_cert.j2
               - enable_alwayson.j2
               - configure_endpoint.j2
@@ -1382,7 +1382,7 @@
           vars:
             __mssql_sql_files_to_input:
               - enable_alwayson.j2
-              - create_master_key_encryption.j2
+              - create_master_key_encryption.j2  # codespell:ignore master
               - restore_cert.j2
               - configure_endpoint.j2
           include_tasks: input_sql_files.yml

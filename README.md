@@ -1,6 +1,6 @@
 # Microsoft SQL Server
 
-[![ansible-lint.yml](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-lint.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-lint.yml) [![ansible-test.yml](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-test.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-test.yml) [![markdownlint.yml](https://github.com/linux-system-roles/mssql/actions/workflows/markdownlint.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/markdownlint.yml) [![tft.yml](https://github.com/linux-system-roles/mssql/actions/workflows/tft.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/tft.yml) [![tft_citest_bad.yml](https://github.com/linux-system-roles/mssql/actions/workflows/tft_citest_bad.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/tft_citest_bad.yml) [![woke.yml](https://github.com/linux-system-roles/mssql/actions/workflows/woke.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/woke.yml)
+[![ansible-lint.yml](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-lint.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-lint.yml) [![ansible-test.yml](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-test.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-test.yml) [![codespell.yml](https://github.com/linux-system-roles/mssql/actions/workflows/codespell.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/codespell.yml) [![detect_non_inclusive_language.yml](https://github.com/linux-system-roles/mssql/actions/workflows/detect_non_inclusive_language.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/detect_non_inclusive_language.yml) [![markdownlint.yml](https://github.com/linux-system-roles/mssql/actions/workflows/markdownlint.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/markdownlint.yml) [![tft.yml](https://github.com/linux-system-roles/mssql/actions/workflows/tft.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/tft.yml) [![tft_citest_bad.yml](https://github.com/linux-system-roles/mssql/actions/workflows/tft_citest_bad.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/tft_citest_bad.yml)
 
 This role installs, configures, and starts Microsoft SQL Server.
 
@@ -98,7 +98,7 @@ The role uses `sqlcmd` for the following tasks:
 By default, installs and uses the latest version 18.
 
 You can set this variable to `[17, 18]` to install two versions in parallel.
-In the case when this variable contains multiple elements, the role instals both but uses latest provided version.
+In the case when this variable contains multiple elements, the role installs both but uses latest provided version.
 
 The role does not remove mssql-tools packages if you unset a version with this variable.
 
@@ -311,6 +311,7 @@ Type: `bool`
 
 #### Inputting SQL script files and content to SQL Server
 
+<!-- codespell:ignore-begin -->
 ```yaml
 - hosts: all
   vars:
@@ -358,6 +359,7 @@ Type: `bool`
         END
         GO
 ```
+<!-- codespell:ignore-end -->
 
 ## Installing Additional Packages
 
@@ -793,9 +795,9 @@ Default: `null`
 
 Type: `string`
 
-#### mssql_ha_master_key_password
+#### mssql_ha_master_key_password  <!-- codespell:ignore master -->
 
-The password to set for the master key used with the certificate.
+The password to set for the master key used with the certificate.<!-- codespell:ignore master -->
 
 Default: `null`
 
@@ -999,6 +1001,7 @@ all:
 ```
 
 Playbook:
+<!-- codespell:ignore-begin -->
 
 ```yaml
 - hosts: all
@@ -1025,6 +1028,7 @@ Playbook:
   roles:
     - microsoft.sql.server
 ```
+<!-- codespell:ignore-end -->
 
 #### Configuring SQL Server with HA and Pacemaker on Bare Metal
 
@@ -1034,6 +1038,7 @@ This example configures required Pacemaker properties and resources and enables 
 
 The `fedora.linux_system_roles.ha_cluster` role expects watchdog devices to be configured on `/dev/watchdog` by default, you can set a different device per host in inventory.
 For more information, see the `fedora.linux_system_roles.ha_cluster` role documentation.
+<!-- codespell:ignore-begin -->
 
 ```yaml
 - hosts: all
@@ -1123,12 +1128,14 @@ For more information, see the `fedora.linux_system_roles.ha_cluster` role docume
     - microsoft.sql.server
 ```
 
+<!-- codespell:ignore-end -->
 #### Configuring SQL Server with HA and Pacemaker on VMWare
 
 If you want to configure Pacemaker from this role, you can set [mssql_manage_ha_cluster](#mssql_manage_ha_cluster) to `true` and provide variables required by the `fedora.linux_system_roles.ha_cluster` role to configure Pacemaker for your environment properly.
 See the `fedora.linux_system_roles.ha_cluster` role documentation for more information.
 
 Note that production environments require Pacemaker configured with fencing agents, this example playbook configures the `stonith:fence_vmware_soap` agent.
+<!-- codespell:ignore-begin -->
 
 ```yaml
 - hosts: all
@@ -1226,6 +1233,7 @@ Note that production environments require Pacemaker configured with fencing agen
   roles:
     - microsoft.sql.server
 ```
+<!-- codespell:ignore-end -->
 
 #### Configuring SQL Server with HA and Pacemaker on Azure
 
@@ -1243,6 +1251,7 @@ See the `fedora.linux_system_roles.ha_cluster` role documentation for more infor
 Note that production environments require Pacemaker configured with fencing agents, this example playbook configures the `stonith:fence_azure_arm` agent.
 
 This example playbooks sets the `firewall` variables for the `fedora.linux_system_roles.firewall` role and then runs this role to open the probe port configured in Azure.
+<!-- codespell:ignore-begin -->
 
 ```yaml
 - hosts: all
@@ -1371,6 +1380,7 @@ This example playbooks sets the `firewall` variables for the `fedora.linux_syste
     - fedora.linux_system_roles.firewall
     - microsoft.sql.server
 ```
+<!-- codespell:ignore-end -->
 
 ## Configuring SQL Server to authenticate with Active Directory (AD) Server
 
@@ -1569,6 +1579,7 @@ Type: `string`
 ### AD Example Playbooks
 
 #### Configuring AD integration with general parameters
+<!-- codespell:ignore-begin -->
 
 ```yaml
 - name: Configure with AD server authentication
@@ -1607,10 +1618,12 @@ Type: `string`
         PRINT 'A <mydomain>\<myADlogin> login already exists, skipping'
       END
 ```
+<!-- codespell:ignore-end -->
 
 #### Configuring AD integration with a pre-created keytab file
 
 If you received a pre-created keytab file and want the role to use it, set variables like in this example:
+<!-- codespell:ignore-begin -->
 
 ```yaml
 - name: Configure with AD server authentication with a pre-created keytab file
@@ -1649,10 +1662,12 @@ If you received a pre-created keytab file and want the role to use it, set varia
         PRINT 'A <mydomain>\<myADlogin> login already exists, skipping'
       END
 ```
+<!-- codespell:ignore-end -->
 
 #### Configuring AD integration without joining to AD
 
 You must join managed host to AD Server yourself prior to running this playbook.
+<!-- codespell:ignore-begin -->
 
 ```yaml
 - name: Configure with AD server authentication without joining to AD
@@ -1687,6 +1702,7 @@ You must join managed host to AD Server yourself prior to running this playbook.
         PRINT 'A <mydomain>\<myADlogin> login already exists, skipping'
       END
 ```
+<!-- codespell:ignore-end -->
 
 ## License
 
