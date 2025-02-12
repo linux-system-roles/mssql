@@ -1,6 +1,6 @@
 # Microsoft SQL Server
 
-[![ansible-lint.yml](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-lint.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-lint.yml) [![ansible-test.yml](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-test.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-test.yml) [![markdownlint.yml](https://github.com/linux-system-roles/mssql/actions/workflows/markdownlint.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/markdownlint.yml) [![tft.yml](https://github.com/linux-system-roles/mssql/actions/workflows/tft.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/tft.yml) [![tft_citest_bad.yml](https://github.com/linux-system-roles/mssql/actions/workflows/tft_citest_bad.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/tft_citest_bad.yml) [![woke.yml](https://github.com/linux-system-roles/mssql/actions/workflows/woke.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/woke.yml)
+[![ansible-lint.yml](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-lint.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-lint.yml) [![ansible-test.yml](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-test.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/ansible-test.yml) [![codespell.yml](https://github.com/linux-system-roles/mssql/actions/workflows/codespell.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/codespell.yml) [![markdownlint.yml](https://github.com/linux-system-roles/mssql/actions/workflows/markdownlint.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/markdownlint.yml) [![tft.yml](https://github.com/linux-system-roles/mssql/actions/workflows/tft.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/tft.yml) [![tft_citest_bad.yml](https://github.com/linux-system-roles/mssql/actions/workflows/tft_citest_bad.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/tft_citest_bad.yml) [![woke.yml](https://github.com/linux-system-roles/mssql/actions/workflows/woke.yml/badge.svg)](https://github.com/linux-system-roles/mssql/actions/workflows/woke.yml)
 
 This role installs, configures, and starts Microsoft SQL Server.
 
@@ -98,7 +98,7 @@ The role uses `sqlcmd` for the following tasks:
 By default, installs and uses the latest version 18.
 
 You can set this variable to `[17, 18]` to install two versions in parallel.
-In the case when this variable contains multiple elements, the role instals both but uses latest provided version.
+In the case when this variable contains multiple elements, the role installs both but uses latest provided version.
 
 The role does not remove mssql-tools packages if you unset a version with this variable.
 

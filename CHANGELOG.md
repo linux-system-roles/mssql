@@ -633,7 +633,7 @@ Changelog
   - Add workarounds for known issues in SQL Server 2022
   - Use delay=3 timeout=40 in wait_for module to avoid unreachable server
 
-- Imrpove performance by intputting multiple SQL files with loop internaly (#116)
+- Improve performance by intputting multiple SQL files with loop internally (#116)
   - Make it possible to input multiple file with loop internally
   - Rename task file and vars for clarity
   - Make regex for files extension search more strict
