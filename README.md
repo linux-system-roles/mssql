@@ -98,7 +98,7 @@ The role uses `sqlcmd` for the following tasks:
 By default, installs and uses the latest version 18.
 
 You can set this variable to `[17, 18]` to install two versions in parallel.
-In the case when this variable contains multiple elements, the role instals both but uses latest provided version.
+In the case when this variable contains multiple elements, the role installs both but uses latest provided version.
 
 The role does not remove mssql-tools packages if you unset a version with this variable.
 
