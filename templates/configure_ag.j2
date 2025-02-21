@@ -211,10 +211,10 @@ END
 
 {% if not mssql_ha_ag_is_contained %}
 {%   set is_contained_is_reuse_system_db = "" %}
-{% else %}
+{% elif mssql_ha_ag_is_contained %}
 {%   set is_contained_is_reuse_system_db = ",CONTAINED" %}
 {%   if mssql_ha_ag_reuse_system_db %}
-{%     set is_contained_is_reuse_system_db = {{ is_contained_is_reuse_system_db }} ~ ",REUSE_SYSTEM_DATABASES" %}
+{%     set is_contained_is_reuse_system_db = is_contained_is_reuse_system_db + ",REUSE_SYSTEM_DATABASES" %}
 {%   endif %}
 {% endif %}
 
