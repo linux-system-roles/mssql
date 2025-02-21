@@ -936,6 +936,18 @@ Default: `false`
 
 Type: `bool`
 
+#### mssql_ha_ag_is_contained
+mssql_ha_ag_is_contained
+if true, the ag created will be contained
+if false, the var mssql_ha_ag_reuse_system_db will be false
+Default: `false`
+Type: `bool`
+
+#### mssql_ha_ag_reuse_system_db
+if true, the contained ag will be reuse system database 
+Default: `false`
+Type: `bool`
+
 ### Always On Availability Group Example Playbooks
 
 Examples in this section show how to use the role to configure SQL Server and configure it for high availability in different environments.
