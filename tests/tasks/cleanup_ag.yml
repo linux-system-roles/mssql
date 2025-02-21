@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: MIT
+---
+- name: Remove AG to re-create it with reuse_system_db on secondary
+  when: not __mssql_ha_is_primary
+  vars:
+    __mssql_sql_files_to_input:
+      - drop_ag.j2
+  include_role:
+    name: linux-system-roles.mssql
+    tasks_from: input_sql_files.yml
+    public: true
+
+- name: Drop DBs on secondaries
+  when: not __mssql_ha_is_primary
+  vars:
+    __mssql_sql_files_to_input:
+      - drop_dbs.j2
+    __mssql_rm_dbs: "{{ mssql_ha_db_names }}"
+  include_role:
+    name: linux-system-roles.mssql
+    tasks_from: input_sql_files.yml
+    public: true

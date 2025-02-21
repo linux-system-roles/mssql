@@ -3,16 +3,15 @@
   setup:
     gather_subset: min
 
-- name: Assert fail on EL 7 with version = 2022 and EL 9 with version != 2022
+- name: Assert fail when used on platform where mssql_version is not supported
   when: >-
-    (ansible_distribution in ['CentOS', 'RedHat'] and
-    ansible_distribution_major_version is version('7', '=') and
-    mssql_version | int == 2022) or
-    (((ansible_distribution in ['CentOS', 'RedHat'] and
-    ansible_distribution_major_version is version('9', '=')) or
-    (ansible_distribution in ['Fedora']))
-    and
-    mssql_version | int != 2022)
+    (ansible_distribution in ['CentOS', 'RedHat']
+    and ansible_distribution_major_version is version('7', '=')
+    and mssql_version | int == 2022)
+    or (((ansible_distribution in ['CentOS', 'RedHat']
+    and ansible_distribution_major_version is version('9', '='))
+    or (ansible_distribution in ['Fedora']))
+    and mssql_version | int != 2022)
   block:
     - name: Run the role
       vars:
@@ -25,7 +24,7 @@
       fail:
         msg: The above task must fail
   rescue:
-    - name: Assert that the role failed with EL < 8 not supported
+    - name: Assert that the role failed with mssql_version not supported
       assert:
         that: >-
           'You must set the mssql_version variable to one of'

@@ -1,0 +1,12 @@
+IF EXISTS (
+  SELECT name
+  FROM sys.databases
+  WHERE name in ('{{ mssql_ha_ag_name }}_master','{{ mssql_ha_ag_name }}_msdb')
+)
+BEGIN
+  PRINT(1)
+END
+ELSE
+BEGIN
+  PRINT(0)
+END

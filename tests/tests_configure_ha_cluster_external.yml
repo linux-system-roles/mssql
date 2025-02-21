@@ -18,7 +18,6 @@
     # this test doesn't work in container builds
     - tests::booted
   vars:
-    __mssql_single_node_test: "{{ ansible_play_hosts_all | length == 1 }}"
     mssql_debug: true
     mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
@@ -44,7 +43,7 @@
     mssql_ha_ag_cluster_type: external
     mssql_ha_login: ExampleLogin
     mssql_ha_login_password: "p@55w0rD3"
-    mssql_ha_virtual_ip: 192.168.122.148
+    mssql_ha_virtual_ip: 192.168.124.222
     # ha_cluster doesn't support running against a single host
     mssql_manage_ha_cluster: "{{ ansible_play_hosts_all | length > 1 }}"
     ha_cluster_cluster_name: "{{ mssql_ha_ag_name }}"
@@ -108,59 +107,9 @@
   tasks:
     - name: Run test in a block to clean up in always
       block:
-        - name: Verify that by default the role fails on EL < 8
-          when:
-            - ansible_distribution in ['CentOS', 'RedHat']
-            - ansible_distribution_version is version('8', '<')
-          block:
-            - name: Run the role
-              vars:
-                mssql_ha_configure: true
-              include_role:
-                name: linux-system-roles.mssql
-
-            - name: Unreachable task
-              fail:
-                msg: The above task must fail
-          rescue:
-            - name: Assert that the role failed with EL 7 not supported
-              assert:
-                that: >-
-                  'mssql_ha_configure=true does not support running against EL 7
-                  hosts' in ansible_failed_result.msg
-          always:
-            - name: Clean up after the role invocation
-              include_tasks: tasks/cleanup.yml
-              when: ansible_play_hosts_all | length == 1
-
-            # Putting end_host into a rescue block results in a failed task
-            - name: End EL 7 host
-              meta: end_host
-
-        - name: Verify that the role fails when primary node is not specified
-          when: ansible_play_hosts_all | length == 1
-          block:
-            - name: Run role with mssql_replica_type=primary not defined
-              include_role:
-                name: linux-system-roles.mssql
-
-            - name: Unreachable task
-              fail:
-                msg: The above task must fail
-          rescue:
-            - name: Assert that the role failed with EL < 8 not supported
-              assert:
-                that: >-
-                  'You must set the mssql_ha_replica_type variable to one of
-                  primary, synchronous, asynchronous, witness, absent'
-                  in ansible_failed_result.msg
-
-        - name: Set the mssql_ha_replica_type fact to appear in hostvars
-          set_fact:
-            mssql_ha_replica_type: primary
-          when:
-            - ansible_play_hosts_all | length == 1
-            - mssql_ha_replica_type is not defined
+        - name: This test is applicable in multi-host scenario only
+          meta: end_play
+          when: ansible_play_hosts_all | length < 3
 
         - name: Load softdog module for stonith to have at least one watchdog
           command: modprobe softdog
@@ -178,828 +127,140 @@
             name: fedora.linux_system_roles.ha_cluster
             tasks_from: test_setup.yml
 
-        - name: Run on all hosts to configure HA cluster
+        - name: Test is_contained functionality available on newers SQL version
+          when: mssql_version is version('2022', '>=')
+          block:
+            - name: Run on all hosts to configure contained AG
+              vars:
+                mssql_ha_ag_is_contained: true
+                mssql_ha_ag_reuse_system_db: false
+              include_role:
+                name: linux-system-roles.mssql
+                public: true
+
+            - name: Verify is_contained status
+              when: __mssql_ha_is_primary | bool
+              include_tasks: tasks/verify_contained.yml
+              vars:
+                __mssql_is_contained: 1
+
+            - name: Clean up AG
+              include_tasks: tasks/cleanup_ag.yml
+
+            - name: Unset create_db facts
+              set_fact:
+                mssql_pre_input_sql_file: []
+
+            - name: Run with contained=true reuse_system_db=true
+              vars:
+                mssql_ha_ag_is_contained: true
+                mssql_ha_ag_reuse_system_db: true
+              include_role:
+                name: linux-system-roles.mssql
+                public: true
+
+            - name: Verify is_contained status
+              when: __mssql_ha_is_primary | bool
+              include_tasks: tasks/verify_contained.yml
+              vars:
+                __mssql_is_contained: 1
+
+            - name: Clean up AG
+              include_tasks: tasks/cleanup_ag.yml
+
+        - name: Run with contained=false
           include_role:
             name: linux-system-roles.mssql
+          vars:
+            mssql_ha_ag_is_contained: false
 
-        - name: Assert that pcs runs properly when testing against >3 nodes
-          when: ansible_play_hosts_all | length >= 3
-          block:
-            - name: Wait for the cluster to finish configuration
-              command: crm_resource --wait
-              changed_when: false
-              when: mssql_manage_ha_cluster | bool
-              register: __mssql_crm_resource_wait
-              until: __mssql_crm_resource_wait is success
-
-            - name: Get global pcs status
-              command: pcs status
-              register: __pcs_status
-              changed_when: false
-
-            - name: Print global psc status
-              debug:
-                var: __pcs_status.stdout
-              run_once: true
-
-            - name: Get pcs status for the virtualip resource
-              command: pcs status resources virtualip
-              register: __pcs_status_virtualip
-              changed_when: false
-
-            - name: Print pcs status for the virtualip resource
-              debug:
-                var: __pcs_status_virtualip.stdout
-              run_once: true
-
-            - name: Assert that virtualip is successfully started
-              assert:
-                that: "'Started' in __pcs_status_virtualip.stdout"
-
-            - name: Move the virtualip resource
-              command: >-
-                pcs resource
-                {% if (ansible_distribution in ['CentOS', 'RedHat']) and
-                (ansible_distribution_major_version is version('9', '>=')) %}
-                move-with-constraint
-                {% else %}
-                move
-                {% endif %}
-                virtualip
-              register: __pcs_move
-              run_once: true
-              changed_when: true
-
-            - name: Wait for the cluster to finish configuration
-              command: crm_resource --wait
-              changed_when: false
-              when: mssql_manage_ha_cluster | bool
-              register: __mssql_crm_resource_wait
-              until: __mssql_crm_resource_wait is success
-
-            - name: Get global pcs status
-              command: pcs status resources
-              register: __pcs_status
-              changed_when: false
-
-            - name: Print global psc status
-              debug:
-                var: __pcs_status.stdout
-              run_once: true
-
-            - name: Get pcs status for the virtualip resource
-              command: pcs status resources virtualip
-              register: __pcs_status_virtualip
-              changed_when: false
-
-            - name: Print pcs status for the virtualip resource
-              debug:
-                var: __pcs_status_virtualip.stdout
-              run_once: true
-
-            - name: Assert that virtualip is successfully started
-              assert:
-                that: "'Started' in __pcs_status_virtualip.stdout"
-
-            - name: Clear constraints for the virtualip resource
-              command: pcs resource clear virtualip
-              changed_when: true
-
-        # The following tasks test if templates configure systems correctly
-        # Because CI runs on a single node, these templates can't be tested:
-        # * remove_from_ag.j2
-        # * join_to_ag.j2
-        # * removing and adding replicas in configure_ag.j2
-        - name: >-
-            Don't test templates when testing against multiple hosts.
-            Testing templates only supported for primary replicas
-          meta: end_play
-          when: >-
-            (ansible_play_hosts_all | length > 1)
-            or
-            (mssql_ha_replica_type | d('primary') != 'primary')
-
-        - name: Set the mssql_ha_replica_type fact to appear in hostvars
-          set_fact:
-            mssql_ha_replica_type: primary
+        - name: Verify is_contained and reuse_system_db status
+          include_tasks: tasks/verify_contained.yml
           when:
-            - ansible_play_hosts_all | length == 1
-            - mssql_ha_replica_type is not defined
-
-        # enable_alwayson.j2 template test
-        - name: Enable AlwaysOn event session when it's enabled
+            - mssql_version is version('2022', '>=')
+            - __mssql_ha_is_primary | bool
           vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - enable_alwayson.j2
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
-            public: true
+            __mssql_is_contained: 0
 
-        - name: Assert that enabling is skipped
+        - name: Wait for the cluster to finish configuration
+          command: crm_resource --wait
+          changed_when: false
+          when: mssql_manage_ha_cluster | bool
+          register: __mssql_crm_resource_wait
+          until: __mssql_crm_resource_wait is success
+
+        - name: Get global pcs status
+          command: pcs status
+          register: __pcs_status
+          changed_when: false
+
+        - name: Print global psc status
+          debug:
+            var: __pcs_status.stdout
+          run_once: true
+
+        - name: Get pcs status for the virtualip resource
+          command: pcs status resources virtualip
+          register: __pcs_status_virtualip
+          changed_when: false
+
+        - name: Print pcs status for the virtualip resource
+          debug:
+            var: __pcs_status_virtualip.stdout
+          run_once: true
+
+        - name: Assert that virtualip is successfully started
           assert:
-            that: >-
-              "AlwaysOn Health events already enabled, skipping"
-              in __mssql_sqlcmd_input.stdout
+            that: "'Started' in __pcs_status_virtualip.stdout"
 
-        - name: Disable AlwaysOn event session
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - disable_alwayson.j2
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
+        - name: Move the virtualip resource
+          command: >-
+            pcs resource
+            {% if (ansible_distribution in ['CentOS', 'RedHat']) and
+            (ansible_distribution_major_version is version('9', '>=')) %}
+            move-with-constraint
+            {% else %}
+            move
+            {% endif %}
+            virtualip
+          register: __pcs_move
+          run_once: true
+          changed_when: true
 
-        - name: Enable AlwaysOn event session
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - enable_alwayson.j2
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
+        - name: Wait for the cluster to finish configuration
+          command: crm_resource --wait
+          changed_when: false
+          when: mssql_manage_ha_cluster | bool
+          register: __mssql_crm_resource_wait
+          until: __mssql_crm_resource_wait is success
 
-        - name: Assert that the template reported changed state
+        - name: Get global pcs status
+          command: pcs status resources
+          register: __pcs_status
+          changed_when: false
+
+        - name: Print global psc status
+          debug:
+            var: __pcs_status.stdout
+          run_once: true
+
+        - name: Get pcs status for the virtualip resource
+          command: pcs status resources virtualip
+          register: __pcs_status_virtualip
+          changed_when: false
+
+        - name: Print pcs status for the virtualip resource
+          debug:
+            var: __pcs_status_virtualip.stdout
+          run_once: true
+
+        - name: Assert that virtualip is successfully started
           assert:
-            that: >-
-              "AlwaysOn Health events enabled successfully"
-              in __mssql_sqlcmd_input.stdout
+            that: "'Started' in __pcs_status_virtualip.stdout"
 
-        # configure_endpoint.j2 template test
-        - name: Create endpoint when it exists
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - configure_endpoint.j2
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
-
-        - name: Assert expected messages
-          assert:
-            that:
-              - >-
-                "Verifying the existing endpoint {{ mssql_ha_endpoint_name }}"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "The LISTENER_PORT setting for the {{ mssql_ha_endpoint_name }}
-                endpoint is already set to {{ mssql_ha_endpoint_port }},
-                skipping"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "The ROLE setting for the {{ mssql_ha_endpoint_name }} endpoint
-                is already set to {{ __mssql_ha_endpoint_role }}, skipping"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "The certificate for the {{ mssql_ha_endpoint_name }}
-                endpoint is already set to {{ mssql_ha_cert_name }}, skipping"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "The ENCRYPTION setting for the {{ mssql_ha_endpoint_name }}
-                endpoint is already set to AES, skipping"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "Endpoint {{ mssql_ha_endpoint_name }} is already started,
-                skipping"
-                in __mssql_sqlcmd_input.stdout
-
-        - name: Alter endpoint to test how template handles incorrect endpoint
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - alter_endpoint.j2
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
-
-        - name: Configure endpoint correctly
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - configure_endpoint.j2
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
-
-        - name: Assert expected messages
-          assert:
-            that:
-              - >-
-                "Verifying the existing endpoint {{ mssql_ha_endpoint_name }}"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "The LISTENER_PORT setting for the {{ mssql_ha_endpoint_name }}
-                endpoint updated to {{ mssql_ha_endpoint_port }} successfully"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "The ROLE setting for the {{ mssql_ha_endpoint_name }}
-                endpoint updated to {{ __mssql_ha_endpoint_role }} successfully"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "The certificate for the {{ mssql_ha_endpoint_name }}
-                endpoint updated to {{ mssql_ha_cert_name }} successfully"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "The ENCRYPTION setting for the {{ mssql_ha_endpoint_name }}
-                endpoint updated to AES successfully"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "Endpoint {{ mssql_ha_endpoint_name }} started successfully"
-                in __mssql_sqlcmd_input.stdout
-
-        - name: Drop the test_cert certificate
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - drop_cert.j2
-            mssql_ha_cert_name: test_cert
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
-
-        # # configure_listener.j2 template test
-        # - name: Remove a listener for test purposes
-        #   vars:
-        #     # noqa var-naming[no-role-prefix]
-        #     __mssql_sql_files_to_input:
-        #       - remove_listener.j2
-        #   include_role:
-        #     name: linux-system-roles.mssql
-        #     tasks_from: input_sql_files.yml
-
-        # - name: Add a listener with a different name
-        #   vars:
-        #     # noqa var-naming[no-role-prefix]
-        #     __mssql_sql_files_to_input:
-        #       - add_test_listener.j2
-        #   include_role:
-        #     name: linux-system-roles.mssql
-        #     tasks_from: input_sql_files.yml
-
-        # - name: Modify a listener
-        #   vars:
-        #     # noqa var-naming[no-role-prefix]
-        #     __mssql_sql_files_to_input:
-        #       - configure_listener.j2
-        #     mssql_tcp_port: 1435
-        #     mssql_ha_virtual_ip: 192.168.122.149
-        #   include_role:
-        #     name: linux-system-roles.mssql
-        #     tasks_from: input_sql_files.yml
-
-        # - name: Assert expected messages
-        #   assert:
-        #     that:
-        #       - >-
-        #         "Verifying the existing listener TEST-listener"
-        #         in __mssql_sqlcmd_input.stdout
-        #       - >-
-        #         "Modifying the listener port setting"
-        #         in __mssql_sqlcmd_input.stdout
-        #       - >-
-        #         "Set listener port to 1435 successfully"
-        #         in __mssql_sqlcmd_input.stdout
-        #       - >-
-        #         "Modifying the listener ip address setting"
-        #         in __mssql_sqlcmd_input.stdout
-        #       - >-
-        #         "Added listener ip address 192.168.122.149,255.255.255.0
-        #         successfully"
-        #         in __mssql_sqlcmd_input.stdout
-
-        # - name: Remove a listener to re-create with default values
-        #   vars:
-        #     # noqa var-naming[no-role-prefix]
-        #     __mssql_sql_files_to_input:
-        #       - remove_listener.j2
-        #     mssql_listener_name: TEST
-        #   include_role:
-        #     name: linux-system-roles.mssql
-        #     tasks_from: input_sql_files.yml
-
-        # - name: Add a listener with previous settings
-        #   vars:
-        #     # noqa var-naming[no-role-prefix]
-        #     __mssql_sql_files_to_input:
-        #       - configure_listener.j2
-        #   include_role:
-        #     name: linux-system-roles.mssql
-        #     tasks_from: input_sql_files.yml
-
-        # - name: Assert expected messages
-        #   assert:
-        #     that:
-        #       - >-
-        #         "Adding the {{ mssql_ha_ag_name }}-listener listener to the
-        #         {{ mssql_ha_ag_name }} availability group"
-        #         in __mssql_sqlcmd_input.stdout
-        #       - >-
-        #         "Added the {{ mssql_ha_ag_name }}-listener listener
-        #         successfully"
-        #         in __mssql_sqlcmd_input.stdout
-
-        - name: Add a listener when it exists
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - configure_listener.j2
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
-
-        - name: Assert expected messages
-          assert:
-            that:
-              - >-
-                "Verifying the existing listener
-                {{ mssql_ha_ag_name }}-listener"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "The port setting is already set correctly, skipping"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "The listener ip address setting is already set correctly,
-                skipping"
-                in __mssql_sqlcmd_input.stdout
-
-        # create_master_key_encryption.j2 template test
-        - name: Create a master key when it exists
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - create_master_key_encryption.j2
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
-
-        - name: Assert that creating is skipped
-          assert:
-            that: >-
-              "The provided master key password is correct"
-              in __mssql_sqlcmd_input.stdout
-
-        - name: Verify creating master key with incorrect password
-          block:
-            - name: Try creating master key with incorrect password
-              vars:
-                # noqa var-naming[no-role-prefix]
-                __mssql_sql_files_to_input:
-                  - create_master_key_encryption.j2
-                mssql_ha_master_key_password: "p@55w0rD11"
-              include_role:
-                name: linux-system-roles.mssql
-                tasks_from: input_sql_files.yml
-
-            - name: This task shouldn't execute
-              fail:
-          rescue:
-            - name: Assert the incorrect password error message
-              assert:
-                that: >-
-                  "You provided an incorrect master key password"
-                  in __mssql_sqlcmd_input.stdout
-
-        - name: Drop endpoint
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - create_master_key_encryption.j2
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
-
-        - name: Remove certs from SQL Server to verify re-creating master key
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - drop_cert.j2
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
-
-        - name: Remove certificate and private key
-          file:
-            path: "{{ item }}"
-            state: absent
-          loop:
-            - "{{ __mssql_ha_cert_dest }}"
-            - "{{ __mssql_ha_private_key_dest }}"
-
-        - name: >-
-            Verify creating master key with incorrect password and
-            mssql_ha_reset_cert set to true
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - create_master_key_encryption.j2
-            mssql_ha_master_key_password: "p@55w0rD11"
-            mssql_ha_reset_cert: true
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
-
-        - name: Assert the expected error message
-          assert:
-            that:
-              - >-
-                "dropping master key to re-create it"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "Master key dropped successfully"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "Master key created successfully"
-                in __mssql_sqlcmd_input.stdout
-
-        # # restore_cert.j2 template test
-        # - name: Create a certificate when it exists on secondary
-        #   when: mssql_ha_replica_type in ['synchronous', 'witness']
-        #   block:
-        #     - name: Input restore_cert.j2
-        #       vars:
-        #         __mssql_sql_files_to_input:
-        #           - restore_cert.j2
-        #       include_role:
-        #         name: linux-system-roles.mssql
-        #         tasks_from: input_sql_files.yml
-
-        #     - name: Assert the already exists message
-        #       assert:
-        #         that: >-
-        #           "Certificate {{ mssql_ha_cert_name }} already exists,
-        #           skipping"
-        #           in __mssql_sqlcmd_input.stdout
-
-        # create_and_back_up_cert.j2 template test
-        - name: Create and back up an existing and backed up certificate
-          when: mssql_ha_replica_type == 'primary'
-          block:
-            - name: Input create_and_back_up_cert.j2 to create cert
-              vars:
-                # noqa var-naming[no-role-prefix]
-                __mssql_sql_files_to_input:
-                  - create_and_back_up_cert.j2
-              include_role:
-                name: linux-system-roles.mssql
-                tasks_from: input_sql_files.yml
-
-            - name: Assert created successfully messages
-              assert:
-                that:
-                  - >-
-                    "Certificate {{ mssql_ha_cert_name }} created successfully"
-                    in __mssql_sqlcmd_input.stdout
-                  - >-
-                    "{{ __mssql_ha_cert_dest }} and
-                    {{ __mssql_ha_private_key_dest }} exported successfully"
-                    in __mssql_sqlcmd_input.stdout
-
-            - name: Input create_and_back_up_cert.j2 when cert exists
-              vars:
-                # noqa var-naming[no-role-prefix]
-                __mssql_sql_files_to_input:
-                  - create_and_back_up_cert.j2
-              include_role:
-                name: linux-system-roles.mssql
-                tasks_from: input_sql_files.yml
-
-            - name: Assert task skipping messages
-              assert:
-                that:
-                  - >-
-                    "Certificate {{ mssql_ha_cert_name }} already exists,
-                    skipping"
-                    in __mssql_sqlcmd_input.stdout
-                  - >-
-                    "{{ __mssql_ha_cert_dest }} and
-                    {{ __mssql_ha_private_key_dest }} already exist, skipping"
-                    in __mssql_sqlcmd_input.stdout
-
-            - name: Back up certificate and private key
-              copy:
-                remote_src: true
-                src: "{{ item }}"
-                dest: /tmp/{{ item | basename }}
-                mode: "0600"
-              loop:
-                - "{{ __mssql_ha_cert_dest }}"
-                - "{{ __mssql_ha_private_key_dest }}"
-
-            - name: Remove private key
-              file:
-                path: "{{ __mssql_ha_private_key_dest }}"
-                state: absent
-
-            - name: Input create_and_back_up_cert.j2
-              vars:
-                # noqa var-naming[no-role-prefix]
-                __mssql_sql_files_to_input:
-                  - create_and_back_up_cert.j2
-              include_role:
-                name: linux-system-roles.mssql
-                tasks_from: input_sql_files.yml
-
-            - name: Assert expected error messages
-              assert:
-                that:
-                  - >-
-                    "Certificate {{ mssql_ha_cert_name }} already exists,
-                    skipping"
-                    in __mssql_sqlcmd_input.stdout
-                  - >-
-                    "{{ __mssql_ha_private_key_dest }} does not exist while
-                    {{ __mssql_ha_cert_dest }} exists."
-                    in __mssql_sqlcmd_input.stdout
-
-            - name: Remove certificate
-              file:
-                path: "{{ __mssql_ha_cert_dest }}"
-                state: absent
-
-            - name: Return private key
-              copy:
-                remote_src: true
-                src: /tmp/{{ __mssql_ha_private_key_dest | basename }}
-                dest: "{{ __mssql_ha_private_key_dest }}"
-                mode: "0600"
-
-            - name: Input create_and_back_up_cert.j2
-              vars:
-                # noqa var-naming[no-role-prefix]
-                __mssql_sql_files_to_input:
-                  - create_and_back_up_cert.j2
-              include_role:
-                name: linux-system-roles.mssql
-                tasks_from: input_sql_files.yml
-
-            - name: Assert expected error messages
-              assert:
-                that:
-                  - >-
-                    "Certificate {{ mssql_ha_cert_name }} already exists,
-                    skipping"
-                    in __mssql_sqlcmd_input.stdout
-                  - >-
-                    "{{ __mssql_ha_cert_dest }} does not exist while
-                    {{ __mssql_ha_private_key_dest }} exists."
-                    in __mssql_sqlcmd_input.stdout
-
-            - name: Return certificate
-              copy:
-                remote_src: true
-                src: /tmp/{{ __mssql_ha_cert_dest | basename }}
-                dest: "{{ __mssql_ha_cert_dest }}"
-                mode: "0600"
-
-            - name: Drop certificate from SQL Server
-              vars:
-                # noqa var-naming[no-role-prefix]
-                __mssql_sql_files_to_input:
-                  - drop_cert.j2
-              include_role:
-                name: linux-system-roles.mssql
-                tasks_from: input_sql_files.yml
-
-            - name: Create cert when cert files exist and SQL cert does not
-              block:
-                - name: Input create_and_back_up_cert.j2
-                  vars:
-                    # noqa var-naming[no-role-prefix]
-                    __mssql_sql_files_to_input:
-                      - create_and_back_up_cert.j2
-                  include_role:
-                    name: linux-system-roles.mssql
-                    tasks_from: input_sql_files.yml
-
-                - name: Unreachable task
-                  fail:
-                    msg: The above task must fail
-              rescue:
-                - name: Assert expected error messages
-                  assert:
-                    that:
-                      - >-
-                        "Certificate {{ mssql_ha_cert_name }} does not exist in
-                        SQL Server, however, {{ __mssql_ha_cert_dest }} and/or
-                        {{ __mssql_ha_private_key_dest }} files do exist."
-                        in __mssql_sqlcmd_input.stdout
-
-            - name: Remove certificate and private key
-              file:
-                path: "{{ item }}"
-                state: absent
-              loop:
-                - "{{ __mssql_ha_cert_dest }}"
-                - "{{ __mssql_ha_private_key_dest }}"
-
-            - name: Ensure that certificates exist
-              vars:
-                # noqa var-naming[no-role-prefix]
-                __mssql_sql_files_to_input:
-                  - create_and_back_up_cert.j2
-              include_role:
-                name: linux-system-roles.mssql
-                tasks_from: input_sql_files.yml
-
-            - name: Assert expected messages
-              assert:
-                that: >-
-                  "Certificate {{ mssql_ha_cert_name }} created successfully"
-                  in __mssql_sqlcmd_input.stdout
-
-        # create_ha_login.j2 template test
-        - name: Create a login when it already exists {{ mssql_ha_login }}
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - create_ha_login.j2
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
-
-        - name: Assert task skipping messages
-          assert:
-            that:
-              - >-
-                "A {{ mssql_ha_login }} login already exists, skipping"
-                in __mssql_sqlcmd_input.stdout
-              - >-
-                "{{ mssql_ha_login }} is a member of sysadmin role, skipping"
-                in __mssql_sqlcmd_input.stdout
-
-        # replicate_db.j2 template test
-        - name: Replicate database what it is already replicated
-          when: mssql_ha_replica_type == 'primary'
-          block:
-            - name: Input replicate_db.j2
-              vars:
-                # noqa var-naming[no-role-prefix]
-                __mssql_sql_files_to_input:
-                  - replicate_db.j2
-              include_role:
-                name: linux-system-roles.mssql
-                tasks_from: input_sql_files.yml
-
-            - name: Assert task skipping messages
-              assert:
-                that:
-                  - >-
-                    "RECOVERY FULL on the ExampleDB1 database is set, skipping"
-                    in __mssql_sqlcmd_input.stdout
-                  - >-
-                    "The ExampleDB1 database is already backed up, skipping"
-                    in __mssql_sqlcmd_input.stdout
-                  - >-
-                    "The ExampleDB1 database is already added to the ExampleAG
-                    availability group, skipping"
-                    in __mssql_sqlcmd_input.stdout
-                  - >-
-                    "RECOVERY FULL on the ExampleDB2 database is set, skipping"
-                    in __mssql_sqlcmd_input.stdout
-                  - >-
-                    "The ExampleDB2 database is already backed up, skipping"
-                    in __mssql_sqlcmd_input.stdout
-                  - >-
-                    "The ExampleDB2 database is already added to the ExampleAG
-                    availability group, skipping"
-                    in __mssql_sqlcmd_input.stdout
-
-        # configure_ag.yml template test
-        - name: Ensure endpoint exists
-          vars:
-            # noqa var-naming[no-role-prefix]
-            __mssql_sql_files_to_input:
-              - configure_endpoint.j2
-          include_role:
-            name: linux-system-roles.mssql
-            tasks_from: input_sql_files.yml
-
-        - name: Test configure_ag.yml on primary
-          when: mssql_ha_replica_type == 'primary'
-          block:
-            - name: Input configure_ag.yml when AG exists
-              vars:
-                # noqa var-naming[no-role-prefix]
-                __mssql_sql_files_to_input:
-                  - configure_ag.j2
-              include_role:
-                name: linux-system-roles.mssql
-                tasks_from: input_sql_files.yml
-
-            - name: Assert task skipping messages
-              assert:
-                that:
-                  - >-
-                    "DB_FAILOVER = ON is already set, skipping"
-                    in __mssql_sqlcmd_input.stdout
-                  - >-
-                    "The ENDPOINT_URL setting on this
-                    {{ mssql_ha_replica_type }} replica is already set
-                    correctly, skipping"
-                    in __mssql_sqlcmd_input.stdout
-                  - >-
-                    "The FAILOVER_MODE setting on this
-                    {{ mssql_ha_replica_type }} replica is already set
-                    correctly, skipping"
-                    in __mssql_sqlcmd_input.stdout
-                  - >-
-                    "The SEEDING_MODE setting on this
-                    {{ mssql_ha_replica_type }} replica is already set
-                    correctly, skipping"
-                    in __mssql_sqlcmd_input.stdout
-                  - >-
-                    "The SECONDARY_ROLE (ALLOW_CONNECTIONS = ALL) setting on
-                    this {{ mssql_ha_replica_type }} replica is already set
-                    correctly"
-                    in __mssql_sqlcmd_input.stdout
-
-            # Using mssql_ha_ag_name: ag2 because running tasks against ag1
-            # fails with "Replica not Primary"
-            - name: Verify configuration of a new ag2
-              vars:
-                # noqa var-naming[no-role-prefix]
-                __mssql_sql_files_to_input:
-                  - configure_ag_cluster_type_none.j2
-                mssql_ha_ag_name: ag2
-              block:
-                - name: Configure AG with CLUSTER_TYPE = NONE
-                  include_role:
-                    name: linux-system-roles.mssql
-                    tasks_from: input_sql_files.yml
-
-                - name: Input configure_ag.yml with CLUSTER_TYPE = NONE
-                  vars:
-                    # noqa var-naming[no-role-prefix]
-                    __mssql_sql_files_to_input:
-                      - configure_ag.j2
-                  include_role:
-                    name: linux-system-roles.mssql
-                    tasks_from: input_sql_files.yml
-
-                - name: Assert task skipping messages
-                  assert:
-                    that:
-                      - >-
-                        "The existing {{ mssql_ha_ag_name }} availability group
-                        has incorrect cluster type set, dropping the group to
-                        re-create it"
-                        in __mssql_sqlcmd_input.stdout
-                      - >-
-                        "The {{ mssql_ha_ag_name }} availability group dropped
-                        successfully"
-                        in __mssql_sqlcmd_input.stdout
-                      - >-
-                        "The {{ mssql_ha_ag_name }} availability group created
-                        successfully"
-                        in __mssql_sqlcmd_input.stdout
-
-                - name: Alter AG
-                  vars:
-                    # noqa var-naming[no-role-prefix]
-                    __mssql_sql_files_to_input:
-                      - alter_ag.j2
-                  include_role:
-                    name: linux-system-roles.mssql
-                    tasks_from: input_sql_files.yml
-
-                - name: Input configure_ag.yml to configure ag properly
-                  vars:
-                    # noqa var-naming[no-role-prefix]
-                    __mssql_sql_files_to_input:
-                      - configure_ag.j2
-                  include_role:
-                    name: linux-system-roles.mssql
-                    tasks_from: input_sql_files.yml
-
-                - name: Assert task skipping messages
-                  assert:
-                    that:
-                      - >-
-                        "Verifying the existing availability group
-                        {{ mssql_ha_ag_name }}"
-                        in __mssql_sqlcmd_input.stdout
-                      - >-
-                        "The ENDPOINT_URL setting on this
-                        {{ mssql_ha_replica_type }} replica configured
-                        successfully"
-                        in __mssql_sqlcmd_input.stdout
-                      - >-
-                        "The FAILOVER_MODE setting on this
-                        {{ mssql_ha_replica_type }} replica is already set
-                        correctly, skipping"
-                        in __mssql_sqlcmd_input.stdout
-                      - >-
-                        "The SEEDING_MODE setting on this
-                        {{ mssql_ha_replica_type }} replica configured
-                        successfully"
-                        in __mssql_sqlcmd_input.stdout
-                      - >-
-                        "The SECONDARY_ROLE (ALLOW_CONNECTIONS = ALL) setting on
-                        this {{ mssql_ha_replica_type }} replica configured
-                        successfully"
-                        in __mssql_sqlcmd_input.stdout
+        - name: Clear constraints for the virtualip resource
+          command: pcs resource clear virtualip
+          changed_when: true
       always:
         - name: Clean up after the role invocation
           include_tasks: tasks/cleanup.yml

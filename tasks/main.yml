@@ -5,9 +5,10 @@
 
 # This is required to prevent the role from using a __mssql_sqlcmd_login_cmd
 # variable value from a previous role invocation
-- name: Unset the __mssql_sqlcmd_login_cmd fact
+- name: Unset internal role facts
   set_fact:
     __mssql_sqlcmd_login_cmd: null
+    __mssql_is_active: null
 
 - name: Link the deprecated mssql_input_sql_file fact
   when: mssql_input_sql_file is defined
@@ -165,6 +166,28 @@
       mssql_run_selinux_confined is set to true. You must either set both
       variables to true or to false.
 
+- name: Verify that mssql_ha_ag_is_contained is not provided with version 2017
+  when:
+    - mssql_ha_ag_is_contained | bool
+    - mssql_version is version('2022', '<')
+  fail:
+    msg: >-
+      mssql_ha_ag_is_contained is not supported on SQL Server < 2022.
+      SQL Server 2019 and greater supports mssql_ha_ag_is_contained.
+      You must either upgrade to a greater version or set
+      mssql_ha_ag_is_contained to false.
+
+- name: Verify fail reuse_system_db=true is not provided without ag_is_contained
+  when:
+    - not mssql_ha_ag_is_contained
+    - mssql_ha_ag_reuse_system_db | bool
+  fail:
+    msg: >-
+      mssql_ha_ag_reuse_system_db is not appilcable when
+      mssql_ha_ag_is_contained = false. You must either set
+      mssql_ha_ag_reuse_system_db to false or set mssql_ha_ag_is_contained
+      to true.
+
 - name: Gather package facts
   package_facts:
   no_log: "{{ __mssql_gather_facts_no_log | d(false) }}"
@@ -177,6 +200,19 @@
     - ansible_facts.packages["mssql-server"][0]["version"].split(".")
       | first | int == item.value
   with_dict: "{{ __mssql_version_package_mapping }}"
+
+- name: >-
+    Verify if mssql_version is not bigger then the existing SQL Server version
+  fail:
+    msg: >-
+      You set mssql_version to {{ mssql_version }}, but your SQL Server is
+      version {{ __mssql_current_version }}. You must either set mssql_upgrade
+      to true to upgrade or not set the mssql_version variable"
+  when:
+    - not mssql_upgrade
+    - mssql_version is not none
+    - __mssql_current_version is defined
+    - mssql_version | int > __mssql_current_version | int
 
 - name: Set mssql_version variable if user does not define it
   set_fact:
@@ -1121,21 +1157,30 @@
         - "{{ ansible_failed_result.stdout_lines }}"
 
 - name: Configure for high availability
-  any_errors_fatal: true
   when: mssql_ha_configure | bool
   block:
-    - name: Verify that hosts with mssql_ha_replica_type=primary is available
-      assert:
-        that: ansible_play_hosts |
-            map('extract', hostvars, 'mssql_ha_replica_type') |
-            select('match', '^primary$') |
-            list |
-            length == 1
-        fail_msg:
-          - Host with mssql_ha_replica_type=primary failed earlier in the play.
-          - Therefore, it is not possible to configure for high availability.
-          - Fix the above error on the primary replica and re-run the role.
+    - name: Mark active hosts
+      set_fact:
+        __mssql_is_active: true
+
+    - name: Fail if any hosts are no longer active
       run_once: true
+      vars:
+        hostvars_list: "{{ ansible_play_hosts_all | map('extract', hostvars) | list }}"
+        active_hosts: >-
+          {{ hostvars_list
+            | selectattr('__mssql_is_active', 'defined')
+            | selectattr('__mssql_is_active')
+            | map(attribute='inventory_hostname')
+            | list }}
+        failed_hosts: "{{ ansible_play_hosts_all | difference(active_hosts) }}"
+      fail:
+        msg: "These hosts are no longer active: {{ failed_hosts | join(', ') }}"
+      when: failed_hosts | length > 0
+
+    - name: Unset __mssql_is_active
+      set_fact:
+        __mssql_is_active: null
 
     - name: Open required firewall ports and set required facts
       block:
@@ -1314,11 +1359,11 @@
 
         - name: Verify that primary instance hosts is available
           assert:
-            that: ansible_play_hosts |
-                map('extract', hostvars, '__mssql_ha_is_primary') |
-                select('match', '^[Tt]rue$') |
-                list |
-                length == 1
+            that: ansible_play_hosts
+              | map('extract', hostvars, '__mssql_ha_is_primary')
+              | select
+              | list
+              | length == 1
             fail_msg:
               - The role was not able to identify primary replica.
           run_once: true
@@ -1354,6 +1399,25 @@
               - replicate_db.j2
           include_tasks: input_sql_files.yml
 
+    - name: Mark active hosts
+      set_fact:
+        __mssql_is_active: true
+
+    - name: Fail if any hosts are no longer active
+      run_once: true
+      vars:
+        hostvars_list: "{{ ansible_play_hosts_all | map('extract', hostvars) | list }}"
+        active_hosts: >-
+          {{ hostvars_list
+            | selectattr('__mssql_is_active', 'defined')
+            | selectattr('__mssql_is_active')
+            | map(attribute='inventory_hostname')
+            | list }}
+        failed_hosts: "{{ ansible_play_hosts_all | difference(active_hosts) }}"
+      fail:
+        msg: "These hosts are no longer active: {{ failed_hosts | join(', ') }}"
+      when: failed_hosts | length > 0
+
     # In the case of fail over when primary is moved grant permission task above
     # is not run on primary above hence we need to run it separately
     - name: Grant permissions to HA login
@@ -1369,19 +1433,6 @@
     - name: Configure availability group on not primary replicas
       when: mssql_ha_replica_type in __mssql_ha_replica_types_secondary
       block:
-        - name: Verify that hosts with replica_type=primary is available
-          assert:
-            that: ansible_play_hosts |
-                map('extract', hostvars, 'mssql_ha_replica_type') |
-                select('match', '^primary$') |
-                list |
-                length == 1
-            fail_msg:
-              - Host with mssql_ha_replica_type=primary failed earlier
-              - Therefore, it is not possible to configure for high availability
-              - Fix the above error on the primary replica and re-run the role
-          run_once: true
-
         - name: Ensure the package {{ __mssql_server_ha_packages }}
           package:
             name: "{{ __mssql_server_ha_packages }}"

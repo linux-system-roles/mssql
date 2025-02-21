@@ -864,6 +864,28 @@ Default: `[]`
 
 Type: `list`
 
+#### mssql_ha_ag_is_contained
+
+Whether to configure the availability group provided with [mssql_ha_ag_name](#mssql_ha_ag_name) as contained.
+
+This is supported since SQL Server version 2022.
+
+Default: `false`
+
+Type: `bool`
+
+#### mssql_ha_ag_reuse_system_db
+
+Only applicable when [mssql_ha_ag_is_contained](#mssql_ha_ag_is_contained) is true.
+
+Whether to configure the availability group provided with [mssql_ha_ag_name](#mssql_ha_ag_name) with the reuse_system_db setting.
+
+This is supported since SQL Server version 2022.
+
+Default: `false`
+
+Type: `bool`
+
 ### Configuring Pacemaker Variables
 
 With these variables, you can specify whether to configure Pacemaker HA solution and its configuration.
