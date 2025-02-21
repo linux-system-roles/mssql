@@ -1,6 +1,18 @@
 {% if mssql_ha_db_names | length > 0 %}
 {%   for item in mssql_ha_db_names %}
 {%     set db_backup_path = "/var/opt/mssql/data/" + item %}
+if not exists (
+select name
+from sys.databases
+where name = '{{ item }}'
+)
+begin
+  print 'create database if not exists'
+  create database {{ item }}
+  print 'create database successfully'
+end
+
+
 IF NOT EXISTS (
   SELECT name, recovery_model_desc
   FROM sys.databases
