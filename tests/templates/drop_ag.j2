@@ -4,7 +4,7 @@ IF EXISTS (
   WHERE name = '{{ mssql_ha_ag_name }}'
 )
 BEGIN
-  DROP AVAILABILITY GROUP ag1;
+  DROP AVAILABILITY GROUP [{{ mssql_ha_ag_name }}];
   PRINT 'The {{ mssql_ha_ag_name }} availability group dropped successfully';
 END
 ELSE

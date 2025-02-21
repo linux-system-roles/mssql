@@ -17,6 +17,23 @@ BEGIN
   PRINT 'RECOVERY FULL on the {{ item }} database is set, skipping';
 END
 
+IF EXISTS (
+  SELECT name, state_desc
+  FROM sys.databases
+  WHERE state_desc = 'RESTORING'
+    AND name='{{ item }}'
+)
+BEGIN
+  PRINT 'The {{ item }} database is in restoring state, running restore with \
+recovery to add it to AG after';
+  RESTORE DATABASE [{{ item }}] WITH RECOVERY;
+  PRINT 'The {{ item }} database restored with recovery successfully';
+END
+ELSE
+BEGIN
+  PRINT 'The {{ item }} database is already online, skipping';
+END
+
 IF NOT EXISTS (
   SELECT [database_name], backup_start_date, backup_finish_date, [type]
   FROM msdb.dbo.backupset

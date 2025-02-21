@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: MIT
+---
+- name: Verify that contained AG is configured
+  vars:
+    __mssql_sql_files_to_input:
+      - ag_is_contained.j2
+  include_role:
+    name: linux-system-roles.mssql
+    tasks_from: input_sql_files.yml
+    public: true
+
+- name: Assert the contained status equals {{ __mssql_is_contained }}
+  assert:
+    that: __mssql_is_contained == __mssql_sqlcmd_input.stdout | int
