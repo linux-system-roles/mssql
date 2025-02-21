@@ -209,6 +209,18 @@ successfully';
 {% endfor %}
 END
 
+{% if not mssql_ha_ag_is_contained %}
+{% set is_contained = "" %}
+{% elif mssql_ha_ag_is_contained %}
+{% set is_contained = ",CONTAINED" %}
+{% endif %}
+
+{% if not mssql_ha_ag_reuse_system_db %}
+{% set is_reuse_system_db = "" %}
+{% elif mssql_ha_ag_reuse_system_db %}
+{% set is_reuse_system_db = ",REUSE_SYSTEM_DATABASES" %}
+{% endif %}
+
 IF NOT EXISTS (
   SELECT name, cluster_type_desc
   FROM sys.availability_groups
