@@ -41,7 +41,8 @@
     mssql_edition: 2Q48Q-PB48J-DRCVN-GB844-X2H4Q
     mssql_datadir: "/data/mssql/1433/database/"
     mssql_logdir: "/data/mssql/1433/database/"
-    #mssql_pre_input_sql_content: "USE MASTER;CREATE DATABASE ExampleDB2;BACKUP DATABASE ExampleDB2 TO DISK='nil'with compression;"
+    # mssql_pre_input_sql_content: "USE MASTER;CREATE DATABASE ExampleDB2;BACKUP DATABASE ExampleDB2 TO DISK='nil'with compression;"
+
     mssql_manage_firewall: true
     mssql_run_selinux_confined: false
     mssql_ha_configure: true
