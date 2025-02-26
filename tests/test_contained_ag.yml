@@ -28,7 +28,9 @@
 #        corosync_addresses:
 #          - 192.168.200.138
 #
-- hosts: all
+---
+- name: Test contained AG
+  hosts: all
   vars:
     mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula: true
     mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
