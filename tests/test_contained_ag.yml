@@ -97,7 +97,7 @@
                 value: 30s
     ha_cluster_resource_clones:
       - resource_id: ag_cluster
-        promotable: yes
+        promotable: true
         meta_attrs:
           - attrs:
               - name: notify
