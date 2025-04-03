@@ -956,7 +956,6 @@ Default: `false`
 Type: `bool`
 
 
-
 ### Always On Availability Group Example Playbooks
 
 Examples in this section show how to use the role to configure SQL Server and configure it for high availability in different environments.
