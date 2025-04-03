@@ -788,7 +788,7 @@ Read only routing list in availability group for when the replica is primary rol
 
 If variable is undefined will not set read only routing list.
 
-See the doc from microsoft  https://learn.microsoft.com/zh-cn/sql/database-engine/availability-groups/windows/configure-read-only-routing-for-an-availability-group-sql-server?view=sql-server-ver16
+See the [doc from microsoft](https://learn.microsoft.com/en-us/sql/database-engine/availability-groups/windows/configure-read-only-routing-for-an-availability-group-sql-server?view=sql-server-ver16)
 
 The example: 'node-4','node-6' or ('node-4','node-6')
 
