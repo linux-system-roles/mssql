@@ -882,7 +882,6 @@ Default: `false`
 
 Type: `bool`
 
-
 ### Configuring Pacemaker Variables
 
 With these variables, you can specify whether to configure Pacemaker HA solution and its configuration.
