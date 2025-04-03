@@ -1,4 +1,5 @@
-#all:
+# all:
+
 #  hosts:
 #    192.168.200.136:
 #      ansible_user: root
