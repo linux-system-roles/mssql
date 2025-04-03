@@ -876,7 +876,7 @@ Type: `bool`
 
 #### mssql_ha_ag_reuse_system_db
 
-if true, the contained ag will be reuse system database 
+if true, the contained ag will be reuse system database
 
 Default: `false`
 
