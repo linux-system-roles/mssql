@@ -218,7 +218,7 @@
   when:
     - __mssql_current_version is defined
     - mssql_upgrade | bool
-    - ansible_pkg_mgr in ["yum", "dnf"]
+    - ansible_pkg_mgr in ["yum", "dnf", "dnf5"]
   block:
     # This works only on systems that use yum or dnf
     - name: >-
@@ -291,7 +291,7 @@
     baseurl: "{{ mssql_server_repository }}"
     gpgcheck: true
   when:
-    - ansible_pkg_mgr in ["yum", "dnf"]
+    - ansible_pkg_mgr in ["yum", "dnf", "dnf5"]
     - >-
       (__mssql_server_packages not in ansible_facts.packages) or
       (mssql_upgrade | bool)
@@ -493,7 +493,7 @@
     description: Microsoft SQL Server Tools
     baseurl: "{{ mssql_client_repository }}"
     gpgcheck: true
-  when: ansible_pkg_mgr in ["yum", "dnf"]
+  when: ansible_pkg_mgr in ["yum", "dnf", "dnf5"]
 
 - name: Configure the Microsoft SQL Server Tools repository # noqa command-instead-of-module
   command: >-
