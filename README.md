@@ -864,6 +864,24 @@ Default: `[]`
 
 Type: `list`
 
+#### mssql_ha_ag_is_contained
+
+if true, the ag created will be contained
+
+if false, the var mssql_ha_ag_reuse_system_db will be false
+
+Default: `false`
+
+Type: `bool`
+
+#### mssql_ha_ag_reuse_system_db
+
+if true, the contained ag will be reuse system database
+
+Default: `false`
+
+Type: `bool`
+
 ### Configuring Pacemaker Variables
 
 With these variables, you can specify whether to configure Pacemaker HA solution and its configuration.
