@@ -23,4 +23,6 @@
 - name: Reload service daemon
   systemd:  # noqa no-handler
     daemon_reload: true
-  when: __mssql_modify_limit is changed
+  when:
+    - __mssql_modify_limit is changed
+    - __mssql_is_booted | d(true)
