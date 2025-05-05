@@ -79,6 +79,7 @@
 - name: Stop the mssql-server service  # noqa command-instead-of-module
   shell: systemctl stop mssql-server || true
   changed_when: false
+  when: __mssql_is_booted | bool
 
 - name: Get SELinux policy modules
   command: semodule -l

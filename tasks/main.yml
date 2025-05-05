@@ -384,6 +384,11 @@
       register: __mssql_conf_setup
       no_log: true
       changed_when: true
+      # in non-booted mode this tries to start the server, which fails; it
+      # still configures things before, so tolerate that
+      failed_when: >-
+        (__mssql_is_booted and __mssql_conf_setup.rc != 0) or
+        (not __mssql_is_booted and __mssql_conf_setup.rc not in [0, 1])
       until: >-
         "Initial setup of Microsoft SQL Server failed."
         not in __mssql_conf_setup.stdout and
@@ -447,27 +452,32 @@
 - name: Ensure that the tuned service is started and enabled
   service:
     name: tuned
-    state: started
+    state: "{{ 'started' if __mssql_is_booted else omit }}"
     enabled: true
   when: __mssql_tuned_supported | bool
 
 - name: Get the active Tuned profiles
-  command: tuned-adm active
-  changed_when: false
-  register: __mssql_tuned_active_profiles
+  slurp:
+    path: /etc/tuned/active_profile
+  register: __mssql_tuned_active_profiles_b64
+  when: __mssql_tuned_supported | bool
+
+- name: Decode the active Tuned profiles
+  set_fact:
+    __mssql_tuned_active_profiles: "{{ __mssql_tuned_active_profiles_b64.content | b64decode | trim }}"
   when: __mssql_tuned_supported | bool
 
 # adding the mssql profile to the end of the list ensures
 # that it overrides conflicting settings in other profiles
-- name: Add mssql to the list of Tuned profiles
+- name: Add mssql to the list of Tuned profiles on booted systems
   when:
+    - __mssql_is_booted | bool
     - __mssql_tuned_supported | bool
-    - '"mssql" not in __mssql_tuned_active_profiles.stdout'
+    - '"mssql" not in __mssql_tuned_active_profiles'
   block:
     - name: Attempt to add mssql to the list of Tuned profiles
       command: >-
-        tuned-adm profile {{ __mssql_tuned_active_profiles.stdout
-        | regex_replace('^Current active profile: ', '') }} mssql
+        tuned-adm profile {{ __mssql_tuned_active_profiles }} mssql
       register: __mssql_tuned_adm_profile
       changed_when: __mssql_tuned_adm_profile.stderr | length == 0
       failed_when: false
@@ -488,13 +498,28 @@
 
     - name: Add the fixed mssql profile to the list of Tuned profiles
       command: >-
-        tuned-adm profile {{ __mssql_tuned_active_profiles.stdout |
-        regex_replace('^Current active profile: ', '') }} mssql
+        tuned-adm profile {{ __mssql_tuned_active_profiles }} mssql
       when: >-
         "Cannot find profile 'throughput-performance'" in
         __mssql_tuned_adm_profile.stderr
       register: __mssql_tuned_adm_profile
       changed_when: __mssql_tuned_adm_profile.stderr | length == 0
+
+# Once the above hack gets dropped, this can become the primary method of
+# changing the profile; restart tuned.service on booted systems then
+- name: Add mssql to the list of Tuned profiles on non-booted systems
+  when:
+    - not __mssql_is_booted | bool
+    - __mssql_tuned_supported | bool
+    - '"mssql" not in __mssql_tuned_active_profiles'
+  block:
+    - name: Attempt to add mssql to the list of Tuned profiles
+      copy:
+        dest: /etc/tuned/active_profile
+        content: "{{ __mssql_tuned_active_profiles }} mssql"
+        owner: root
+        group: root
+        mode: "0644"
 
 - name: Configure the Microsoft SQL Server Tools repository
   yum_repository:
@@ -654,12 +679,15 @@
         "TCP Provider: Error code 0x2749" not in __mssql_password_query.stdout
         and
         "TCP Provider: Error code 0x2749" not in __mssql_password_query.stderr
+      when: __mssql_is_booted | bool
 
     - name: Ensure that the mssql-server service is stopped
       service:
         name: mssql-server
         state: stopped
-      when: __mssql_password_query is failed
+      when:
+        - __mssql_is_booted | bool
+        - __mssql_password_query is failed
       notify: Restart the mssql-server service
 
     - name: Gather package facts
@@ -674,7 +702,7 @@
           shell: >-
             MSSQL_SA_PASSWORD={{ mssql_password | quote }}
             {{ __mssql_conf_cli }} --noprompt set-sa-password
-          when: __mssql_password_query is failed
+          when: (not __mssql_is_booted) or (__mssql_password_query is failed)
           notify: Restart the mssql-server service
           register: __mssql_set_ha_password
           no_log: true
@@ -700,7 +728,9 @@
       else
       [mssql_pre_input_sql_file] }}"
   include_tasks: input_sql_files.yml
-  when: mssql_pre_input_sql_file != []
+  when:
+    - __mssql_is_booted | bool
+    - mssql_pre_input_sql_file != []
 
 # Input content as list even when provided as a string
 - name: Pre-input SQL script contents to SQL Server
@@ -711,7 +741,9 @@
       else
       [mssql_pre_input_sql_content] }}"
   include_tasks: input_sql_files.yml
-  when: mssql_pre_input_sql_content != []
+  when:
+    - __mssql_is_booted | bool
+    - mssql_pre_input_sql_content != []
 
 - name: Set a new edition for MSSQL
   when:
@@ -731,12 +763,15 @@
       register: __mssql_edition_matches
       changed_when: false
       check_mode: false
+      when: __mssql_is_booted | bool
 
     - name: Ensure that the mssql-server service is stopped
       service:
         name: mssql-server
         state: stopped
-      when: not __mssql_edition_matches.stdout | bool
+      when:
+        - __mssql_is_booted | bool
+        - not __mssql_edition_matches.stdout | bool
       notify: Restart the mssql-server service
 
     - name: Gather package facts
@@ -751,7 +786,7 @@
             MSSQL_PID: "{{ mssql_edition }}"
           register: __mssql_conf_set_edition
           changed_when: '"The new edition" in __mssql_conf_set_edition.stdout'
-          when: not __mssql_edition_matches.stdout | bool
+          when: not __mssql_is_booted or not __mssql_edition_matches.stdout | bool
           notify: Restart the mssql-server service
           no_log: true
       rescue:
@@ -1196,8 +1231,10 @@
             name: mssql-server
             state: restarted
           # noqa no-handler
-          when: (__mssql_conf_set is changed) or
-            (__mssql_server_ha_packages_install | d({}) is changed)
+          when:
+            - __mssql_is_booted | bool
+            - (__mssql_conf_set is changed) or
+              (__mssql_server_ha_packages_install | d({}) is changed)
 
         - name: Remove certificates
           when: mssql_ha_reset_cert | bool
@@ -1364,9 +1401,10 @@
             name: mssql-server
             state: restarted
           # noqa no-handler
-          when: (__mssql_conf_set is changed) or
-            (__mssql_server_ha_packages_install | d({}) is changed)
-          register: __mssql_replica_restarted
+          when:
+            - __mssql_is_booted | bool
+            - (__mssql_conf_set is changed) or
+              (__mssql_server_ha_packages_install | d({}) is changed)
 
         - name: Remove certificate from SQL Server
           vars:

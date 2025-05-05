@@ -14,6 +14,9 @@
 ---
 - name: Verify HA functionality with external clusters and templates
   hosts: all
+  tags:
+    # this test doesn't work in container builds
+    - tests::booted
   vars:
     __mssql_single_node_test: "{{ ansible_play_hosts_all | length == 1 }}"
     mssql_debug: true
