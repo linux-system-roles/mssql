@@ -22,6 +22,7 @@ galaxy_info:
         - "15.5"
   galaxy_tags:
     - centos
+    - containerbuild
     - database
     - el7
     - el8
