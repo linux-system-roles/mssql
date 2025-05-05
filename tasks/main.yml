@@ -335,18 +335,27 @@
   register: __mssql_errorlog
   check_mode: false
 
-- name: Gather system services facts
-  service_facts:
-  no_log: "{{ __mssql_gather_facts_no_log | d(false) }}"
+  # service_facts does not work in non-booted systems
+- name: Check if mssql-server.service is enabled
+  # noqa command-instead-of-module
+  command: systemctl is-enabled mssql-server.service
+  register: __mssql_service_enabled
+  changed_when: false
+  failed_when: false
+
+- name: Check if mssql-server.service is running
+  # noqa command-instead-of-module
+  command: systemctl is-active mssql-server.service
+  register: __mssql_service_active
+  changed_when: false
+  failed_when: false
 
 - name: Set the __mssql_is_setup variable
   set_fact:
     __mssql_is_setup: >-
-      {{ ('running' in
-      ansible_facts['services']['mssql-server.service']['state']) or
-      ('enabled' in
-      ansible_facts['services']['mssql-server.service']['status']) or
-      (__mssql_errorlog.stdout | length > 0) }}
+      {{ (__mssql_service_enabled.rc == 0) or
+         (__mssql_service_active.rc == 0) or
+         (__mssql_errorlog.stdout | length > 0) }}
 
 - name: Verify that the variables required for setting up MSSQL are defined
   when: not __mssql_is_setup
