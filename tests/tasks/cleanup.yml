@@ -45,7 +45,7 @@
   package:
     name:
       - adutil
-      - mssql-server
+      - mssql-server*
       - mssql-tools*
       - unixODBC-devel
       - mssql-server-fts
