@@ -1,22 +1,26 @@
 # SPDX-License-Identifier: MIT
 ---
-- name: Modify the mssql-server service start limit interval
-  replace:
-    path: /etc/systemd/system/multi-user.target.wants/mssql-server.service
-    regexp: StartLimitInterval.*
-    replace: StartLimitInterval=0
-  register: __mssql_modify_limit_interval
+- name: Create service drop-in directory
+  file:
+    path: /etc/systemd/system/mssql-server.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
 
-- name: Modify the mssql-server service start limit burst
-  replace:
-    path: /etc/systemd/system/multi-user.target.wants/mssql-server.service
-    regexp: StartLimitBurst.*
-    replace: StartLimitBurst=0
-  register: __mssql_modify_limit_burst
+- name: Modify the mssql-server service start limit interval and burst
+  copy:
+    dest: /etc/systemd/system/mssql-server.service.d/startlimit.conf
+    content: |
+      [Service]
+      StartLimitInterval=0
+      StartLimitBurst=0
+    owner: root
+    group: root
+    mode: "0644"
+  register: __mssql_modify_limit
 
 - name: Reload service daemon
   systemd:  # noqa no-handler
     daemon_reload: true
-  when: >
-    (__mssql_modify_limit_interval is changed) or
-    (__mssql_modify_limit_burst is changed)
+  when: __mssql_modify_limit is changed
