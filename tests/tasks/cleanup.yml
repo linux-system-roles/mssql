@@ -63,6 +63,7 @@
     /tmp/*.j2
     /tmp/mssql_data
     /tmp/mssql_log
+    /etc/systemd/system/mssql-server.service.d
     /etc/systemd/system/multi-user.target.wants/mssql-server.service
   register: __mssql_cleanup_remove
   changed_when: "'removed' in __mssql_cleanup_remove.stdout"
