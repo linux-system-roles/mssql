@@ -28,6 +28,7 @@
     selinux_all_purge: true
   include_role:
     name: fedora.linux_system_roles.selinux
+  when: mssql_manage_selinux | d(false) | bool
 
 - name: Leave realm
   command: realm leave
@@ -72,3 +73,26 @@
 - name: Stop the mssql-server service  # noqa command-instead-of-module
   shell: systemctl stop mssql-server || true
   changed_when: false
+
+- name: Get SELinux policy modules
+  command: semodule -l
+  changed_when: false
+  register: __mssql_policy_loaded
+
+# not installed in Fedora by default
+- name: Ensure that semanage command is available
+  package:
+    name: policycoreutils-python-utils
+    state: present
+  when: "'mssql' in __mssql_policy_loaded.stdout_lines"
+
+# removing the mssql-server-selinux package fails to actually remove the
+# policy (and ignores the failure)
+- name: Hack around broken mssql SELinux profile and actually remove it
+  shell: |-
+    set -eux
+    semanage fcontext -D
+    semanage port -D
+    semodule --priority=200 -r mssql
+  changed_when: true
+  when: "'mssql' in __mssql_policy_loaded.stdout_lines"
