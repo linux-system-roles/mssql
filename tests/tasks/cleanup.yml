@@ -96,3 +96,21 @@
     semodule --priority=200 -r mssql
   changed_when: true
   when: "'mssql' in __mssql_policy_loaded.stdout_lines"
+
+- name: Check for leftover mssql processes
+  command: pgrep -au mssql
+  register: __mssql_processes
+  changed_when: false
+  # 0: found, 1: no processes, 2: user mssql does not exist
+  failed_when: not __mssql_processes.rc in [0, 1, 2]
+
+- name: Kill leftover mssql processes
+  command: pkill --signal KILL -e -u mssql
+  changed_when: true
+  when: __mssql_processes.rc == 0
+
+- name: Remove system user
+  user:
+    name: mssql
+    state: absent
+    remove: true
