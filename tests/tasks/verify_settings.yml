@@ -90,11 +90,28 @@
         tasks_from: verify_password
         public: true
 
-    - name: Wait for mssql-server to prepare for client connections
-      wait_for:
-        path: /var/opt/mssql/log/errorlog
-        search_regex: SQL Server is now ready for client connections
-        delay: 1
+    - name: Wait for mssql-server to get ready
+      block:
+        - name: Wait for mssql-server to prepare for client connections
+          wait_for:
+            path: /var/opt/mssql/log/errorlog
+            search_regex: SQL Server is now ready for client connections
+            delay: 1
+      rescue:
+        - name: Show log file for debugging
+          command: cat /var/opt/mssql/log/errorlog
+          changed_when: false
+
+        - name: Show process status
+          shell: |
+            set -euo pipefail
+            systemctl status mssql-server || true
+            pgrep -au mssql || true
+          changed_when: false
+
+        - name: Fail the waiting
+          fail:
+            msg: '"ready for client connections" did not appear in above log'
 
     - name: Check if the set password matches the existing password
       command: "{{ __mssql_sqlcmd_login_cmd }} -Q 'SELECT @@VERSION'"
