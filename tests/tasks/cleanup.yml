@@ -3,6 +3,12 @@
   package_facts:
   no_log: true
 
+- name: Set role variables needed for cleanup
+  include_role:
+    name: linux-system-roles.mssql
+    tasks_from: set_vars.yml
+    public: true
+
 - name: Purge cluster configuration
   vars:
     ha_cluster_cluster_present: false
