@@ -442,26 +442,26 @@
   package:
     name: tuned-profiles-mssql
     state: present
-  when: __mssql_tuned_supported | bool
+  when: __mssql_tuned_supported
 
 - name: Ensure that the tuned service is started and enabled
   service:
     name: tuned
     state: started
     enabled: true
-  when: __mssql_tuned_supported | bool
+  when: __mssql_tuned_supported
 
 - name: Get the active Tuned profiles
   command: tuned-adm active
   changed_when: false
   register: __mssql_tuned_active_profiles
-  when: __mssql_tuned_supported | bool
+  when: __mssql_tuned_supported
 
 # adding the mssql profile to the end of the list ensures
 # that it overrides conflicting settings in other profiles
 - name: Add mssql to the list of Tuned profiles
   when:
-    - __mssql_tuned_supported | bool
+    - __mssql_tuned_supported
     - '"mssql" not in __mssql_tuned_active_profiles.stdout'
   block:
     - name: Attempt to add mssql to the list of Tuned profiles

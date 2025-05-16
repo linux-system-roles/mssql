@@ -8,4 +8,3 @@ __mssql_supported_versions:
   - 2019
   - 2022
 __mssql_confined_supported: false
-__mssql_tuned_supported: false
