@@ -866,9 +866,7 @@ Type: `list`
 
 #### mssql_ha_ag_is_contained
 
-if true, the ag created will be contained
-
-if false, the var mssql_ha_ag_reuse_system_db will be false
+Whether to configure the availability group provided with [mssql_ha_ag_name](#mssql_ha_ag_name) as contained.
 
 Default: `false`
 
@@ -876,7 +874,9 @@ Type: `bool`
 
 #### mssql_ha_ag_reuse_system_db
 
-if true, the contained ag will be reuse system database
+Only applicable when [mssql_ha_ag_is_contained](#mssql_ha_ag_is_contained)=true.
+
+Whether to configure the availability group provided with [mssql_ha_ag_name](#mssql_ha_ag_name) with the reuse_system_db setting.
 
 Default: `false`
 
