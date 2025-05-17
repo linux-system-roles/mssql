@@ -5,36 +5,36 @@
     __mssql_conf_path: /var/opt/mssql/mssql.conf
   when: __verify_mssql_edition is defined
   block:
-    - name: Check if the errorlog file exists and its location
+    # unhelpfully, this only works if the server is not already running; thus
+    # only use this on non-booted systems
+    - name: Get server version on non-booted systems
+      command: /opt/mssql/bin/sqlservr -v
+      changed_when: false
+      register: __mssql_version_cmd
+      # duh, -v normally exits with 255
+      failed_when: not __mssql_version_cmd.rc in [0, 255]
+      when: not __mssql_is_booted | bool
+
+    # on booted systems, check it from the error log instead
+    - name: Get server edition on booted systems
       shell: |
         set -euo pipefail
         errorlog="$(grep '^errorlogfile' {{ __mssql_conf_path }} \
         2>&1 | sed 's\errorlogfile : \\')" || :
         if [ -f "${errorlog}" ]; then
-          echo "${errorlog}"
-        elif [ -f /var/opt/mssql/log/errorlog ]; then
-          echo "/var/opt/mssql/log/errorlog"
+          cat "${errorlog}"
         else
-          echo ""
+          cat /var/opt/mssql/log/errorlog
         fi
       changed_when: false
-      register: __mssql_errorlog
+      register: __mssql_version_log
+      when: __mssql_is_booted | bool
 
-    - name: Check if the set edition matches the existing edition
-      shell: |
-        errorlog_edition="$(grep -oi '{{ __verify_mssql_edition }} edition' \
-        {{ __mssql_errorlog.stdout }})"
-        if [ -z "${errorlog_edition}" ]; then
-          echo false
-        else
-          echo true
-        fi
-      register: __mssql_edition_matches
-      changed_when: false
-
-    - name: Verify if the edition matches
+    - name: Verify that the edition matches
       assert:
-        that: __mssql_edition_matches.stdout | bool
+        that: "'{{ __verify_mssql_edition }} Edition' in __output.stdout"
+      vars:
+        __output: "{{ __mssql_version_log if __mssql_is_booted else __mssql_version_cmd }}"
 
 - name: Verify the setting {{ item.key }}
   with_dict:
@@ -91,6 +91,7 @@
         public: true
 
     - name: Wait for mssql-server to get ready
+      when: __mssql_is_booted | bool
       block:
         - name: Wait for mssql-server to prepare for client connections
           wait_for:
@@ -131,6 +132,7 @@
         "TCP Provider: Timeout error [258]" not in __mssql_test_psw_query.stderr
       retries: 5
       delay: 10
+      when: __mssql_is_booted | bool
 
     - name: Set the mssql_password variable to default null
       set_fact:

@@ -85,7 +85,9 @@
   include_tasks: verify_settings.yml
   vars:
     __verify_mssql_password: "p@55w0rD1"
-    __verify_mssql_edition: Standard
+    # package defaults to Evaluation, but the tests above change it to
+    # 'Standard' in the case where the server actually runs
+    __verify_mssql_edition: "{{ 'Standard' if __mssql_is_booted else 'Evaluation' }}"
     __verify_mssql_tcp_port: 1435
     __verify_mssql_ip_address: 127.0.0.1
     __verify_mssql_agent_is_enabled: false

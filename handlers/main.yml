@@ -4,3 +4,4 @@
   service:
     name: mssql-server
     state: restarted
+  when: __mssql_is_booted | bool
