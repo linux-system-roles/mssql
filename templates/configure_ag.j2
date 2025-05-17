@@ -29,6 +29,13 @@ BEGIN
 incorrect is_contained setting, dropping the group to re-create it';
   DROP AVAILABILITY GROUP {{ mssql_ha_ag_name }};
   PRINT 'The {{ mssql_ha_ag_name }} availability group dropped successfully';
+END
+ELSE
+BEGIN
+  PRINT 'is_contained = {{ 1 if mssql_ha_ag_is_contained else 0 }} is already \
+set, skipping'
+END
+
 {% if mssql_ha_ag_is_contained and not mssql_ha_ag_reuse_system_db %}
 PRINT 'Verifying {{ mssql_ha_ag_name }} reuse_system_database setting'
 IF EXISTS (
@@ -41,7 +48,9 @@ BEGIN
   PRINT 'The existing {{ mssql_ha_ag_name }} availability group has \
 system databases {{ mssql_ha_ag_name }}_master and/or \
 {{ mssql_ha_ag_name }}_msdb. When mssql_ha_ag_reuse_system_db=false, \
-they must not exist. Dropping them to re-create it';
+they must not exist. Dropping the group to re-create it';
+  DROP AVAILABILITY GROUP {{ mssql_ha_ag_name }};
+  PRINT 'The {{ mssql_ha_ag_name }} availability group dropped successfully';
   IF EXISTS (
     SELECT name
     FROM sys.databases
@@ -66,12 +75,6 @@ BEGIN
   PRINT 'Availability group system databases do not exist, skipping'
 END
 {% endif %}
-END
-ELSE
-BEGIN
-  PRINT 'is_contained = {{ 1 if mssql_ha_ag_is_contained else 0 }} is already \
-set, skipping'
-END
 
 IF EXISTS (
   SELECT name, cluster_type_desc
