@@ -48,27 +48,8 @@ BEGIN
   PRINT 'The existing {{ mssql_ha_ag_name }} availability group has \
 system databases {{ mssql_ha_ag_name }}_master and/or \
 {{ mssql_ha_ag_name }}_msdb. When mssql_ha_ag_reuse_system_db=false, \
-they must not exist. Dropping the group to re-create it';
-  DROP AVAILABILITY GROUP {{ mssql_ha_ag_name }};
-  PRINT 'The {{ mssql_ha_ag_name }} availability group dropped successfully';
-  IF EXISTS (
-    SELECT name
-    FROM sys.databases
-    WHERE name = '{{ mssql_ha_ag_name }}_master'
-  )
-  BEGIN
-    DROP DATABASE {{ mssql_ha_ag_name }}_master;
-    PRINT 'The {{ mssql_ha_ag_name }}_master availability group system database dropped successfully';
-  END
-  IF EXISTS (
-    SELECT name
-    FROM sys.databases
-    WHERE name = '{{ mssql_ha_ag_name }}_msdb'
-  )
-  BEGIN
-    DROP DATABASE {{ mssql_ha_ag_name }}_msdb;
-    PRINT 'The {{ mssql_ha_ag_name }}_msdb availability group system database dropped successfully';
-  END
+they must not exist. Please check it';
+  RETURN;
 END
 ELSE
 BEGIN
