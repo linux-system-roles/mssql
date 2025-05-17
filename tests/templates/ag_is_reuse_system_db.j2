@@ -1,7 +1,8 @@
 IF EXISTS (
-  SELECT name
+  SELECT 1
   FROM sys.databases
   WHERE name in ('{{ mssql_ha_ag_name }}_master','{{ mssql_ha_ag_name }}_msdb')
+  having count(*) = 2
 )
 BEGIN
   PRINT(1)
