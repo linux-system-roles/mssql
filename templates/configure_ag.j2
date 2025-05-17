@@ -49,7 +49,10 @@ BEGIN
 system databases {{ mssql_ha_ag_name }}_master and/or \
 {{ mssql_ha_ag_name }}_msdb. When mssql_ha_ag_reuse_system_db=false, \
 they must not exist. Please check it';
-  RETURN;
+  RAISERROR('The existing {{ mssql_ha_ag_name }} availability group has \
+system databases {{ mssql_ha_ag_name }}_master and/or \
+{{ mssql_ha_ag_name }}_msdb. When mssql_ha_ag_reuse_system_db=false, \
+they must not exist. Please check it',17,1);
 END
 ELSE
 BEGIN
