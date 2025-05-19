@@ -9,9 +9,9 @@
     tasks_from: input_sql_files.yml
     public: true
 
-- name: Assert the contained status is correct
+- name: Assert the contained status eqauls {{ __mssql_is_contained }}
   assert:
-    that: "{{ __mssql_is_contained }} in __mssql_sqlcmd_input.stdout"
+    that: __mssql_is_contained == __mssql_sqlcmd_input.stdout | int
 
 - name: Verify reuse_system_db for AG
   vars:
@@ -22,6 +22,6 @@
     tasks_from: input_sql_files.yml
     public: true
 
-- name: Assert the contained status is correct
+- name: Assert the contained status equals {{ __mssql_is_reuse_system_db }}
   assert:
-    that: "{{ __mssql_is_reuse_system_db }} in __mssql_sqlcmd_input.stdout"
+    that: __mssql_is_reuse_system_db == __mssql_sqlcmd_input.stdout | int

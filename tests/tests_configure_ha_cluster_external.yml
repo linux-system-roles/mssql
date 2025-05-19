@@ -178,10 +178,14 @@
             tasks_from: test_setup.yml
 
         - name: Run on all hosts to configure HA cluster
+          vars:
+            mssql_ha_ag_is_contained: true
+            mssql_ha_ag_reuse_system_db: true
           include_role:
             name: linux-system-roles.mssql
 
         - name: Verify is_contained and reuse_system_db status
+          when: mssql_ha_replica_type == 'primary'
           include_tasks: tasks/verify_contained_reuse_db.yml
           vars:
             __mssql_is_contained: 1
@@ -278,6 +282,7 @@
             mssql_ha_ag_reuse_system_db: false
 
         - name: Verify is_contained and reuse_system_db status
+          when: mssql_ha_replica_type == 'primary'
           include_tasks: tasks/verify_contained_reuse_db.yml
           vars:
             __mssql_is_contained: 1
@@ -291,6 +296,7 @@
             mssql_ha_ag_reuse_system_db: false
 
         - name: Verify is_contained and reuse_system_db status
+          when: mssql_ha_replica_type == 'primary'
           include_tasks: tasks/verify_contained_reuse_db.yml
           vars:
             __mssql_is_contained: 0

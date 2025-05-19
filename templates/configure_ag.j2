@@ -18,6 +18,8 @@ BEGIN
 skipping'
 END
 
+{# is_contained was added in SQL Server 2019 #}
+{% if mssql_version is version('2019', '>=') %}
 IF EXISTS (
   SELECT name, is_contained
   FROM sys.availability_groups
@@ -36,7 +38,7 @@ BEGIN
 set, skipping'
 END
 
-{% if mssql_ha_ag_is_contained and not mssql_ha_ag_reuse_system_db %}
+{%   if mssql_ha_ag_is_contained and not mssql_ha_ag_reuse_system_db %}
 PRINT 'Verifying {{ mssql_ha_ag_name }} reuse_system_database setting'
 IF EXISTS (
   SELECT name
@@ -55,20 +57,18 @@ BEGIN
   END
   ELSE
   BEGIN
-     PRINT 'The existing {{ mssql_ha_ag_name }} availability group has \
-system databases {{ mssql_ha_ag_name }}_master and/or \
-{{ mssql_ha_ag_name }}_msdb. When mssql_ha_ag_reuse_system_db=false, \
-they must not exist. Please check it';
     RAISERROR('The existing {{ mssql_ha_ag_name }} availability group has \
 system databases {{ mssql_ha_ag_name }}_master and/or \
 {{ mssql_ha_ag_name }}_msdb. When mssql_ha_ag_reuse_system_db=false, \
-they must not exist. Please check it',17,1);
+they must not exist. If you want to use mssql_ha_ag_reuse_system_db=false, \
+you must remove them. Ensure to not loose any data when doing this.',17,1);
   END
 END
 ELSE
 BEGIN
   PRINT 'Availability group system databases do not exist, skipping'
 END
+{%   endif %}
 {% endif %}
 
 IF EXISTS (
@@ -271,7 +271,8 @@ successfully';
 {% endfor %}
 END
 
-{% if not mssql_ha_ag_is_contained %}
+{# is_contained was added in SQL Server 2019 #}
+{% if (not mssql_ha_ag_is_contained) or (mssql_version is version('2019', '<')) %}
 {%   set __contained_reuse_system_db = "" %}
 {% elif mssql_ha_ag_is_contained %}
 {%   set __contained_reuse_system_db = ",CONTAINED" %}
