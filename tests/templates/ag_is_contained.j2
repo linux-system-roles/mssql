@@ -1,0 +1,13 @@
+IF EXISTS (
+  SELECT name, is_contained
+  FROM sys.availability_groups
+  WHERE name = '{{ mssql_ha_ag_name }}'
+        AND is_contained = 1
+)
+BEGIN
+  PRINT(1)
+END
+ELSE
+BEGIN
+  PRINT(0)
+END

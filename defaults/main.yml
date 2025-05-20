@@ -52,6 +52,9 @@ mssql_ha_reset_cert: false
 mssql_ha_endpoint_name: null
 mssql_ha_ag_name: null
 mssql_ha_db_names: []
+mssql_ha_ag_is_contained: false
+# if mssql_ha_ag_is_contained=false, mssql_ha_ag_reuse_system_db will be false
+mssql_ha_ag_reuse_system_db: false
 
 mssql_ha_prep_for_pacemaker: "{{ mssql_ha_ag_cluster_type | lower != 'none' }}"
 mssql_ha_virtual_ip: null

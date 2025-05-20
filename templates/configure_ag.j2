@@ -1,8 +1,10 @@
+SET XACT_ABORT ON;
+
 IF EXISTS (
   SELECT name, cluster_type_desc
   FROM sys.availability_groups
-  WHERE name = '{{ mssql_ha_ag_name }}' AND
-        cluster_type_desc != '{{ mssql_ha_ag_cluster_type }}'
+  WHERE name = '{{ mssql_ha_ag_name }}'
+        AND cluster_type_desc != '{{ mssql_ha_ag_cluster_type }}'
 )
 BEGIN
   PRINT 'The existing {{ mssql_ha_ag_name }} availability group has \
@@ -10,6 +12,64 @@ incorrect cluster type set, dropping the group to re-create it';
   DROP AVAILABILITY GROUP {{ mssql_ha_ag_name }};
   PRINT 'The {{ mssql_ha_ag_name }} availability group dropped successfully';
 END
+ELSE
+BEGIN
+  PRINT 'cluster_type_desc = {{ mssql_ha_ag_cluster_type }} is already set, \
+skipping'
+END
+
+{# is_contained was added in SQL Server 2019 #}
+{% if mssql_version is version('2019', '>=') %}
+IF EXISTS (
+  SELECT name, is_contained
+  FROM sys.availability_groups
+  WHERE name = '{{ mssql_ha_ag_name }}'
+        AND is_contained != {{ 1 if mssql_ha_ag_is_contained else 0 }}
+)
+BEGIN
+  PRINT 'The existing {{ mssql_ha_ag_name }} availability group has \
+incorrect is_contained setting, dropping the group to re-create it';
+  DROP AVAILABILITY GROUP {{ mssql_ha_ag_name }};
+  PRINT 'The {{ mssql_ha_ag_name }} availability group dropped successfully';
+END
+ELSE
+BEGIN
+  PRINT 'is_contained = {{ 1 if mssql_ha_ag_is_contained else 0 }} is already \
+set, skipping'
+END
+
+{%   if mssql_ha_ag_is_contained and not mssql_ha_ag_reuse_system_db %}
+PRINT 'Verifying {{ mssql_ha_ag_name }} reuse_system_database setting'
+IF EXISTS (
+  SELECT name
+  FROM sys.databases
+  WHERE name = '{{ mssql_ha_ag_name }}_master'
+  OR name = '{{ mssql_ha_ag_name }}_msdb'
+)
+BEGIN
+  IF EXISTS (
+    SELECT name, is_contained
+    FROM sys.availability_groups
+    WHERE name = '{{ mssql_ha_ag_name }}'
+  )
+  BEGIN
+    PRINT 'Contained availability group is existed, skipping'
+  END
+  ELSE
+  BEGIN
+    RAISERROR('The existing {{ mssql_ha_ag_name }} availability group has \
+system databases {{ mssql_ha_ag_name }}_master and/or \
+{{ mssql_ha_ag_name }}_msdb. When mssql_ha_ag_reuse_system_db=false, \
+they must not exist. If you want to use mssql_ha_ag_reuse_system_db=false, \
+you must remove them. Ensure to not loose any data when doing this.',17,1);
+  END
+END
+ELSE
+BEGIN
+  PRINT 'Availability group system databases do not exist, skipping'
+END
+{%   endif %}
+{% endif %}
 
 IF EXISTS (
   SELECT name, cluster_type_desc
@@ -18,6 +78,7 @@ IF EXISTS (
 )
 BEGIN
   PRINT 'Verifying the existing availability group {{ mssql_ha_ag_name }}'
+  PRINT 'Verifying {{ mssql_ha_ag_name }} DB_FAILOVER status'
   IF NOT EXISTS (
     SELECT name, db_failover
     FROM sys.availability_groups
@@ -27,12 +88,13 @@ BEGIN
   BEGIN
     ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }}
       SET (DB_FAILOVER = {{ __mssql_ha_db_failover }})
-    PRINT 'Set DB_FAILOVER to ON succesfully'
+    PRINT 'Set DB_FAILOVER to ON successfully'
   END
   ELSE
   BEGIN
     PRINT 'DB_FAILOVER = ON is already set, skipping'
   END
+
   PRINT 'Verifying replicas'
 {# Sort ansible_play_hosts #}
 {# Sort primary replica as the last in the list #}
@@ -209,6 +271,16 @@ successfully';
 {% endfor %}
 END
 
+{# is_contained was added in SQL Server 2019 #}
+{% if (not mssql_ha_ag_is_contained) or (mssql_version is version('2019', '<')) %}
+{%   set __contained_reuse_system_db = "" %}
+{% elif mssql_ha_ag_is_contained %}
+{%   set __contained_reuse_system_db = ",CONTAINED" %}
+{%   if mssql_ha_ag_reuse_system_db %}
+{%     set __contained_reuse_system_db = __contained_reuse_system_db + ",REUSE_SYSTEM_DATABASES" %}
+{%   endif %}
+{% endif %}
+
 IF NOT EXISTS (
   SELECT name, cluster_type_desc
   FROM sys.availability_groups
@@ -219,7 +291,7 @@ BEGIN
   CREATE AVAILABILITY GROUP {{ mssql_ha_ag_name }}
     WITH (
       DB_FAILOVER = {{ __mssql_ha_db_failover }},
-      CLUSTER_TYPE = {{ mssql_ha_ag_cluster_type }}
+      CLUSTER_TYPE = {{ mssql_ha_ag_cluster_type }}{{ __contained_reuse_system_db }}
     )
     FOR REPLICA ON
 {# Sort ansible_play_hosts #}
