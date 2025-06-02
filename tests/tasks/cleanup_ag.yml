@@ -1,0 +1,34 @@
+# SPDX-License-Identifier: MIT
+---
+- name: Purge cluster configuration
+  vars:
+    ha_cluster_cluster_present: false
+    ha_cluster_enable_repos: false
+  include_role:
+    name: fedora.linux_system_roles.ha_cluster
+  when: ansible_facts.packages.pcs is defined
+
+- name: Restart mssql-server
+  service:
+    name: mssql-server
+    state: restarted
+
+- name: Remove AG to re-create it with reuse_system_db
+  vars:
+    __mssql_sql_files_to_input:
+      - drop_ag.j2
+  include_role:
+    name: linux-system-roles.mssql
+    tasks_from: input_sql_files.yml
+    public: true
+
+- name: Remove AG databases
+  when: mssql_version is version('2019', '>=')
+  vars:
+    __mssql_sql_files_to_input:
+      - drop_dbs.j2
+    __mssql_rm_dbs: "{{ mssql_ha_db_names }}"
+  include_role:
+    name: linux-system-roles.mssql
+    tasks_from: input_sql_files.yml
+    public: true

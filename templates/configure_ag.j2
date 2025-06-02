@@ -1,75 +1,39 @@
-SET XACT_ABORT ON;
-
 IF EXISTS (
   SELECT name, cluster_type_desc
   FROM sys.availability_groups
   WHERE name = '{{ mssql_ha_ag_name }}'
-        AND cluster_type_desc != '{{ mssql_ha_ag_cluster_type }}'
 )
 BEGIN
-  PRINT 'The existing {{ mssql_ha_ag_name }} availability group has \
-incorrect cluster type set, dropping the group to re-create it';
-  DROP AVAILABILITY GROUP {{ mssql_ha_ag_name }};
-  PRINT 'The {{ mssql_ha_ag_name }} availability group dropped successfully';
-END
-ELSE
-BEGIN
-  PRINT 'cluster_type_desc = {{ mssql_ha_ag_cluster_type }} is already set, \
-skipping'
-END
+  PRINT 'Verify existing availability group {{ mssql_ha_ag_name }}'
+  IF EXISTS (
+    SELECT name, cluster_type_desc
+    FROM sys.availability_groups
+    WHERE name = '{{ mssql_ha_ag_name }}'
+          AND cluster_type_desc != '{{ mssql_ha_ag_cluster_type }}'
+  )
+  BEGIN
+    PRINT 'The existing {{ mssql_ha_ag_name }} availability group has \
+  incorrect cluster type set, dropping the group to re-create it';
+    DROP AVAILABILITY GROUP {{ mssql_ha_ag_name }};
+    PRINT 'The {{ mssql_ha_ag_name }} availability group dropped successfully';
+  END
 
 {# is_contained was added in SQL Server 2019 #}
 {% if mssql_version is version('2019', '>=') %}
-IF EXISTS (
-  SELECT name, is_contained
-  FROM sys.availability_groups
-  WHERE name = '{{ mssql_ha_ag_name }}'
-        AND is_contained != {{ 1 if mssql_ha_ag_is_contained else 0 }}
-)
-BEGIN
-  PRINT 'The existing {{ mssql_ha_ag_name }} availability group has \
-incorrect is_contained setting, dropping the group to re-create it';
-  DROP AVAILABILITY GROUP {{ mssql_ha_ag_name }};
-  PRINT 'The {{ mssql_ha_ag_name }} availability group dropped successfully';
-END
-ELSE
-BEGIN
-  PRINT 'is_contained = {{ 1 if mssql_ha_ag_is_contained else 0 }} is already \
-set, skipping'
-END
-
-{%   if mssql_ha_ag_is_contained and not mssql_ha_ag_reuse_system_db %}
-PRINT 'Verifying {{ mssql_ha_ag_name }} reuse_system_database setting'
-IF EXISTS (
-  SELECT name
-  FROM sys.databases
-  WHERE name = '{{ mssql_ha_ag_name }}_master'
-  OR name = '{{ mssql_ha_ag_name }}_msdb'
-)
-BEGIN
   IF EXISTS (
     SELECT name, is_contained
     FROM sys.availability_groups
     WHERE name = '{{ mssql_ha_ag_name }}'
+          AND is_contained != {{ 1 if mssql_ha_ag_is_contained else 0 }}
   )
   BEGIN
-    PRINT 'Contained availability group is existed, skipping'
+    PRINT 'The existing {{ mssql_ha_ag_name }} availability group has \
+  incorrect is_contained setting, dropping the group to re-create it';
+    DROP AVAILABILITY GROUP {{ mssql_ha_ag_name }};
+    PRINT 'The {{ mssql_ha_ag_name }} availability group dropped successfully';
   END
-  ELSE
-  BEGIN
-    RAISERROR('The existing {{ mssql_ha_ag_name }} availability group has \
-system databases {{ mssql_ha_ag_name }}_master and/or \
-{{ mssql_ha_ag_name }}_msdb. When mssql_ha_ag_reuse_system_db=false, \
-they must not exist. If you want to use mssql_ha_ag_reuse_system_db=false, \
-you must remove them. Ensure to not loose any data when doing this.',17,1);
-  END
-END
-ELSE
-BEGIN
-  PRINT 'Availability group system databases do not exist, skipping'
-END
-{%   endif %}
 {% endif %}
+END
 
 IF EXISTS (
   SELECT name, cluster_type_desc
@@ -96,7 +60,7 @@ BEGIN
   END
 
   PRINT 'Verifying replicas'
-{# Sort ansible_play_hosts #}
+{# Sort ansible_play_hosts_all #}
 {# Sort primary replica as the last in the list #}
 {# Sort witness replica as the next-to-last in the list #}
 {# Configure primary last because it has information about other replicas #}
@@ -105,7 +69,7 @@ BEGIN
 {# replica which has configuration-only availability mode.' #}
 {% set ag_replicas_primary_last = [] %}
 {# In the first loop, add primaries at the end and witness at the beginning #}
-{% for item in ansible_play_hosts %}
+{% for item in ansible_play_hosts_all %}
 {%   if hostvars[item]['mssql_ha_replica_type'] == 'primary' %}
 {{ ag_replicas_primary_last.append(item) -}}
 {%   elif hostvars[item]['mssql_ha_replica_type'] == 'witness' %}
@@ -113,7 +77,7 @@ BEGIN
 {%   endif %}
 {% endfor %}
 {# In the second loop, add others at the beginning #}
-{% for item in ansible_play_hosts %}
+{% for item in ansible_play_hosts_all %}
 {%   if hostvars[item]['mssql_ha_replica_type']
      not in ag_replicas_primary_last %}
 {{ ag_replicas_primary_last.insert(0, item) -}}
@@ -287,6 +251,27 @@ IF NOT EXISTS (
   WHERE name = '{{ mssql_ha_ag_name }}'
 )
 BEGIN
+{% if mssql_ha_ag_reuse_system_db %}
+{%   set sys_dbs = [mssql_ha_ag_name ~ '_master', mssql_ha_ag_name ~ '_msdb'] %}
+{%   for sys_db in sys_dbs %}
+  IF EXISTS (
+    SELECT name, state_desc
+    FROM sys.databases
+    WHERE state_desc = 'RESTORING'
+      AND name='{{ sys_db }}'
+  )
+  BEGIN
+    PRINT 'The system database {{ sys_db }} is in restoring state, running \
+restore to reuse it for the newly created AG {{ mssql_ha_ag_name }}';
+    RESTORE DATABASE [{{ sys_db }}];
+    PRINT 'The {{ sys_db }} database restored successfully';
+  END
+  ELSE
+  BEGIN
+    PRINT 'The {{ sys_db }} database is already online, skipping';
+  END
+{%   endfor %}
+{% endif %}
   PRINT 'Creating the {{ mssql_ha_ag_name }} availability group';
   CREATE AVAILABILITY GROUP {{ mssql_ha_ag_name }}
     WITH (
@@ -294,18 +279,18 @@ BEGIN
       CLUSTER_TYPE = {{ mssql_ha_ag_cluster_type }}{{ __contained_reuse_system_db }}
     )
     FOR REPLICA ON
-{# Sort ansible_play_hosts #}
+{# Sort ansible_play_hosts_all #}
 {# Sort primary replica as the first in the list #}
 {# Configure AG with primary replica first because SQL Server requires this #}
 {% set ag_replicas_primary_first = [] %}
 {# In the first loop, add not primaries to a new list #}
-{% for item in ansible_play_hosts %}
+{% for item in ansible_play_hosts_all %}
 {%   if hostvars[item]['mssql_ha_replica_type'] != 'primary' %}
 {{ ag_replicas_primary_first.append(item) -}}
 {%   endif %}
 {% endfor %}
 {# In the second loop, add primary at the beginning #}
-{% for item in ansible_play_hosts %}
+{% for item in ansible_play_hosts_all %}
 {%   if hostvars[item]['mssql_ha_replica_type'] == 'primary' %}
 {{ ag_replicas_primary_first.insert(0, item) -}}
 {%   endif %}
