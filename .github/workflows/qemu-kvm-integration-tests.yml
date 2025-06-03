@@ -105,7 +105,29 @@ jobs:
           python3 -m pip install --upgrade pip
           sudo apt update
           sudo apt install -y --no-install-recommends git ansible-core genisoimage qemu-system-x86
-          pip3 install "git+https://github.com/linux-system-roles/tox-lsr@3.8.0"
+          pip3 install "git+https://github.com/linux-system-roles/tox-lsr@3.10.0"
+
+      # HACK: Drop this when moving this workflow to 26.04 LTS
+      - name: Update podman to 5.x for compatibility with bootc-image-builder's podman 5
+        if: steps.check_platform.outputs.supported && endsWith(matrix.scenario.image, '-bootc')
+        run: |
+          sed 's/noble/plucky/g' /etc/apt/sources.list.d/ubuntu.sources | sudo tee /etc/apt/sources.list.d/plucky.sources >/dev/null
+          cat <<EOF | sudo tee /etc/apt/preferences.d/podman.pref >/dev/null
+          Package: podman buildah golang-github-containers-common crun libgpgme11t64 libgpg-error0 golang-github-containers-image catatonit conmon containers-storage
+          Pin: release n=plucky
+          Pin-Priority: 991
+
+          Package: libsubid4 netavark passt aardvark-dns containernetworking-plugins libslirp0 slirp4netns
+          Pin: release n=plucky
+          Pin-Priority: 991
+
+          Package: *
+          Pin: release n=plucky
+          Pin-Priority: 400
+          EOF
+
+          sudo apt update
+          sudo apt install -y podman crun conmon containers-storage
 
       - name: Configure tox-lsr
         if: steps.check_platform.outputs.supported
@@ -117,7 +139,8 @@ jobs:
         if: steps.check_platform.outputs.supported && startsWith(matrix.scenario.env, 'qemu')
         run: >-
           tox -e ${{ matrix.scenario.env }} -- --image-name ${{ matrix.scenario.image }} --make-batch
-          --log-level=debug --skip-tags tests::infiniband,tests::nvme,tests::scsi --
+          --log-level debug $TOX_ARGS --skip-tags tests::bootc-e2e
+          --lsr-report-errors-url DEFAULT --
 
       - name: Qemu result summary
         if: steps.check_platform.outputs.supported && startsWith(matrix.scenario.env, 'qemu') && always()
@@ -127,15 +150,18 @@ jobs:
           # actual test playbook that starts with tests_
           while read code start end test_files; do
               for f in $test_files; do
-                  f="$(basename $f)"
+                  test_file="$f"
+                  f="$(basename $test_file)"
                   if [[ "$f" =~ ^tests_ ]]; then
                       break
                   fi
               done
               if [ "$code" = "0" ]; then
                   echo -n "PASS: "
+                  mv "$test_file.log" "${test_file}-SUCCESS.log"
               else
                   echo -n "FAIL: "
+                  mv "$test_file.log" "${test_file}-FAIL.log"
               fi
               echo "$f"
           done < batch.report
@@ -151,12 +177,36 @@ jobs:
           for t in tests/tests_*.yml; do
               if tox -e ${{ matrix.scenario.env }} -- --image-name ${{ matrix.scenario.image }} $t > ${t}.log 2>&1; then
                   echo "PASS: $(basename $t)"
+                  mv "${t}.log" "${t}-SUCCESS.log"
               else
                   echo "FAIL: $(basename $t)"
+                  mv "${t}.log" "${t}-FAIL.log"
                   rc=1
               fi
           done
           exit $rc
+
+      - name: Run bootc validation tests in QEMU
+        if: steps.check_platform.outputs.supported &&
+            startsWith(matrix.scenario.env, 'container') &&
+            endsWith(matrix.scenario.image, '-bootc')
+        run: |
+          set -euxo pipefail
+          env=$(echo "${{ matrix.scenario.env }}" | sed 's/^container-/qemu-/')
+
+          for image_file in $(ls tests/tmp/*/qcow2/disk.qcow2 2>/dev/null); do
+              test="tests/$(basename $(dirname $(dirname $image_file))).yml"
+              if tox -e "$env" -- --image-file "$(pwd)/$image_file" \
+                     --log-level debug $TOX_ARGS \
+                     --lsr-report-errors-url DEFAULT \
+                     -e __bootc_validation=true \
+                     -- "$test" >out 2>&1; then
+                  mv out "${test}-PASS.log"
+              else
+                  mv out "${test}-FAIL.log"
+                  exit 1
+              fi
+          done
 
       - name: Upload test logs on failure
         if: failure()
@@ -175,13 +225,14 @@ jobs:
         if: steps.check_platform.outputs.supported && failure()
         run: |
           set -euo pipefail
-          for f in tests/*.log; do
-              if FAIL=$(grep -E -B100 -A30 "fatal:|An exception occurred" "$f"); then
-                  echo "::group::$(basename $f)"
-                  echo "$FAIL"
-                  echo "::endgroup::"
-              fi
+          # grab check_logs.py script
+          curl -s -L -o check_logs.py https://raw.githubusercontent.com/linux-system-roles/auto-maintenance/refs/heads/main/check_logs.py
+          chmod +x check_logs.py
+          declare -a cmdline=(./check_logs.py --github-action-format)
+          for log in tests/*-FAIL.log; do
+              cmdline+=(--lsr-error-log "$log")
           done
+          "${cmdline[@]}"
 
       - name: Set commit status as success with a description that platform is skipped
         if: ${{ steps.check_platform.outputs.supported == '' }}
