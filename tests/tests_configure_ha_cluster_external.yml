@@ -124,42 +124,56 @@
             name: fedora.linux_system_roles.ha_cluster
             tasks_from: test_setup.yml
 
-        - name: Run on all hosts to configure contained AG
+        - name: Test is_contained functionality available on newers SQL version
           when: mssql_version is version('2019', '>=')
-          vars:
-            mssql_ha_ag_is_contained: true
-            mssql_ha_ag_reuse_system_db: false
-          include_role:
-            name: linux-system-roles.mssql
+          block:
+            - name: Run on all hosts to configure contained AG
+              vars:
+                mssql_ha_ag_is_contained: true
+                mssql_ha_ag_reuse_system_db: false
+              include_role:
+                name: linux-system-roles.mssql
+                public: true
 
-        - name: Verify is_contained status
-          when: mssql_ha_replica_type == 'primary'
-          include_tasks: tasks/verify_contained.yml
-          vars:
-            __mssql_is_contained: 1
+            - name: Verify is_contained status
+              when: __mssql_ha_is_primary | bool
+              include_tasks: tasks/verify_contained.yml
+              vars:
+                __mssql_is_contained: 1
 
-        - name: Clean up configured ag
-          when: mssql_version is version('2019', '>=')
-          include_tasks: tasks/cleanup_ag.yml
+            - name: Remove AG to re-create it with reuse_system_db
+              vars:
+                __mssql_sql_files_to_input:
+                  - drop_ag.j2
+              include_role:
+                name: linux-system-roles.mssql
+                tasks_from: input_sql_files.yml
+                public: true
 
-        - name: Run with contained=true reuse_system_db=true
-          when: mssql_version is version('2019', '>=')
-          include_role:
-            name: linux-system-roles.mssql
-          vars:
-            mssql_ha_ag_is_contained: true
-            mssql_ha_ag_reuse_system_db: true
+            - name: Purge cluster configuration
+              vars:
+                ha_cluster_cluster_present: false
+                ha_cluster_enable_repos: false
+              include_role:
+                name: fedora.linux_system_roles.ha_cluster
 
-        - name: Verify is_contained status
-          when:
-            - mssql_version is version('2019', '>=')
-            - mssql_ha_replica_type == 'primary'
-          include_tasks: tasks/verify_contained.yml
-          vars:
-            __mssql_is_contained: 1
+            - name: Unset create_db facts
+              set_fact:
+                mssql_pre_input_sql_file: []
 
-        - name: Clean up after the role invocation
-          include_tasks: tasks/cleanup.yml
+            - name: Run with contained=true reuse_system_db=true
+              vars:
+                mssql_ha_ag_is_contained: true
+                mssql_ha_ag_reuse_system_db: true
+              include_role:
+                name: linux-system-roles.mssql
+                public: true
+
+            - name: Verify is_contained status
+              when: __mssql_ha_is_primary | bool
+              include_tasks: tasks/verify_contained.yml
+              vars:
+                __mssql_is_contained: 1
 
         - name: Run with contained=false
           include_role:
@@ -171,92 +185,89 @@
           include_tasks: tasks/verify_contained.yml
           when:
             - mssql_version is version('2019', '>=')
-            - mssql_ha_replica_type == 'primary'
+            - __mssql_ha_is_primary | bool
           vars:
             __mssql_is_contained: 0
 
-        - name: Assert that pcs runs properly when testing against >3 nodes
-          when: ansible_play_hosts_all | length >= 3
-          block:
-            - name: Wait for the cluster to finish configuration
-              command: crm_resource --wait
-              changed_when: false
-              when: mssql_manage_ha_cluster | bool
-              register: __mssql_crm_resource_wait
-              until: __mssql_crm_resource_wait is success
+        - name: Wait for the cluster to finish configuration
+          command: crm_resource --wait
+          changed_when: false
+          when: mssql_manage_ha_cluster | bool
+          register: __mssql_crm_resource_wait
+          until: __mssql_crm_resource_wait is success
 
-            - name: Get global pcs status
-              command: pcs status
-              register: __pcs_status
-              changed_when: false
+        - name: Get global pcs status
+          command: pcs status
+          register: __pcs_status
+          changed_when: false
 
-            - name: Print global psc status
-              debug:
-                var: __pcs_status.stdout
-              run_once: true
+        - name: Print global psc status
+          debug:
+            var: __pcs_status.stdout
+          run_once: true
 
-            - name: Get pcs status for the virtualip resource
-              command: pcs status resources virtualip
-              register: __pcs_status_virtualip
-              changed_when: false
+        - name: Get pcs status for the virtualip resource
+          command: pcs status resources virtualip
+          register: __pcs_status_virtualip
+          changed_when: false
 
-            - name: Print pcs status for the virtualip resource
-              debug:
-                var: __pcs_status_virtualip.stdout
-              run_once: true
+        - name: Print pcs status for the virtualip resource
+          debug:
+            var: __pcs_status_virtualip.stdout
+          run_once: true
 
-            - name: Assert that virtualip is successfully started
-              assert:
-                that: "'Started' in __pcs_status_virtualip.stdout"
+        - name: Assert that virtualip is successfully started
+          assert:
+            that: "'Started' in __pcs_status_virtualip.stdout"
 
-            - name: Move the virtualip resource
-              command: >-
-                pcs resource
-                {% if (ansible_distribution in ['CentOS', 'RedHat']) and
-                (ansible_distribution_major_version is version('9', '>=')) %}
-                move-with-constraint
-                {% else %}
-                move
-                {% endif %}
-                virtualip
-              register: __pcs_move
-              run_once: true
-              changed_when: true
+        - name: Move the virtualip resource
+          command: >-
+            pcs resource
+            {% if (ansible_distribution in ['CentOS', 'RedHat']) and
+            (ansible_distribution_major_version is version('9', '>=')) %}
+            move-with-constraint
+            {% else %}
+            move
+            {% endif %}
+            virtualip
+          register: __pcs_move
+          run_once: true
+          changed_when: true
 
-            - name: Wait for the cluster to finish configuration
-              command: crm_resource --wait
-              changed_when: false
-              when: mssql_manage_ha_cluster | bool
-              register: __mssql_crm_resource_wait
-              until: __mssql_crm_resource_wait is success
+        - name: Wait for the cluster to finish configuration
+          command: crm_resource --wait
+          changed_when: false
+          when: mssql_manage_ha_cluster | bool
+          register: __mssql_crm_resource_wait
+          until: __mssql_crm_resource_wait is success
 
-            - name: Get global pcs status
-              command: pcs status resources
-              register: __pcs_status
-              changed_when: false
+        - name: Get global pcs status
+          command: pcs status resources
+          register: __pcs_status
+          changed_when: false
 
-            - name: Print global psc status
-              debug:
-                var: __pcs_status.stdout
-              run_once: true
+        - name: Print global psc status
+          debug:
+            var: __pcs_status.stdout
+          run_once: true
 
-            - name: Get pcs status for the virtualip resource
-              command: pcs status resources virtualip
-              register: __pcs_status_virtualip
-              changed_when: false
+        - name: Get pcs status for the virtualip resource
+          command: pcs status resources virtualip
+          register: __pcs_status_virtualip
+          changed_when: false
 
-            - name: Print pcs status for the virtualip resource
-              debug:
-                var: __pcs_status_virtualip.stdout
-              run_once: true
+        - name: Print pcs status for the virtualip resource
+          debug:
+            var: __pcs_status_virtualip.stdout
+          run_once: true
 
-            - name: Assert that virtualip is successfully started
-              assert:
-                that: "'Started' in __pcs_status_virtualip.stdout"
+        - name: Assert that virtualip is successfully started
+          assert:
+            that: "'Started' in __pcs_status_virtualip.stdout"
 
-            - name: Clear constraints for the virtualip resource
-              command: pcs resource clear virtualip
-              changed_when: true
+        - name: Clear constraints for the virtualip resource
+          command: pcs resource clear virtualip
+          changed_when: true
       always:
         - name: Clean up after the role invocation
           include_tasks: tasks/cleanup.yml
