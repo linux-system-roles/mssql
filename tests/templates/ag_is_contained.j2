@@ -1,0 +1,24 @@
+-- Get major version number (e.g., 15 for SQL Server 2019)
+DECLARE @MajorVersion INT
+SET @MajorVersion = CAST(PARSENAME(CAST(SERVERPROPERTY('ProductVersion') AS NVARCHAR), 4) AS INT)
+
+IF @MajorVersion >= 15
+BEGIN
+    IF EXISTS (
+        SELECT name, is_contained
+        FROM sys.availability_groups
+        WHERE name = '{{ mssql_ha_ag_name }}'
+              AND is_contained = 1
+    )
+    BEGIN
+        PRINT(1)
+    END
+    ELSE
+    BEGIN
+        PRINT(0)
+    END
+END
+ELSE
+BEGIN
+    PRINT('SQL Server version is lower than 15; check skipped.')
+END

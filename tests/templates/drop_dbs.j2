@@ -1,0 +1,16 @@
+{% for db in __mssql_rm_dbs %}
+IF EXISTS(
+  SELECT name
+  FROM sys.databases
+  WHERE name = '{{ db }}'
+)
+BEGIN
+  PRINT 'Dropping the {{ db }} database';
+  DROP DATABASE {{ db }};
+  PRINT 'The {{ db }} database dropped successfully';
+END
+ELSE
+BEGIN
+  PRINT 'The {{ db }} database does not exist, skipping';
+END
+{% endfor %}

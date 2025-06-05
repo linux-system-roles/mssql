@@ -67,7 +67,7 @@
     /opt/mssql*
     /var/log/pacemaker/pacemaker.log
     /etc/yum.repos.d/packages-microsoft-com-*
-    /tmp/*.j2
+    /tmp/*.j2_*
     /tmp/mssql_data
     /tmp/mssql_log
     /etc/systemd/system/mssql-server.service.d
