@@ -371,6 +371,10 @@ id="toc-mssql_ha_endpoint_name">mssql_ha_endpoint_name</a></li>
 id="toc-mssql_ha_ag_name">mssql_ha_ag_name</a></li>
 <li><a href="#mssql_ha_db_names"
 id="toc-mssql_ha_db_names">mssql_ha_db_names</a></li>
+<li><a href="#mssql_ha_ag_is_contained"
+id="toc-mssql_ha_ag_is_contained">mssql_ha_ag_is_contained</a></li>
+<li><a href="#mssql_ha_ag_reuse_system_db"
+id="toc-mssql_ha_ag_reuse_system_db">mssql_ha_ag_reuse_system_db</a></li>
 </ul></li>
 <li><a href="#configuring-pacemaker-variables"
 id="toc-configuring-pacemaker-variables">Configuring Pacemaker
@@ -1323,6 +1327,22 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb8-1"><a href="
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> microsoft.sql.server</span></span></code></pre></div>
 <p>Default: <code>[]</code></p>
 <p>Type: <code>list</code></p>
+<h3 id="mssql_ha_ag_is_contained">mssql_ha_ag_is_contained</h3>
+<p>Whether to configure the availability group provided with <a
+href="#mssql_ha_ag_name">mssql_ha_ag_name</a> as contained.</p>
+<p>This is supported since SQL Server version 2022.</p>
+<p>Default: <code>false</code></p>
+<p>Type: <code>bool</code></p>
+<h3 id="mssql_ha_ag_reuse_system_db">mssql_ha_ag_reuse_system_db</h3>
+<p>Only applicable when <a
+href="#mssql_ha_ag_is_contained">mssql_ha_ag_is_contained</a> is
+true.</p>
+<p>Whether to configure the availability group provided with <a
+href="#mssql_ha_ag_name">mssql_ha_ag_name</a> with the reuse_system_db
+setting.</p>
+<p>This is supported since SQL Server version 2022.</p>
+<p>Default: <code>false</code></p>
+<p>Type: <code>bool</code></p>
 <h2 id="configuring-pacemaker-variables">Configuring Pacemaker
 Variables</h2>
 <p>With these variables, you can specify whether to configure Pacemaker
