@@ -792,7 +792,7 @@ See the [doc from microsoft](https://learn.microsoft.com/en-us/sql/database-engi
 
 The example: 'node-4','node-6' or ('node-4','node-6')
 
-Default: ``
+Default: []
 
 Type: `string`
 
