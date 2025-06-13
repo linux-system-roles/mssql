@@ -774,7 +774,9 @@ Type: `string`
 
 #### mssql_ha_secondary_role_allow_connections
 
-A host var it means allow connections type when the replica is secondary role.
+A host var it means allow connections type when the replica is secondary role and to be configured on this host. 
+
+See [Example Inventory for HA Configuration](#example-inventory-for-ha-configuration) for an example inventory.
 
 The available values are: `ALL`, `READ_ONLY`, `NO`.
 
@@ -792,9 +794,9 @@ See the [doc from microsoft](https://learn.microsoft.com/en-us/sql/database-engi
 
 The example: 'node-4','node-6' or ('node-4','node-6')
 
-Default: []
+Default: ``
 
-Type: `list`
+Type: `string`
 
 #### mssql_ha_endpoint_port
 
