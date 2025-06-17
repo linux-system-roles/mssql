@@ -772,9 +772,9 @@ Default: no default
 
 Type: `string`
 
-#### mssql_ha_secondary_role_allow_connections
+#### mssql_ha_ag_secondary_role_allow_connections
 
-A host var it means allow connections type when the replica is secondary role and to be configured on this host. 
+A host variable that specifies the value of the `SECONDARY_ROLE(ALLOW_CONNECTIONS=<>)` setting for the replica.
 
 See [Example Inventory for HA Configuration](#example-inventory-for-ha-configuration) for an example inventory.
 
@@ -784,17 +784,17 @@ Default: `ALL`
 
 Type: `string`
 
-#### mssql_ha_read_only_routing_list
+#### mssql_ha_ag_read_only_routing_list
 
-Read only routing list in availability group for when the replica is primary role.
+A host variable that specifies the values of `PRIMARY_ROLE(READ_ONLY_ROUTING_LIST=<>)` setting for the primary replica.
 
-If variable is undefined will not set read only routing list.
+If you do not define this variable, the role does not set `PRIMARY_ROLE(READ_ONLY_ROUTING_LIST=<>)`.
 
-See the [doc from microsoft](https://learn.microsoft.com/en-us/sql/database-engine/availability-groups/windows/configure-read-only-routing-for-an-availability-group-sql-server?view=sql-server-ver16)
+See [Configure read-only routing for an Always On availability group](https://learn.microsoft.com/en-us/sql/database-engine/availability-groups/windows/configure-read-only-routing-for-an-availability-group-sql-server?view=sql-server-ver16) in Microsoft documentation.
 
-The example: 'node-4','node-6' or ('node-4','node-6')
+Example values: `'node-4','node-6'` or `('node-4','node-6')`
 
-Default: ``
+Default: `null`
 
 Type: `string`
 
@@ -1003,6 +1003,8 @@ all:
     # You must define ha_cluster names to be in the short name format
     host2.example.com:
       mssql_ha_replica_type: synchronous
+      mssql_ha_ag_secondary_role_allow_connections: READ_ONLY
+      mssql_ha_ag_read_only_routing_list: '('host1','host3')'
       ha_cluster:
         node_name: host2
         pcs_address: host2
