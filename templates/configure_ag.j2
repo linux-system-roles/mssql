@@ -157,9 +157,9 @@ removing this replica re-create it';
   "setting_value":hostvars[item]['__mssql_ha_seeding_mode']
 },
 "allow_connections":{
-  "sql_setting_name": "SECONDARY_ROLE (ALLOW_CONNECTIONS = " + (hostvars[item]['mssql_ha_secondary_role_allow_connections'] | default('ALL')) + ")",
+  "sql_setting_name": "SECONDARY_ROLE (ALLOW_CONNECTIONS = " + (hostvars[item]['mssql_ha_ag_secondary_role_allow_connections'] | default('ALL')) + ")",
   "sys_setting_name": "secondary_role_allow_connections_desc",
-  "setting_value": (hostvars[item]['mssql_ha_secondary_role_allow_connections'] | default('ALL'))
+  "setting_value": (hostvars[item]['mssql_ha_ag_secondary_role_allow_connections'] | default('ALL'))
 },
 "read_only_routing_url":{
   "sql_setting_name": "SECONDARY_ROLE (READ_ONLY_ROUTING_URL = " + "N'tcp://" + hostvars[item]['ansible_fqdn'] + ":" + mssql_tcp_port | string + "'" + ")",
@@ -225,11 +225,11 @@ setting on this \
 correctly, skipping';
     END
 {%     endfor %}
-{%     if not (hostvars[item]['mssql_ha_read_only_routing_list'] | default('')) == '' %}
+{%     if not (hostvars[item]['mssql_ha_ag_read_only_routing_list'] | default('')) == '' %}
     ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} MODIFY REPLICA ON 
-	  N'{{ hostvars[item]['ansible_hostname'] }}' WITH (PRIMARY_ROLE(READ_ONLY_ROUTING_LIST = ( {{ hostvars[item]['mssql_ha_read_only_routing_list'] }} )))
+	  N'{{ hostvars[item]['ansible_hostname'] }}' WITH (PRIMARY_ROLE(READ_ONLY_ROUTING_LIST = ( {{ hostvars[item]['mssql_ha_ag_read_only_routing_list'] }} )))
 	PRINT '{{ hostvars[item]['ansible_hostname'] }}: \
-The mssql_ha_read_only_routing_list setting on this \
+The mssql_ha_ag_read_only_routing_list setting on this \
 {{ hostvars[item]['mssql_ha_replica_type'] }} replica configured successfully';
 {%     endif %}
   END
@@ -327,9 +327,9 @@ restore to reuse it for the newly created AG {{ mssql_ha_ag_name }}';
         AVAILABILITY_MODE = {{ hostvars[item]['__mssql_ha_availability_mode'] }},
         FAILOVER_MODE = {{ hostvars[item]['__mssql_ha_failover_mode'] }},
         SEEDING_MODE = {{ hostvars[item]['__mssql_ha_seeding_mode'] }},
-        SECONDARY_ROLE (ALLOW_CONNECTIONS = {{ hostvars[item]['mssql_ha_secondary_role_allow_connections'] | default('ALL') }},READ_ONLY_ROUTING_URL = N'tcp://{{ hostvars[item]['ansible_fqdn'] }}:{{ mssql_tcp_port }}')
-{%      if not (hostvars[item]['mssql_ha_read_only_routing_list'] | default('')) == '' %}
-        ,PRIMARY_ROLE(READ_ONLY_ROUTING_LIST = ( {{ hostvars[item]['mssql_ha_read_only_routing_list'] }} ))
+        SECONDARY_ROLE (ALLOW_CONNECTIONS = {{ hostvars[item]['mssql_ha_ag_secondary_role_allow_connections'] | default('ALL') }},READ_ONLY_ROUTING_URL = N'tcp://{{ hostvars[item]['ansible_fqdn'] }}:{{ mssql_tcp_port }}')
+{%      if not (hostvars[item]['mssql_ha_ag_read_only_routing_list'] | default('')) == '' %}
+        ,PRIMARY_ROLE(READ_ONLY_ROUTING_LIST = ( {{ hostvars[item]['mssql_ha_ag_read_only_routing_list'] }} ))
 {%      endif %}
 {%   elif hostvars[item]['mssql_ha_replica_type'] in ['synchronous', 'asynchronous'] %}
       ),
@@ -339,9 +339,9 @@ restore to reuse it for the newly created AG {{ mssql_ha_ag_name }}';
         AVAILABILITY_MODE = {{ hostvars[item]['__mssql_ha_availability_mode'] }},
         FAILOVER_MODE = {{ hostvars[item]['__mssql_ha_failover_mode'] }},
         SEEDING_MODE = {{ hostvars[item]['__mssql_ha_seeding_mode'] }},
-        SECONDARY_ROLE (ALLOW_CONNECTIONS = {{ hostvars[item]['mssql_ha_secondary_role_allow_connections'] | default('ALL') }},READ_ONLY_ROUTING_URL = N'tcp://{{ hostvars[item]['ansible_fqdn'] }}:{{ mssql_tcp_port }}')
-{%      if not (hostvars[item]['mssql_ha_read_only_routing_list'] | default('')) == '' %}
-        ,PRIMARY_ROLE(READ_ONLY_ROUTING_LIST = ( {{ hostvars[item]['mssql_ha_read_only_routing_list'] }} ))
+        SECONDARY_ROLE (ALLOW_CONNECTIONS = {{ hostvars[item]['mssql_ha_ag_secondary_role_allow_connections'] | default('ALL') }},READ_ONLY_ROUTING_URL = N'tcp://{{ hostvars[item]['ansible_fqdn'] }}:{{ mssql_tcp_port }}')
+{%      if not (hostvars[item]['mssql_ha_ag_read_only_routing_list'] | default('')) == '' %}
+        ,PRIMARY_ROLE(READ_ONLY_ROUTING_LIST = ( {{ hostvars[item]['mssql_ha_ag_read_only_routing_list'] }} ))
 {%      endif %}
 {%   elif hostvars[item]['mssql_ha_replica_type'] == 'witness' %}
       ),
