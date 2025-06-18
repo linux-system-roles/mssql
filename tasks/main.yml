@@ -1372,9 +1372,7 @@
         # testing against a single node where SQL Always On cluster breaks and
         # does not report the single node as primary because it needs more nodes
         - name: Configure ag
-          when: >-
-            __mssql_ha_is_primary | bool
-            or __mssql_single_node_test | d(false) | bool
+          when: __mssql_ha_is_primary
           vars:
             __mssql_sql_files_to_input:
               - configure_ag.j2
@@ -1382,8 +1380,7 @@
 
         - name: Grant permissions to HA login
           when:
-            - __mssql_ha_is_primary | bool
-              or __mssql_single_node_test | d(false) | bool
+            - __mssql_ha_is_primary
             - mssql_ha_prep_for_pacemaker | bool
           vars:
             __mssql_sql_files_to_input:
@@ -1391,9 +1388,7 @@
           include_tasks: input_sql_files.yml
 
         - name: Replicate DBs
-          when: >-
-            __mssql_ha_is_primary | bool
-            or __mssql_single_node_test | d(false) | bool
+          when: __mssql_ha_is_primary
           vars:
             __mssql_sql_files_to_input:
               - replicate_db.j2
@@ -1550,7 +1545,7 @@
           - configure_listener.j2
       include_tasks: input_sql_files.yml
       when:
-        - __mssql_ha_is_primary | bool
+        - __mssql_ha_is_primary
         - mssql_ha_prep_for_pacemaker | bool
 
 - name: Ensure the ansible_managed header in {{ __mssql_conf_path }}
