@@ -1,3 +1,5 @@
+-- Assign the routing list string to a variable
+DECLARE @routing_list NVARCHAR(MAX);
 IF EXISTS (
   SELECT name, cluster_type_desc
   FROM sys.availability_groups
@@ -201,36 +203,62 @@ removing this replica re-create it';
           {{ value.sql_setting_name }} = {{ value.setting_value }}
 {%       endif %}
         );
-      PRINT '{{ hostvars[item]['ansible_hostname'] }}: \
-The 
-{%       if key == 'read_only_routing_url' %}
-{{ value.sys_setting_name }}
-{%       else %}
-{{ value.sql_setting_name }}
-{%       endif %} 
+      PRINT '{{ hostvars[item]['ansible_hostname'] }}: The \
+{%      if key == 'read_only_routing_url' %}
+{{ value.sys_setting_name }} \
+{%      else %}
+{{ value.sql_setting_name }} \
+{%      endif %}
 setting on this \
 {{ hostvars[item]['mssql_ha_replica_type'] }} replica configured successfully';
     END
     ELSE
     BEGIN
-      PRINT '{{ hostvars[item]['ansible_hostname'] }}: \
-The
-{%       if key == 'read_only_routing_url' %}
-{{ value.sys_setting_name }}
-{%       else %}
-{{ value.sql_setting_name }}
-{%       endif %} 
+      PRINT '{{ hostvars[item]['ansible_hostname'] }}: The \
+{%      if key == 'read_only_routing_url' %}
+{{ value.sys_setting_name }} \
+{%      else %}
+{{ value.sql_setting_name }} \
+{%      endif %}
 setting on this \
 {{ hostvars[item]['mssql_ha_replica_type'] }} replica is already set \
 correctly, skipping';
     END
 {%     endfor %}
-{%     if not (hostvars[item]['mssql_ha_ag_read_only_routing_list'] | default('')) == '' %}
-    ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} MODIFY REPLICA ON 
-	  N'{{ hostvars[item]['ansible_hostname'] }}' WITH (PRIMARY_ROLE(READ_ONLY_ROUTING_LIST = ( {{ hostvars[item]['mssql_ha_ag_read_only_routing_list'] }} )))
-	PRINT '{{ hostvars[item]['ansible_hostname'] }}: \
+{%     if (hostvars[item]['mssql_ha_ag_read_only_routing_list'] | default('')) != '' %}
+    SELECT
+        @routing_list = '(' +
+        STRING_AGG(QUOTENAME(sr.replica_server_name, ''''), ', ')
+            WITHIN GROUP (ORDER BY rorl.routing_priority) + ')'
+    FROM
+        sys.availability_read_only_routing_lists AS rorl
+    JOIN
+        sys.availability_replicas AS sr ON rorl.read_only_replica_id = sr.replica_id
+    WHERE
+        rorl.replica_id = (
+            SELECT replica_id
+            FROM sys.availability_replicas
+            WHERE replica_server_name = '{{ hostvars[item]['ansible_hostname'] }}'
+        );
+    -- Compare routing list
+    IF @routing_list = {{ hostvars[item]['mssql_ha_ag_read_only_routing_list'] }}
+    BEGIN
+      ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} MODIFY REPLICA ON
+        N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
+          PRIMARY_ROLE(
+            READ_ONLY_ROUTING_LIST = {{ hostvars[item]['mssql_ha_ag_read_only_routing_list'] }} )
+          );
+      PRINT '{{ hostvars[item]['ansible_hostname'] }}: \
 The mssql_ha_ag_read_only_routing_list setting on this \
 {{ hostvars[item]['mssql_ha_replica_type'] }} replica configured successfully';
+    END
+    ELSE
+    BEGIN
+      PRINT '{{ hostvars[item]['ansible_hostname'] }}: \
+The mssql_ha_ag_read_only_routing_list setting on this \
+{{ hostvars[item]['mssql_ha_replica_type'] }} replica is already set \
+correctly, skipping';
+    END
 {%     endif %}
   END
 {%   elif hostvars[item]['mssql_ha_replica_type'] == 'absent' %}
@@ -327,10 +355,14 @@ restore to reuse it for the newly created AG {{ mssql_ha_ag_name }}';
         AVAILABILITY_MODE = {{ hostvars[item]['__mssql_ha_availability_mode'] }},
         FAILOVER_MODE = {{ hostvars[item]['__mssql_ha_failover_mode'] }},
         SEEDING_MODE = {{ hostvars[item]['__mssql_ha_seeding_mode'] }},
-        SECONDARY_ROLE (ALLOW_CONNECTIONS = {{ hostvars[item]['mssql_ha_ag_secondary_role_allow_connections'] | default('ALL') }},READ_ONLY_ROUTING_URL = N'tcp://{{ hostvars[item]['ansible_fqdn'] }}:{{ mssql_tcp_port }}')
-{%      if not (hostvars[item]['mssql_ha_ag_read_only_routing_list'] | default('')) == '' %}
-        ,PRIMARY_ROLE(READ_ONLY_ROUTING_LIST = ( {{ hostvars[item]['mssql_ha_ag_read_only_routing_list'] }} ))
-{%      endif %}
+        SECONDARY_ROLE (
+          ALLOW_CONNECTIONS = {{ hostvars[item]['mssql_ha_ag_secondary_role_allow_connections'] | default('ALL') }},
+          READ_ONLY_ROUTING_URL = N'tcp://{{ hostvars[item]['ansible_fqdn'] }}:{{ mssql_tcp_port }}'
+        )
+{%    if (hostvars[item]['mssql_ha_ag_read_only_routing_list'] | default('')) != '' %}
+        ,PRIMARY_ROLE(READ_ONLY_ROUTING_LIST = {{ hostvars[item]['mssql_ha_ag_read_only_routing_list'] }}
+      )
+{%    endif %}
 {%   elif hostvars[item]['mssql_ha_replica_type'] in ['synchronous', 'asynchronous'] %}
       ),
       N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
@@ -339,10 +371,14 @@ restore to reuse it for the newly created AG {{ mssql_ha_ag_name }}';
         AVAILABILITY_MODE = {{ hostvars[item]['__mssql_ha_availability_mode'] }},
         FAILOVER_MODE = {{ hostvars[item]['__mssql_ha_failover_mode'] }},
         SEEDING_MODE = {{ hostvars[item]['__mssql_ha_seeding_mode'] }},
-        SECONDARY_ROLE (ALLOW_CONNECTIONS = {{ hostvars[item]['mssql_ha_ag_secondary_role_allow_connections'] | default('ALL') }},READ_ONLY_ROUTING_URL = N'tcp://{{ hostvars[item]['ansible_fqdn'] }}:{{ mssql_tcp_port }}')
-{%      if not (hostvars[item]['mssql_ha_ag_read_only_routing_list'] | default('')) == '' %}
-        ,PRIMARY_ROLE(READ_ONLY_ROUTING_LIST = ( {{ hostvars[item]['mssql_ha_ag_read_only_routing_list'] }} ))
-{%      endif %}
+        SECONDARY_ROLE (
+          ALLOW_CONNECTIONS = {{ hostvars[item]['mssql_ha_ag_secondary_role_allow_connections'] | default('ALL') }},
+          READ_ONLY_ROUTING_URL = N'tcp://{{ hostvars[item]['ansible_fqdn'] }}:{{ mssql_tcp_port }}'
+        )
+{%    if (hostvars[item]['mssql_ha_ag_read_only_routing_list'] | default('')) != '' %}
+        ,PRIMARY_ROLE(READ_ONLY_ROUTING_LIST = {{ hostvars[item]['mssql_ha_ag_read_only_routing_list'] }}
+      )
+{%    endif %}
 {%   elif hostvars[item]['mssql_ha_replica_type'] == 'witness' %}
       ),
       N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
