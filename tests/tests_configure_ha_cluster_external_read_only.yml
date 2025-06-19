@@ -134,6 +134,12 @@
           include_role:
             name: linux-system-roles.mssql
 
+        - name: Wait for the cluster to finish configuration
+          command: crm_resource --wait
+          changed_when: false
+          register: __mssql_crm_resource_wait
+          until: __mssql_crm_resource_wait is success
+
         # Run sqlcmd against virtual_ip with ReadOnly application intent and
         # with one of our HA DBs. Running this should route to READ_ONLY node,
         # and hence should return the "allow_connections: READ_ONLY" node name.
@@ -162,3 +168,6 @@
           changed_when: false
           failed_when: '"managed-node1" not in __mssql_sqlcmd_input.stdout'
           when: mssql_ha_replica_type == 'primary'
+      always:
+        - name: Clean up after the role invocation
+          include_tasks: tasks/cleanup.yml
