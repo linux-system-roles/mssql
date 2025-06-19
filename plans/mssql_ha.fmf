@@ -26,7 +26,7 @@ environment:
     SR_ANSIBLE_VER: 2.17
     SR_PYTHON_VERSION: 3.12
     SR_REPO_NAME: mssql
-    SR_ONLY_TESTS: "tests_configure_ha_cluster_external.yml tests_configure_ha_cluster_read_scale.yml"
+    SR_ONLY_TESTS: "tests_configure_ha_cluster_external.yml tests_configure_ha_cluster_read_scale.yml tests_configure_ha_cluster_external_read_only.yml"
     SR_TEST_LOCAL_CHANGES: false
     SR_PR_NUM: ""
     SR_LSR_USER: ""
