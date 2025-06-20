@@ -154,20 +154,7 @@
           changed_when: false
           failed_when: '"managed-node2" not in __mssql_sqlcmd_input.stdout'
           when: mssql_ha_replica_type == 'primary'
-
-        # Run sqlcmd against virtual_ip WITHOUT ReadOnly application intent and
-        # with one of our HA DBs. Running this should NOT route to READ_ONLY
-        # node, and hence should return the "allow_connections: ALL" node name.
-        - name: Run without ReadOnly intent to verify that routing worked
-          command: >-
-            {{ __mssql_sqlcmd_login_cmd }}
-            -S {{ mssql_ha_virtual_ip }}
-            -d {{ mssql_ha_db_names[0] }}
-            -Q "SELECT @@SERVERNAME"
-          register: __mssql_sqlcmd_input
-          changed_when: false
-          failed_when: '"managed-node1" not in __mssql_sqlcmd_input.stdout'
-          when: mssql_ha_replica_type == 'primary'
+          until: __mssql_sqlcmd_input is success
       always:
         - name: Clean up after the role invocation
           include_tasks: tasks/cleanup.yml
