@@ -772,6 +772,35 @@ Default: no default
 
 Type: `string`
 
+#### mssql_ha_ag_secondary_role_allow_connections
+
+A host variable that specifies the value of the `SECONDARY_ROLE(ALLOW_CONNECTIONS=<>)` setting for the replica.
+
+See [Example Inventory for HA Configuration](#example-inventory-for-ha-configuration) for an example inventory.
+
+The available values are: `ALL`, `READ_ONLY`, `NO`.
+
+Default: `ALL`
+
+Type: `string`
+
+#### mssql_ha_ag_read_only_routing_list
+
+A host variable that specifies the values of `PRIMARY_ROLE(READ_ONLY_ROUTING_LIST=<>)` setting for the primary replica.
+
+You must enclose the value of this variable in parenthesis.
+It is required for Ansible to render it correctly.
+
+If you do not define this variable, the role does not set `PRIMARY_ROLE(READ_ONLY_ROUTING_LIST=<>)`.
+
+See [Configure read-only routing for an Always On availability group](https://learn.microsoft.com/en-us/sql/database-engine/availability-groups/windows/configure-read-only-routing-for-an-availability-group-sql-server?view=sql-server-ver16) in Microsoft documentation.
+
+Example values: `('node-2','node-3')` or `(('node-2','node-3'),node-4)`
+
+Default: `null`
+
+Type: `string`
+
 #### mssql_ha_endpoint_port
 
 The TCP port used to replicate data for an Always On availability group.
@@ -973,10 +1002,13 @@ all:
     # There is no need to specify ha_cluster names explicitly
     host1:
       mssql_ha_replica_type: primary
+      mssql_ha_ag_secondary_role_allow_connections: ALL
+      mssql_ha_ag_read_only_routing_list: ('host1')
     # host2 and host3 is defined by FQDN
     # You must define ha_cluster names to be in the short name format
     host2.example.com:
       mssql_ha_replica_type: synchronous
+      mssql_ha_ag_secondary_role_allow_connections: READ_ONLY
       ha_cluster:
         node_name: host2
         pcs_address: host2

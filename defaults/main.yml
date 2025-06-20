@@ -55,6 +55,8 @@ mssql_ha_db_names: []
 mssql_ha_ag_is_contained: false
 # if mssql_ha_ag_is_contained=false, mssql_ha_ag_reuse_system_db will be false
 mssql_ha_ag_reuse_system_db: false
+mssql_ha_ag_secondary_role_allow_connections: null
+mssql_ha_ag_read_only_routing_list: null
 
 mssql_ha_prep_for_pacemaker: "{{ mssql_ha_ag_cluster_type | lower != 'none' }}"
 mssql_ha_virtual_ip: null
