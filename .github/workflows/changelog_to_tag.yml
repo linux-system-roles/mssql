@@ -74,7 +74,7 @@ jobs:
           set -euxo pipefail
           sudo apt-get update
           sudo apt install -y git
-          pip install --upgrade pip galaxy-importer ansible-core 'pyyaml<6,>=5.4.1' ruamel_yaml
+          pip install --upgrade pip galaxy-importer ansible-core pyyaml ruamel_yaml
 
       - name: Setup Python
         uses: actions/setup-python@v5
