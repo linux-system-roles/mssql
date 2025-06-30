@@ -1,6 +1,43 @@
 Changelog
 =========
 
+[2.6.0] - 2025-06-30
+--------------------
+
+### New Features
+
+- feat: Add `mssql_ha_ag_is_contained` and `mssql_ha_ag_reuse_system_db` (#337)
+- feat: add mssql_ha_ag_secondary_role_allow_connections and mssql_ha_ag_read_only_routing_list (#338)
+- feat: Support this role in container builds (#349)
+
+### Bug Fixes
+
+- fix: Support mssql-tools18 on suse (#332)
+- fix: Prepare for dnf5 (#341)
+- fix: Make service check work in container environments; plus two other bootc preparation fixes (#347)
+
+### Other Changes
+
+- ci: Modify changelog_to_tag workflow to work with .github automation (#322)
+- ci: Use Fedora 41, drop Fedora 39 (#323)
+- ci: Use Fedora 41, drop Fedora 39 - part two (#324)
+- ci: Remove mock_modules (#326)
+- ci: Check spelling with codespell (#327)
+- ci: ansible-plugin-scan is disabled for now (#328)
+- ci: bump ansible-lint to v25; provide collection requirements for ansible-lint (#331)
+- ci: Add test plan that runs CI tests and customize it for each role (#333)
+- ci: In test plans, prefix all relate variables with SR_ (#339)
+- ci: Fix bug with ARTIFACTS_URL after prefixing with SR_ (#340)
+- ci: skip storage scsi, nvme tests in github qemu ci (#344)
+- ci: bump sclorg/testing-farm-as-github-action from 3 to 4 (#345)
+- ci: bump tox-lsr to 3.8.0; rename qemu/kvm tests (#348)
+- test: set role vars needed for cleanup (#351)
+- ci: Add mssql_ha plan (#355)
+- ci: Add support for bootc end-to-end validation tests (#357)
+- tests: Update tests_password_2022 to do bootc end-to-end validation (#358)
+- ci: Use ansible 2.19 for fedora 42 testing; support python 3.13 (#359)
+- ci: Add a new playbook to mssql_ha test plan (#360)
+
 [2.5.2] - 2024-11-27
 --------------------
 

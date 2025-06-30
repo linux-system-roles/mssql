@@ -58,8 +58,9 @@ SOFTWARE.
   </style>
   <style type="text/css">code{white-space: pre;}</style>
   <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -70,7 +71,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -354,6 +355,10 @@ id="toc-mssql_ha_configure">mssql_ha_configure</a></li>
 id="toc-mssql_ha_ag_cluster_type">mssql_ha_ag_cluster_type</a></li>
 <li><a href="#mssql_ha_replica_type"
 id="toc-mssql_ha_replica_type">mssql_ha_replica_type</a></li>
+<li><a href="#mssql_ha_ag_secondary_role_allow_connections"
+id="toc-mssql_ha_ag_secondary_role_allow_connections">mssql_ha_ag_secondary_role_allow_connections</a></li>
+<li><a href="#mssql_ha_ag_read_only_routing_list"
+id="toc-mssql_ha_ag_read_only_routing_list">mssql_ha_ag_read_only_routing_list</a></li>
 <li><a href="#mssql_ha_endpoint_port"
 id="toc-mssql_ha_endpoint_port">mssql_ha_endpoint_port</a></li>
 <li><a href="#mssql_ha_cert_name"
@@ -370,6 +375,10 @@ id="toc-mssql_ha_endpoint_name">mssql_ha_endpoint_name</a></li>
 id="toc-mssql_ha_ag_name">mssql_ha_ag_name</a></li>
 <li><a href="#mssql_ha_db_names"
 id="toc-mssql_ha_db_names">mssql_ha_db_names</a></li>
+<li><a href="#mssql_ha_ag_is_contained"
+id="toc-mssql_ha_ag_is_contained">mssql_ha_ag_is_contained</a></li>
+<li><a href="#mssql_ha_ag_reuse_system_db"
+id="toc-mssql_ha_ag_reuse_system_db">mssql_ha_ag_reuse_system_db</a></li>
 </ul></li>
 <li><a href="#configuring-pacemaker-variables"
 id="toc-configuring-pacemaker-variables">Configuring Pacemaker
@@ -569,7 +578,7 @@ and mssql_post_input_sql_content</a>.</li>
 <p>By default, installs and uses the latest version 18.</p>
 <p>You can set this variable to <code>[17, 18]</code> to install two
 versions in parallel. In the case when this variable contains multiple
-elements, the role instals both but uses latest provided version.</p>
+elements, the role installs both but uses latest provided version.</p>
 <p>The role does not remove mssql-tools packages if you unset a version
 with this variable.</p>
 <p>If you use version 18 and <a
@@ -1249,6 +1258,34 @@ host.</p>
 host.</p>
 <p>Default: no default</p>
 <p>Type: <code>string</code></p>
+<h3
+id="mssql_ha_ag_secondary_role_allow_connections">mssql_ha_ag_secondary_role_allow_connections</h3>
+<p>A host variable that specifies the value of the
+<code>SECONDARY_ROLE(ALLOW_CONNECTIONS=&lt;&gt;)</code> setting for the
+replica.</p>
+<p>See <a href="#example-inventory-for-ha-configuration">Example
+Inventory for HA Configuration</a> for an example inventory.</p>
+<p>The available values are: <code>ALL</code>, <code>READ_ONLY</code>,
+<code>NO</code>.</p>
+<p>Default: <code>ALL</code></p>
+<p>Type: <code>string</code></p>
+<h3
+id="mssql_ha_ag_read_only_routing_list">mssql_ha_ag_read_only_routing_list</h3>
+<p>A host variable that specifies the values of
+<code>PRIMARY_ROLE(READ_ONLY_ROUTING_LIST=&lt;&gt;)</code> setting for
+the primary replica.</p>
+<p>You must enclose the value of this variable in parenthesis. It is
+required for Ansible to render it correctly.</p>
+<p>If you do not define this variable, the role does not set
+<code>PRIMARY_ROLE(READ_ONLY_ROUTING_LIST=&lt;&gt;)</code>.</p>
+<p>See <a
+href="https://learn.microsoft.com/en-us/sql/database-engine/availability-groups/windows/configure-read-only-routing-for-an-availability-group-sql-server?view=sql-server-ver16">Configure
+read-only routing for an Always On availability group</a> in Microsoft
+documentation.</p>
+<p>Example values: <code>('node-2','node-3')</code> or
+<code>(('node-2','node-3'),node-4)</code></p>
+<p>Default: <code>null</code></p>
+<p>Type: <code>string</code></p>
 <h3 id="mssql_ha_endpoint_port">mssql_ha_endpoint_port</h3>
 <p>The TCP port used to replicate data for an Always On availability
 group.</p>
@@ -1322,6 +1359,22 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb8-1"><a href="
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> microsoft.sql.server</span></span></code></pre></div>
 <p>Default: <code>[]</code></p>
 <p>Type: <code>list</code></p>
+<h3 id="mssql_ha_ag_is_contained">mssql_ha_ag_is_contained</h3>
+<p>Whether to configure the availability group provided with <a
+href="#mssql_ha_ag_name">mssql_ha_ag_name</a> as contained.</p>
+<p>This is supported since SQL Server version 2022.</p>
+<p>Default: <code>false</code></p>
+<p>Type: <code>bool</code></p>
+<h3 id="mssql_ha_ag_reuse_system_db">mssql_ha_ag_reuse_system_db</h3>
+<p>Only applicable when <a
+href="#mssql_ha_ag_is_contained">mssql_ha_ag_is_contained</a> is
+true.</p>
+<p>Whether to configure the availability group provided with <a
+href="#mssql_ha_ag_name">mssql_ha_ag_name</a> with the reuse_system_db
+setting.</p>
+<p>This is supported since SQL Server version 2022.</p>
+<p>Default: <code>false</code></p>
+<p>Type: <code>bool</code></p>
 <h2 id="configuring-pacemaker-variables">Configuring Pacemaker
 Variables</h2>
 <p>With these variables, you can specify whether to configure Pacemaker
@@ -1411,30 +1464,33 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb9-1"><a href="
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">    # There is no need to specify ha_cluster names explicitly</span></span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">host1</span><span class="kw">:</span></span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">mssql_ha_replica_type</span><span class="kw">:</span><span class="at"> primary</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">    # host2 and host3 is defined by FQDN</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co">    # You must define ha_cluster names to be in the short name format</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">host2.example.com</span><span class="kw">:</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">mssql_ha_replica_type</span><span class="kw">:</span><span class="at"> synchronous</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">ha_cluster</span><span class="kw">:</span></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">node_name</span><span class="kw">:</span><span class="at"> host2</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">pcs_address</span><span class="kw">:</span><span class="at"> host2</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">host3.example.com</span><span class="kw">:</span></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">mssql_ha_replica_type</span><span class="kw">:</span><span class="at"> asynchronous</span></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">ha_cluster</span><span class="kw">:</span></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">node_name</span><span class="kw">:</span><span class="at"> host3</span></span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">pcs_address</span><span class="kw">:</span><span class="at"> host3</span></span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="co">    # host4 is defined by an ip address</span></span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="co">    # You must define ha_cluster names to be in the short name format</span></span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="co">    # In the case where the default host&#39;s IP address differs from the IP</span></span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="co">    # address that Pacemaker must use to configure up cluster, you must define</span></span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="co">    # ha_cluster corosync_addresses</span></span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">192.XXX.XXX.333</span><span class="kw">:</span></span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">mssql_ha_replica_type</span><span class="kw">:</span><span class="at"> witness</span></span>
-<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">ha_cluster</span><span class="kw">:</span></span>
-<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">node_name</span><span class="kw">:</span><span class="at"> host4</span></span>
-<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">pcs_address</span><span class="kw">:</span><span class="at"> host4</span></span>
-<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">corosync_addresses</span><span class="kw">:</span></span>
-<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="kw">-</span><span class="at"> 10.XXX.XXX.333</span></span></code></pre></div>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">mssql_ha_ag_secondary_role_allow_connections</span><span class="kw">:</span><span class="at"> ALL</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">mssql_ha_ag_read_only_routing_list</span><span class="kw">:</span><span class="at"> (&#39;host1&#39;)</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co">    # host2 and host3 is defined by FQDN</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="co">    # You must define ha_cluster names to be in the short name format</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">host2.example.com</span><span class="kw">:</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">mssql_ha_replica_type</span><span class="kw">:</span><span class="at"> synchronous</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">mssql_ha_ag_secondary_role_allow_connections</span><span class="kw">:</span><span class="at"> READ_ONLY</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">ha_cluster</span><span class="kw">:</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">node_name</span><span class="kw">:</span><span class="at"> host2</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">pcs_address</span><span class="kw">:</span><span class="at"> host2</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">host3.example.com</span><span class="kw">:</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">mssql_ha_replica_type</span><span class="kw">:</span><span class="at"> asynchronous</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">ha_cluster</span><span class="kw">:</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">node_name</span><span class="kw">:</span><span class="at"> host3</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">pcs_address</span><span class="kw">:</span><span class="at"> host3</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="co">    # host4 is defined by an ip address</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="co">    # You must define ha_cluster names to be in the short name format</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="co">    # In the case where the default host&#39;s IP address differs from the IP</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="co">    # address that Pacemaker must use to configure up cluster, you must define</span></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="co">    # ha_cluster corosync_addresses</span></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">192.XXX.XXX.333</span><span class="kw">:</span></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">mssql_ha_replica_type</span><span class="kw">:</span><span class="at"> witness</span></span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">ha_cluster</span><span class="kw">:</span></span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">node_name</span><span class="kw">:</span><span class="at"> host4</span></span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">pcs_address</span><span class="kw">:</span><span class="at"> host4</span></span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">corosync_addresses</span><span class="kw">:</span></span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="kw">-</span><span class="at"> 10.XXX.XXX.333</span></span></code></pre></div>
 <h3
 id="configuring-sql-server-with-a-none-cluster-type-for-read-scale-without-pacemaker">Configuring
 SQL Server with a <code>none</code> Cluster Type for Read-scale without
