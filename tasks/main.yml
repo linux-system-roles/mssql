@@ -425,11 +425,7 @@
       failed_when: >-
         (__mssql_is_booted and __mssql_conf_setup.rc != 0) or
         (not __mssql_is_booted and __mssql_conf_setup.rc not in [0, 1])
-      until: >-
-        "Initial setup of Microsoft SQL Server failed."
-        not in __mssql_conf_setup.stdout and
-        "Initial setup of Microsoft SQL Server failed."
-        not in __mssql_conf_setup.stderr
+      until: __mssql_conf_setup is success
   rescue:
     - name: Print output of failed task
       when: item | length > 0
@@ -707,14 +703,7 @@
       changed_when: false
       register: __mssql_password_query
       no_log: true
-      until: >-
-        "TCP Provider: Error code 0x102" not in __mssql_password_query.stdout
-        and
-        "TCP Provider: Error code 0x102" not in __mssql_password_query.stderr
-        and
-        "TCP Provider: Error code 0x2749" not in __mssql_password_query.stdout
-        and
-        "TCP Provider: Error code 0x2749" not in __mssql_password_query.stderr
+      until: __mssql_password_query is success
       when: __mssql_is_booted | bool
 
     - name: Ensure that the mssql-server service is stopped
