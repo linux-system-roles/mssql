@@ -1,6 +1,13 @@
 Changelog
 =========
 
+[2.6.2] - 2025-07-04
+--------------------
+
+### Bug Fixes
+
+- fix: Retry set up and sqlcms until success instead of conditions (#364)
+
 [2.6.1] - 2025-06-30
 --------------------
 
