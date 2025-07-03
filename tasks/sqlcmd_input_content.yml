@@ -7,11 +7,7 @@
       register: __mssql_sqlcmd_input
       changed_when: '"successfully" in __mssql_sqlcmd_input.stdout'
       no_log: true
-      until: >-
-        "TCP Provider: Error code 0x102" not in __mssql_sqlcmd_input.stdout and
-        "TCP Provider: Error code 0x102" not in __mssql_sqlcmd_input.stderr and
-        "TCP Provider: Error code 0x2749" not in __mssql_sqlcmd_input.stdout and
-        "TCP Provider: Error code 0x2749" not in __mssql_sqlcmd_input.stderr
+      until: __mssql_sqlcmd_input is success
 
   always:
     # Role prints the output if the input succeeds, otherwise Ansible prints the
