@@ -15,7 +15,7 @@ __mssql_server_selinux_packages: mssql-server-selinux
 __sqlcmd_ver: "{{ mssql_tools_versions | sort | last }}"
 __sqlcmd_cli: "{{
   '/opt/mssql-tools/bin/sqlcmd' if __sqlcmd_ver == '17'
-  else '/opt/mssql-tools' + __sqlcmd_ver + '/bin/sqlcmd' }}"
+  else '/opt/mssql-tools' + (__sqlcmd_ver | string) + '/bin/sqlcmd' }}"
 __mssql_client_packages:
   - mssql-tools{{ '' if __sqlcmd_ver == '17' else __sqlcmd_ver }}
   - unixODBC-devel
