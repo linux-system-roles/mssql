@@ -587,19 +587,26 @@
         - mssql_tls_enable | bool
         - mssql_tls_certificates | length > 0
       block:
+        - name: Reset certificate_requests
+          set_fact:
+            __mssql_certificate_requests: []
+
+        - name: Set certificate_requests
+          set_fact:
+            __mssql_certificate_requests: "{{ __mssql_certificate_requests + [item | combine(__cert_item)] }}"
+          loop: "{{ mssql_tls_certificates }}"
+          vars:
+            __cert_item:
+              name: "{{ item.name | basename }}"
+              owner: mssql
+              group: mssql
+              mode: "0600"
+
         - name: Create certificates using the certificate role
           include_role:
             name: fedora.linux_system_roles.certificate
           vars:
-            certificate_requests: |
-              {% for _cert in mssql_tls_certificates %}
-              {%   set _basename = _cert.name | basename %}
-              {%   set _ = _cert.__setitem__('name', _basename) %}
-              {%   set _ = _cert.__setitem__('owner', 'mssql') %}
-              {%   set _ = _cert.__setitem__('group', 'mssql') %}
-              {%   set _ = _cert.__setitem__('mode', '0600') %}
-              {% endfor %}
-              {{ mssql_tls_certificates }}
+            certificate_requests: "{{ __mssql_certificate_requests }}"
 
         - name: Set mssql_tls_cert and _private_key based on the cert name
           set_fact:
@@ -1326,25 +1333,15 @@
 
         - name: Set fact with the current primary replica
           set_fact:
-            __mssql_ha_is_primary: |-
-              {% set hadr_curr_primary = [] %}
-              {% for item in ansible_play_hosts %}
-              {%   if hostvars[item]['__mssql_sqlcmd_input']['stdout']
-                   | int == 1 %}
-              {{ hadr_curr_primary.append(item) -}}
-              {%   endif %}
-              {% endfor %}
-              {%- if hadr_curr_primary | length > 0
-                and
-                hadr_curr_primary[0] == inventory_hostname %}
-              true
-              {%- elif hadr_curr_primary | length == 0
-                and
-                mssql_ha_replica_type == 'primary' %}
-              true
-              {%- else %}
-              false
-              {%- endif %}
+            __mssql_ha_is_primary: "{{ (
+                hadr_curr_primary | length > 0 and
+                inventory_hostname in hadr_curr_primary
+              ) or (
+                hadr_curr_primary | length == 0 and
+                mssql_ha_replica_type == 'primary') }}"
+          vars:
+            hadr_curr_primary: "{{ hostvars | dict2items | selectattr('key', 'in', ansible_play_hosts) |
+              selectattr('value.__mssql_sqlcmd_input.stdout', 'match', '^1$') | map(attribute='key') | list }}"
 
         - name: Verify that primary instance hosts is available
           assert:
