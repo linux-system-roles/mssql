@@ -1332,7 +1332,7 @@
           include_tasks: input_sql_files.yml
 
         - name: Set fact with the current primary replica
-          set_fact:
+          set_fact:  # noqa jinja[invalid]
             __mssql_ha_is_primary: "{{ (
                 hadr_curr_primary | length > 0 and
                 inventory_hostname in hadr_curr_primary

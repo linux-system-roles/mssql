@@ -44,6 +44,7 @@ __mssql_ha_replica_types_external:
   - primary
   - synchronous
   - asynchronous
+# noqa jinja[spacing]
 __mssql_ha_endpoint_role: >-
   {%- if mssql_ha_replica_type in __mssql_ha_replica_types_external -%}
   ALL
@@ -52,6 +53,7 @@ __mssql_ha_endpoint_role: >-
   {%- else -%}
   null
   {%- endif -%}
+# noqa jinja[spacing]
 __mssql_ha_db_failover: >-
   {%- if mssql_ha_ag_cluster_type | lower == 'external' -%}
   ON
