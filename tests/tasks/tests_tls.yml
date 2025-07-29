@@ -20,14 +20,23 @@
   register: __mssql_pvk_tempfile
   run_once: true
 
+- name: Get openssl algorithms
+  command: openssl list -public-key-algorithms
+  register: openssl_algorithms
+  changed_when: false
+  no_log: true  # this is quite verbose
+
 - name: Generate a self-signed certificate and public key
   command: >-
-    openssl req -x509 -nodes -newkey rsa:2048
+    openssl req -x509 -nodes -newkey {{ key_algo }}
     -subj "/CN={{ ansible_default_ipv4.address }}"
     -out {{ __mssql_cert_tempfile.path }}
     -keyout {{ __mssql_pvk_tempfile.path }} -days 365
   changed_when: true
   run_once: true
+  vars:
+    key_algo: "{{ 'mldsa65' if 'MLDSA65' in openssl_algorithms.stdout
+      else 'rsa:2048' }}"
 
 - name: Copy certificate files to local tmp
   fetch:
