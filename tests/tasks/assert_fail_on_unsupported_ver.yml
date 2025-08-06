@@ -29,6 +29,9 @@
         that: >-
           'You must set the mssql_version variable to one of'
           in ansible_failed_result.msg
+          or
+          'mssql_ha_configure=true does not support running against EL 7 hosts'
+          in ansible_failed_result.msg
 
     - name: Clean up after the role invocation
       include_tasks: tasks/cleanup.yml
