@@ -73,16 +73,16 @@ BEGIN
 {# In the first loop, add primaries at the end and witness at the beginning #}
 {% for item in ansible_play_hosts_all %}
 {%   if hostvars[item]['mssql_ha_replica_type'] == 'primary' %}
-{{ ag_replicas_primary_last.append(item) -}}
+{%     set _ = ag_replicas_primary_last.append(item) %}
 {%   elif hostvars[item]['mssql_ha_replica_type'] == 'witness' %}
-{{ ag_replicas_primary_last.insert(0, item) -}}
+{%     set _ = ag_replicas_primary_last.insert(0, item) %}
 {%   endif %}
 {% endfor %}
 {# In the second loop, add others at the beginning #}
 {% for item in ansible_play_hosts_all %}
 {%   if hostvars[item]['mssql_ha_replica_type']
      not in ag_replicas_primary_last %}
-{{ ag_replicas_primary_last.insert(0, item) -}}
+{%     set _ = ag_replicas_primary_last.insert(0, item) %}
 {%   endif %}
 {% endfor %}
 {% for item in ag_replicas_primary_last %}
@@ -337,13 +337,13 @@ restore to reuse it for the newly created AG {{ mssql_ha_ag_name }}';
 {# In the first loop, add not primaries to a new list #}
 {% for item in ansible_play_hosts_all %}
 {%   if hostvars[item]['mssql_ha_replica_type'] != 'primary' %}
-{{ ag_replicas_primary_first.append(item) -}}
+{%     set _ = ag_replicas_primary_first.append(item) %}
 {%   endif %}
 {% endfor %}
 {# In the second loop, add primary at the beginning #}
 {% for item in ansible_play_hosts_all %}
 {%   if hostvars[item]['mssql_ha_replica_type'] == 'primary' %}
-{{ ag_replicas_primary_first.insert(0, item) -}}
+{%     set _ = ag_replicas_primary_first.insert(0, item) %}
 {%   endif %}
 {% endfor %}
 {% for item in ag_replicas_primary_first %}
