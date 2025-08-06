@@ -3,7 +3,7 @@
 __mssql_base_repository: "https://packages.microsoft.com/sles/{{ ansible_facts['distribution_major_version'] | int }}/"
 __mssql_server_repository: "{{ __mssql_base_repository }}mssql-server-{{ mssql_version | int }}/"
 __mssql_client_repository: "{{ __mssql_base_repository }}prod/"
-__mssql_client_packages: "mssql-tools{{ '' if __sqlcmd_ver == '17' else __sqlcmd_ver }}"
+__mssql_client_packages: "mssql-tools{{ '' if __sqlcmd_ver | int == 17 else __sqlcmd_ver }}"
 __mssql_supported_versions:
   - 2019
   - 2022
