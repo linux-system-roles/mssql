@@ -58,6 +58,12 @@
         - name: Configure the mssql-server service start limit interval and burst
           include_tasks: tasks/mssql-sever-increase-start-limit.yml
 
+        - name: Set SELinux to permissive to test without selinux_confined
+          include_role:
+            name: fedora.linux_system_roles.selinux
+          vars:
+            selinux_state: permissive
+
         - name: Run without selinux_confined
           include_role:
             name: linux-system-roles.mssql
