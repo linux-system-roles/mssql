@@ -114,6 +114,9 @@
           meta: end_play
           when: ansible_play_hosts_all | length < 3
 
+        - name: Assert fail on EL 7 with version = 2022 and EL 9 with version != 2022
+          include_tasks: tasks/assert_fail_on_unsupported_ver.yml
+
         - name: Load softdog module for stonith to have at least one watchdog
           command: modprobe softdog
           changed_when: true
