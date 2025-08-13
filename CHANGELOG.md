@@ -1,6 +1,14 @@
 Changelog
 =========
 
+[2.6.4] - 2025-08-13
+--------------------
+
+### Other Changes
+
+- test: use post quantum crypto for certs where available (#368)
+- fix: Fix templates/configure_ag.j2 for Ansible 2.19
+
 [2.6.3] - 2025-07-25
 --------------------
 
