@@ -22,7 +22,7 @@ jobs:
           sudo apt install -y git
 
       - name: checkout PR
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Get tag and message from the latest CHANGELOG.md commit
         id: tag
@@ -74,19 +74,19 @@ jobs:
           set -euxo pipefail
           sudo apt-get update
           sudo apt install -y git
-          pip install --upgrade pip galaxy-importer ansible-core pyyaml ruamel_yaml
+          pip install --upgrade pip galaxy-importer ansible-core 'pyyaml<6,>=5.4.1' ruamel_yaml
 
       - name: Setup Python
         uses: actions/setup-python@v5
 
       - name: checkout auto-maintenance
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: linux-system-roles/auto-maintenance
           path: auto-maintenance
 
       - name: checkout mssql into a separate directory
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: mssql
       - name: Build and publish the collection
