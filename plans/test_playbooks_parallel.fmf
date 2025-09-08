@@ -17,6 +17,10 @@ provision:
     role: managed_node
     hardware:
       memory: '>= 4096 MB'
+  - name: managed-node4
+    role: managed_node
+    hardware:
+      memory: '>= 4096 MB'
 environment:
   SR_ANSIBLE_VER: 2.17
   SR_REPO_NAME: mssql
