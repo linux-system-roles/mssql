@@ -90,8 +90,8 @@
   fail:
     msg: This role does not support running against RHEL or CentOS 10 hosts
   when:
-    - ansible_distribution in ['CentOS', 'RedHat']
-    - ansible_distribution_major_version is version('10', '=')
+    - ansible_facts["distribution"] in ['CentOS', 'RedHat']
+    - ansible_facts["distribution_major_version"] is version('10', '=')
 
 - name: Verify that the user accepts EULA variables
   assert:
@@ -110,8 +110,8 @@
     msg: mssql_ha_configure=true does not support running against EL 7 hosts
   when:
     - mssql_ha_configure | bool
-    - ansible_distribution in ['CentOS', 'RedHat']
-    - ansible_distribution_version is version('8', '<')
+    - ansible_facts["distribution"] in ['CentOS', 'RedHat']
+    - ansible_facts["distribution_version"] is version('8', '<')
 
 - name: Verify if the mssql_ha_replica_type variable is provided correctly
   assert:
@@ -254,7 +254,7 @@
   when:
     - __mssql_current_version is defined
     - mssql_upgrade | bool
-    - ansible_pkg_mgr in ["yum", "dnf", "dnf5"]
+    - ansible_facts["pkg_mgr"] in ["yum", "dnf", "dnf5"]
   block:
     # This works only on systems that use yum or dnf
     - name: >-
@@ -290,7 +290,7 @@
   when:
     - __mssql_current_version is defined
     - mssql_upgrade | bool
-    - ansible_pkg_mgr == "zypper"
+    - ansible_facts["pkg_mgr"] == "zypper"
   block:
     - name: >-
         Update all packages from SQL Server repo
@@ -327,7 +327,7 @@
     baseurl: "{{ mssql_server_repository }}"
     gpgcheck: true
   when:
-    - ansible_pkg_mgr in ["yum", "dnf", "dnf5"]
+    - ansible_facts["pkg_mgr"] in ["yum", "dnf", "dnf5"]
     - >-
       (__mssql_server_packages not in ansible_facts.packages) or
       (mssql_upgrade | bool)
@@ -337,7 +337,7 @@
     zypper addrepo -c -f --name "Microsoft SQL Server {{ mssql_version }}"
     {{ mssql_server_repository }} packages-microsoft-com-mssql-server-{{ mssql_version | int }}
   when:
-    - ansible_pkg_mgr == "zypper"
+    - ansible_facts["pkg_mgr"] == "zypper"
     - >-
       (__mssql_server_packages not in ansible_facts.packages) or
       (mssql_upgrade | bool)
@@ -559,13 +559,13 @@
     description: Microsoft SQL Server Tools
     baseurl: "{{ mssql_client_repository }}"
     gpgcheck: true
-  when: ansible_pkg_mgr in ["yum", "dnf", "dnf5"]
+  when: ansible_facts["pkg_mgr"] in ["yum", "dnf", "dnf5"]
 
 - name: Configure the Microsoft SQL Server Tools repository # noqa command-instead-of-module
   command: >-
     zypper addrepo -c -f --name "Microsoft SQL Server Tools"
     {{ mssql_client_repository }} packages-microsoft-com-prod
-  when: ansible_pkg_mgr == "zypper"
+  when: ansible_facts["pkg_mgr"] == "zypper"
   register: __zypper_addrepo_tools_output
   failed_when: not __zypper_addrepo_tools_output.rc in [0, 4]
   changed_when: __zypper_addrepo_tools_output.rc != 4
@@ -1039,7 +1039,7 @@
             adutil spn addauto
             --name {{ mssql_ad_sql_user }}
             --spn-service MSSQLSvc
-            --spn-host {{ ansible_fqdn }}
+            --spn-host {{ ansible_facts["fqdn"] }}
             --spn-port {{ mssql_tcp_port }}
             --yes
             --debug
@@ -1048,7 +1048,7 @@
             not "Type or value exists"
             in __mssql_adutil_spn_addauto.stdout
           when: >-
-            not "MSSQLSvc/" ~ ansible_fqdn ~ ":" ~ mssql_tcp_port
+            not "MSSQLSvc/" ~ ansible_facts["fqdn"] ~ ":" ~ mssql_tcp_port
             in __mssql_adutil_spn_show.stdout
 
         - name: Get kvno of the SPN host
@@ -1073,19 +1073,19 @@
             --password {{ mssql_ad_sql_password | quote }}
             --path {{ __mssql_keytab_path }}
             --spn-port {{ mssql_tcp_port }}
-            --spn-host {{ ansible_fqdn }}
+            --spn-host {{ ansible_facts["fqdn"] }}
             --spn-service MSSQLSvc
             --kvno {{ __mssql_kvno.stdout }}
             --enctype aes256-cts-hmac-sha1-96,aes128-cts-hmac-sha1-96
             --yes
           when:
             - >-
-              not __mssql_kvno.stdout ~ " MSSQLSvc/" ~ ansible_fqdn ~ ":"
+              not __mssql_kvno.stdout ~ " MSSQLSvc/" ~ ansible_facts["fqdn"] ~ ":"
               ~ mssql_tcp_port ~ "@" ~ ad_integration_realm | upper
               ~ " (aes256-cts-hmac-sha1-96)"
               in __mssql_keytab_properties.stdout | d()
             - >-
-              not __mssql_kvno.stdout ~ " MSSQLSvc/" ~ ansible_fqdn ~ ":"
+              not __mssql_kvno.stdout ~ " MSSQLSvc/" ~ ansible_facts["fqdn"] ~ ":"
               ~ mssql_tcp_port ~ "@" ~ ad_integration_realm | upper
               ~ " (aes128-cts-hmac-sha1-96)"
               in __mssql_keytab_properties.stdout | d()

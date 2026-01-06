@@ -29,7 +29,7 @@
 - name: Generate a self-signed certificate and public key
   command: >-
     openssl req -x509 -nodes -newkey {{ key_algo }}
-    -subj "/CN={{ ansible_default_ipv4.address }}"
+    -subj "/CN={{ ansible_facts['default_ipv4']['address'] }}"
     -out {{ __mssql_cert_tempfile.path }}
     -keyout {{ __mssql_pvk_tempfile.path }} -days 365
   changed_when: true
@@ -168,7 +168,7 @@
     mssql_tls_enable: true
     mssql_tls_certificates:
       - name: mssql_2019_cert
-        common_name: "{{ ansible_default_ipv4.address }}"
+        common_name: "{{ ansible_facts['default_ipv4']['address'] }}"
         ca: self-sign
 
 - name: Flush handlers

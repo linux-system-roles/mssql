@@ -25,7 +25,7 @@ BEGIN
   IF EXISTS (
     SELECT replica_server_name
     FROM sys.availability_replicas
-    WHERE replica_server_name = '{{ hostvars[item]['ansible_hostname'] }}'
+    WHERE replica_server_name = '{{ hostvars[item]['ansible_facts']['hostname'] }}'
   )
   BEGIN
     PRINT 'Verifying the existing replica {{ item }}';
@@ -35,7 +35,7 @@ BEGIN
 "endpoint_url":{
   "sql_setting_name":"ENDPOINT_URL",
   "sys_setting_name":"endpoint_url",
-  "setting_value":"N'tcp://" + hostvars[item]['ansible_fqdn'] + ":" +
+  "setting_value":"N'tcp://" + hostvars[item]['ansible_facts']['fqdn'] + ":" +
     "1234" + "'"
 },
 "failover_mode":{
@@ -59,7 +59,7 @@ BEGIN
 "endpoint_url":{
   "sql_setting_name":"ENDPOINT_URL",
   "sys_setting_name":"endpoint_url",
-  "setting_value":"N'tcp://" + hostvars[item]['ansible_fqdn'] + ":" +
+  "setting_value":"N'tcp://" + hostvars[item]['ansible_facts']['fqdn'] + ":" +
     "1234" + "'"
 }
 }) %}
@@ -68,7 +68,7 @@ BEGIN
     IF NOT EXISTS (
       SELECT replica_server_name, {{ value.sys_setting_name }}
       FROM sys.availability_replicas
-      WHERE replica_server_name = N'{{ hostvars[item]['ansible_hostname'] }}'
+      WHERE replica_server_name = N'{{ hostvars[item]['ansible_facts']['hostname'] }}'
       AND
 {%       if key == 'endpoint_url' %}
             {{ value.sys_setting_name }} = {{ value.setting_value }}
@@ -78,20 +78,20 @@ BEGIN
     )
     BEGIN
       ALTER AVAILABILITY GROUP {{ mssql_ha_ag_name }} MODIFY REPLICA ON
-        N'{{ hostvars[item]['ansible_hostname'] }}' WITH (
+        N'{{ hostvars[item]['ansible_facts']['hostname'] }}' WITH (
 {%       if key == 'allow_connections' %}
           {{ value.sql_setting_name }}
 {%       else %}
           {{ value.sql_setting_name }} = {{ value.setting_value }}
 {%       endif %}
         );
-      PRINT '{{ hostvars[item]['ansible_hostname'] }}: \
+      PRINT '{{ hostvars[item]['ansible_facts']['hostname'] }}: \
 The {{ value.sql_setting_name }} setting on this \
 {{ hostvars[item]['mssql_ha_replica_type'] }} replica configured successfully';
     END
     ELSE
     BEGIN
-      PRINT '{{ hostvars[item]['ansible_hostname'] }}: \
+      PRINT '{{ hostvars[item]['ansible_facts']['hostname'] }}: \
 The {{ value.sql_setting_name }} setting on this \
 {{ hostvars[item]['mssql_ha_replica_type'] }} replica is already set \
 correctly, skipping';
