@@ -2,8 +2,8 @@
 ---
 - name: Verify that by default the role fails on EL < 8
   when:
-    - ansible_distribution in ['CentOS', 'RedHat']
-    - ansible_distribution_version is version('8', '<')
+    - ansible_facts["distribution"] in ['CentOS', 'RedHat']
+    - ansible_facts["distribution_version"] is version('8', '<')
   block:
     - name: Run the role
       vars:

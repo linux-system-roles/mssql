@@ -17,8 +17,8 @@
 
     - name: Check error message on not supported hosts and clean up
       when:
-        - ansible_distribution in ['CentOS', 'RedHat']
-        - ansible_distribution_major_version is version('9', '<')
+        - ansible_facts["distribution"] in ['CentOS', 'RedHat']
+        - ansible_facts["distribution_major_version"] is version('9', '<')
       block:
         - name: Check error message on not supported hosts
           include_role:

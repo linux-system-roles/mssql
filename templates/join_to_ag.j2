@@ -10,12 +10,12 @@ AND NOT EXISTS (
   ON ag.group_id = replica.group_id
   WHERE ag.name = '{{ mssql_ha_ag_name }}' AND
         ag.cluster_type_desc = '{{ mssql_ha_ag_cluster_type }}' AND
-        replica.replica_server_name = '{{ ansible_hostname }}' AND
+        replica.replica_server_name = '{{ ansible_facts["hostname"] }}' AND
         replica.availability_mode_desc = '{{ __mssql_ha_availability_mode }}'
 )
 BEGIN
   PRINT 'The existing availability group {{ mssql_ha_ag_name }} has \
-incorrect availability mode set for the {{ ansible_hostname }} replica, \
+incorrect availability mode set for the {{ ansible_facts['hostname'] }} replica, \
 removing this availability group to re-create it'
   DROP AVAILABILITY GROUP {{ mssql_ha_ag_name }};
   PRINT 'The availability group {{ mssql_ha_ag_name }} removed successfully'
@@ -31,7 +31,7 @@ AND EXISTS (
   JOIN sys.availability_replicas replica
   ON ag.group_id = replica.group_id
   WHERE ag.name = '{{ mssql_ha_ag_name }}' AND
-        replica.replica_server_name = '{{ ansible_hostname }}' AND
+        replica.replica_server_name = '{{ ansible_facts["hostname"] }}' AND
         replica.availability_mode_desc = '{{ __mssql_ha_availability_mode }}'
 )
 BEGIN

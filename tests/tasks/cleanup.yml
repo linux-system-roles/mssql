@@ -18,9 +18,9 @@
     name: fedora.linux_system_roles.ha_cluster
   when: ansible_facts.packages.pcs is defined
 
-- name: Debug ansible_python_version
+- name: Debug ansible_facts['python_version']
   debug:
-    var: ansible_python_version
+    var: ansible_facts['python_version']
 
 - name: Purge firewall configuration
   vars:

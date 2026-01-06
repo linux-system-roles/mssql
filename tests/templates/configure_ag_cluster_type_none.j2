@@ -1,8 +1,8 @@
 CREATE AVAILABILITY GROUP {{ mssql_ha_ag_name }}
   WITH (CLUSTER_TYPE = NONE)
   FOR REPLICA ON
-    N'{{ ansible_hostname }}' WITH (
-      ENDPOINT_URL = N'tcp://{{ ansible_fqdn }}:{{ mssql_ha_endpoint_port }}',
+    N'{{ ansible_facts['hostname'] }}' WITH (
+      ENDPOINT_URL = N'tcp://{{ ansible_facts['fqdn'] }}:{{ mssql_ha_endpoint_port }}',
       AVAILABILITY_MODE = SYNCHRONOUS_COMMIT,
       FAILOVER_MODE = MANUAL,
       SEEDING_MODE = AUTOMATIC,

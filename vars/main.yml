@@ -4,7 +4,10 @@ __mssql_required_facts:
   - distribution
   - distribution_major_version
   - distribution_version
+  - fqdn
+  - hostname
   - os_family
+  - pkg_mgr
 # the subsets of ansible_facts that need to be gathered in case any of the
 # facts in required_facts is missing; see the documentation of
 # the 'gather_subset' parameter of the 'setup' module
@@ -80,8 +83,8 @@ __mssql_rh_distros:
 __mssql_rh_distros_fedora: "{{ __mssql_rh_distros + ['Fedora'] }}"
 
 # Use this in conditionals to check if distro is Red Hat or clone
-__mssql_is_rh_distro: "{{ ansible_distribution in __mssql_rh_distros }}"
+__mssql_is_rh_distro: "{{ ansible_facts['distribution'] in __mssql_rh_distros }}"
 
 # Use this in conditionals to check if distro is Red Hat or clone, or Fedora
-__mssql_is_rh_distro_fedora: "{{ ansible_distribution in __mssql_rh_distros_fedora }}"
+__mssql_is_rh_distro_fedora: "{{ ansible_facts['distribution'] in __mssql_rh_distros_fedora }}"
 # END - DO NOT EDIT THIS BLOCK - rh distros variables
