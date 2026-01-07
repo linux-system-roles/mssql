@@ -8,11 +8,14 @@ __mssql_required_facts:
   - hostname
   - os_family
   - pkg_mgr
+__mssql_no_subsets_facts:
+  - fqdn
+  - hostname
 # the subsets of ansible_facts that need to be gathered in case any of the
 # facts in required_facts is missing; see the documentation of
 # the 'gather_subset' parameter of the 'setup' module
 __mssql_required_facts_subsets: "{{ ['!all', '!min'] +
-  __mssql_required_facts }}"
+  __mssql_required_facts | difference(__mssql_no_subsets_facts) }}"
 __mssql_server_packages: mssql-server
 __mssql_server_selinux_packages: mssql-server-selinux
 __sqlcmd_ver: "{{ mssql_tools_versions | sort | last }}"
