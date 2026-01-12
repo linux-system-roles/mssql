@@ -955,6 +955,10 @@
     - name: Join to realm {{ ad_integration_realm }}
       include_role:
         name: fedora.linux_system_roles.ad_integration
+      vars:
+        ad_integration_sssd_custom_settings:
+          - key: krb5_canonicalize
+            value: "false"
       when: mssql_ad_join | bool
 
     - name: Ensure AD user and create keytab file

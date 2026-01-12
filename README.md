@@ -1437,11 +1437,11 @@ This is because the `adutil` tool is not able to return statuses of users, hence
 
 This role uses the `fedora.linux_system_roles.ad_integration` role to join SQL Server with AD server.
 
-To join to AD server, you must also provide the following variables for the `ad_integration` role:
+* To join to AD server, you must also provide the following variables for the `ad_integration` role:
 
-* `ad_integration_realm` - to optionally join to the AD and create a keytab file
-* `ad_integration_user` - to optionally join to the AD and obtain Kerberos ticket if [mssql_ad_kerberos_user](#mssql_ad_kerberos_user) is not provided
-* `ad_integration_password` - to authenticate `ad_integration_user`
+  * `ad_integration_realm` - to optionally join to the AD and create a keytab file
+  * `ad_integration_user` - to optionally join to the AD and obtain Kerberos ticket if [mssql_ad_kerberos_user](#mssql_ad_kerberos_user) is not provided
+  * `ad_integration_password` - to authenticate `ad_integration_user`
 * Optional, You can configure DNS using ad_integration role by providing the following variables:
 
   ```yaml
@@ -1453,7 +1453,9 @@ To join to AD server, you must also provide the following variables for the `ad_
 
 * Optional: You can provide further variables for the `fedora.linux_system_roles.ad_integration` role if you need.
 
-Optional: If you have already joined managed nodes to AD and you want to skip running the ad_integration role, you can set the [mssql_ad_join](#mssql_ad_join) variable to false.
+* Optional: If you have already joined managed nodes to AD and you want to skip running the ad_integration role, you can set the [mssql_ad_join](#mssql_ad_join) variable to false.
+
+* To avoid the issue with canonicalization of Kerberos principal returned by the KDC described in [Executing privileged commands against MS ADS fails with error 15404](https://access.redhat.com/solutions/7134391) KCS, the role sets `krb5_canonicalize=false` when joining to the AD realm.
 
 ### AD Prerequisites
 
