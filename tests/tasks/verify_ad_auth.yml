@@ -38,6 +38,10 @@
         ("(Expired)" in __mssql_klist_kinit_user.stdout | d())
       changed_when: true
 
+    # Even though this test doesn't setup TLS, SQL Server still encrypts
+    # connections (default behavior or AD requirements), and without an explicit
+    # certificate, it generates a self-signed certificate.
+    # Hence need to use -C to trust self-signed server certificate.
     - name: SSH into AD, kinit as Administrator, verify authentication
       shell: >-
         set -euo pipefail;
@@ -47,7 +51,7 @@
         {{ ansible_facts["fqdn"] }}
         "echo {{ ad_integration_password | quote }}
         | kinit {{ __mssql_kinit_user }} &&
-        /opt/mssql-tools18/bin/sqlcmd -S. -Q 'SELECT SYSTEM_USER'"
+        /opt/mssql-tools18/bin/sqlcmd -C -S. -Q 'SELECT SYSTEM_USER'"
       register: __mssql_ad_test
       changed_when: false
   always:
