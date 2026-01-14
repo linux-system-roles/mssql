@@ -29,6 +29,7 @@
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
     mssql_manage_firewall: true
+    mssql_manage_selinux: "{{ mssql_run_selinux_confined }}"
     mssql_debug: true
     mssql_ad_configure: true
     mssql_ad_sql_user: sqluser
