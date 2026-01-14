@@ -1915,17 +1915,19 @@ force-configure users.</p>
 <p>This role uses the
 <code>fedora.linux_system_roles.ad_integration</code> role to join SQL
 Server with AD server.</p>
-<p>To join to AD server, you must also provide the following variables
-for the <code>ad_integration</code> role:</p>
 <ul>
-<li><p><code>ad_integration_realm</code> - to optionally join to the AD
-and create a keytab file</p></li>
-<li><p><code>ad_integration_user</code> - to optionally join to the AD
-and obtain Kerberos ticket if <a
+<li><p>To join to AD server, you must also provide the following
+variables for the <code>ad_integration</code> role:</p>
+<ul>
+<li><code>ad_integration_realm</code> - to optionally join to the AD and
+create a keytab file</li>
+<li><code>ad_integration_user</code> - to optionally join to the AD and
+obtain Kerberos ticket if <a
 href="#mssql_ad_kerberos_user">mssql_ad_kerberos_user</a> is not
-provided</p></li>
-<li><p><code>ad_integration_password</code> - to authenticate
-<code>ad_integration_user</code></p></li>
+provided</li>
+<li><code>ad_integration_password</code> - to authenticate
+<code>ad_integration_user</code></li>
+</ul></li>
 <li><p>Optional, You can configure DNS using ad_integration role by
 providing the following variables:</p>
 <div class="sourceCode" id="cb15"><pre
@@ -1936,10 +1938,16 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb15-1"><a href=
 <li><p>Optional: You can provide further variables for the
 <code>fedora.linux_system_roles.ad_integration</code> role if you
 need.</p></li>
+<li><p>Optional: If you have already joined managed nodes to AD and you
+want to skip running the ad_integration role, you can set the <a
+href="#mssql_ad_join">mssql_ad_join</a> variable to false.</p></li>
+<li><p>To avoid the issue with canonicalization of Kerberos principal
+returned by the KDC described in <a
+href="https://access.redhat.com/solutions/7134391">Executing privileged
+commands against MS ADS fails with error 15404</a> KCS, the role sets
+<code>krb5_canonicalize=false</code> when joining to the AD
+realm.</p></li>
 </ul>
-<p>Optional: If you have already joined managed nodes to AD and you want
-to skip running the ad_integration role, you can set the <a
-href="#mssql_ad_join">mssql_ad_join</a> variable to false.</p>
 <h2 id="ad-prerequisites">AD Prerequisites</h2>
 <p>Ensure that your AD Server and Linux host meet the prerequisites for
 joining. For more information, see <a
