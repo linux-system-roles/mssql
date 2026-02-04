@@ -15,8 +15,6 @@ kinds:
 skip_list:
   - fqcn-builtins
   - var-naming[no-role-prefix]
-  - galaxy[no-changelog]
-  - galaxy[no-runtime]
 exclude_paths:
   - tests/roles/
   - .github/
