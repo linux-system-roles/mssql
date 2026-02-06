@@ -1,6 +1,25 @@
 Changelog
 =========
 
+[2.6.6] - 2026-02-06
+--------------------
+
+### Bug Fixes
+
+- fix: When connecting to AD, always set krb5_canonicalize=false (#391)
+
+### Other Changes
+
+- ci: bump gha checkout from v5 to v6 (#386)
+- ci: add qemu tests for Fedora 43, drop Fedora 41 (#387)
+- ci: bump actions/upload-artifact from 5 to 6 (#388)
+- refactor: handle INJECT_FACTS_AS_VARS=false by using ansible_facts instead (#389)
+- refactor: cannot use fqdn and hostname as subsets in setup module (#390)
+- ci: use ANSIBLE_INJECT_FACT_VARS=false by default for testing (#392)
+- ci: bump ansible/ansible-lint from 25 to 26 (#393)
+- ci: skip most CI checks if title contains citest skip [citest_skip] (#394)
+- ci: ansible-lint - remove .collection directory from converted collection [citest_skip] (#395)
+
 [2.6.5] - 2025-11-17
 --------------------
 
