@@ -134,8 +134,7 @@
             tasks_from: test_setup.yml
 
         - name: Run to configure AG
-          include_role:
-            name: linux-system-roles.mssql
+          include_tasks: tasks/run_role_with_clear_facts.yml
 
         - name: Wait for the cluster to finish configuration
           command: crm_resource --wait

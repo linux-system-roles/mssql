@@ -134,12 +134,11 @@
           when: mssql_version is version('2022', '>=')
           block:
             - name: Run on all hosts to configure contained AG
+              include_tasks: tasks/run_role_with_clear_facts.yml
               vars:
                 mssql_ha_ag_is_contained: true
                 mssql_ha_ag_reuse_system_db: false
-              include_role:
-                name: linux-system-roles.mssql
-                public: true
+                __sr_public: true
 
             - name: Verify is_contained status
               when: __mssql_ha_is_primary | bool
@@ -155,12 +154,11 @@
                 mssql_pre_input_sql_file: []
 
             - name: Run with contained=true reuse_system_db=true
+              include_tasks: tasks/run_role_with_clear_facts.yml
               vars:
                 mssql_ha_ag_is_contained: true
                 mssql_ha_ag_reuse_system_db: true
-              include_role:
-                name: linux-system-roles.mssql
-                public: true
+                __sr_public: true
 
             - name: Verify is_contained status
               when: __mssql_ha_is_primary | bool
@@ -172,8 +170,7 @@
               include_tasks: tasks/cleanup_ag.yml
 
         - name: Run with contained=false
-          include_role:
-            name: linux-system-roles.mssql
+          include_tasks: tasks/run_role_with_clear_facts.yml
           vars:
             mssql_ha_ag_is_contained: false
 

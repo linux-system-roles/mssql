@@ -23,8 +23,7 @@
         - name: Verify the failure on a fresh host when required vars undefined
           block:
             - name: Run the role with default parameters
-              include_role:
-                name: linux-system-roles.mssql
+              include_tasks: tasks/run_role_with_clear_facts.yml
 
             - name: Unreachable task
               fail:

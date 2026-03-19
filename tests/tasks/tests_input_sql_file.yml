@@ -3,8 +3,7 @@
   include_tasks: assert_fail_on_unsupported_ver.yml
 
 - name: Set up MSSQL and input sql files with pre_input
-  include_role:
-    name: linux-system-roles.mssql
+  include_tasks: tasks/run_role_with_clear_facts.yml
   vars:
     mssql_pre_input_sql_file:
       - create_example_db.j2
@@ -28,8 +27,7 @@
         __mssql_sqlcmd_input.stdout
 
 - name: Input sql files with post_input into custom storage directory
-  include_role:
-    name: linux-system-roles.mssql
+  include_tasks: tasks/run_role_with_clear_facts.yml
   vars:
     mssql_datadir: /tmp/mssql_data
     mssql_logdir: /tmp/mssql_log
@@ -59,8 +57,7 @@
     __verify_mssql_logdir_mode: '0700'
 
 - name: Set up MSSQL and input sql content with pre_input
-  include_role:
-    name: linux-system-roles.mssql
+  include_tasks: tasks/run_role_with_clear_facts.yml
   vars:
     mssql_pre_input_sql_content:
       - "{{ lookup('template', 'create_example_db.j2') }}"
@@ -76,8 +73,7 @@
       __mssql_sqlcmd_input.stdout
 
 - name: Set up MSSQL and input sql content with post_input
-  include_role:
-    name: linux-system-roles.mssql
+  include_tasks: tasks/run_role_with_clear_facts.yml
   vars:
     mssql_post_input_sql_content:
       - "{{ lookup('file', 'sql_script.sql') }}"
@@ -92,8 +88,7 @@
 - name: Verify the failure when the mssql_password var is not specified
   block:
     - name: Input the sql file without the mssql_password variable
-      include_role:
-        name: linux-system-roles.mssql
+      include_tasks: tasks/run_role_with_clear_facts.yml
       vars:
         mssql_pre_input_sql_file: sql_script.sql
 
@@ -111,8 +106,7 @@
 - name: Verify the failure when the mssql_password var is not specified
   block:
     - name: Input the sql file without the mssql_password variable
-      include_role:
-        name: linux-system-roles.mssql
+      include_tasks: tasks/run_role_with_clear_facts.yml
       vars:
         mssql_post_input_sql_file: sql_script.sql
 
@@ -128,8 +122,7 @@
           ansible_failed_result.msg
 
 - name: Verify that FTS was enabled in the beginning of this test playbook
-  include_role:
-    name: linux-system-roles.mssql
+  include_tasks: tasks/run_role_with_clear_facts.yml
   vars:
     mssql_post_input_sql_file: verify_fts.sql
     mssql_password: "p@55w0rD"

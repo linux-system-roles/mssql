@@ -8,8 +8,7 @@
         - name: Verify that by default the role fails with EULA not accepted
           block:
             - name: Run the role with default parameters
-              include_role:
-                name: linux-system-roles.mssql
+              include_tasks: tasks/run_role_with_clear_facts.yml
 
             - name: Unreachable task
               fail:

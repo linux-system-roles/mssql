@@ -69,8 +69,7 @@
         mssql_ad_keytab_file: /tmp/mssql.keytab
         mssql_ad_keytab_remote_src: false
         mssql_ad_sql_password: null
-      include_role:
-        name: linux-system-roles.mssql
+      include_tasks: ../tasks/run_role_with_clear_facts.yml
 
     - name: Test AD integration
       include_tasks: ../tasks/verify_ad_auth.yml

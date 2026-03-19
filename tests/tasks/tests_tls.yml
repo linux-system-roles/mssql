@@ -2,11 +2,23 @@
 - name: Assert fail on EL 7 with version = 2022 and EL 9 with version != 2022
   include_tasks: assert_fail_on_unsupported_ver.yml
 
-- name: Ensure the openssl package
+# openssl needed for certificate generation
+# iproute needed for IP address retrieval for ansible_facts['default_ipv4']
+- name: Ensure the openssl and iproute packages
   package:
-    name: openssl
+    name:
+      - openssl
+      - iproute
     state: present
   run_once: true
+
+- name: Get ansible_facts.default_ipv4
+  setup:
+    gather_subset:
+      - '!all'
+      - '!min'
+      - default_ipv4
+  when: ansible_facts.default_ipv4 is not defined
 
 - name: Create a tempfile for a certificate on hosts
   tempfile:
@@ -26,10 +38,14 @@
   changed_when: false
   no_log: true  # this is quite verbose
 
+- name: Set variable for ipv4
+  set_fact:
+    __mssql_test_ipv4: "{{ ansible_facts['default_ipv4']['address'] }}"
+
 - name: Generate a self-signed certificate and public key
   command: >-
     openssl req -x509 -nodes -newkey {{ key_algo }}
-    -subj "/CN={{ ansible_facts['default_ipv4']['address'] }}"
+    -subj "/CN={{ __mssql_test_ipv4 }}"
     -out {{ __mssql_cert_tempfile.path }}
     -keyout {{ __mssql_pvk_tempfile.path }} -days 365
   changed_when: true
@@ -66,10 +82,9 @@
 - name: Test relative and full path with certs on control node
   block:
     - name: Run role
-      include_role:
-        name: linux-system-roles.mssql
-        public: true
+      include_tasks: tasks/run_role_with_clear_facts.yml
       vars:
+        __sr_public: true
         mssql_tls_enable: true
         mssql_tls_cert: "{{ __mssql_cert_tempfile.path }}"
         mssql_tls_private_key: "{{ __mssql_pvk_tempfile.path | basename }}"
@@ -92,10 +107,9 @@
 
 # Test disabling TLS encryption
 - name: Disable TLS encryption
-  include_role:
-    name: linux-system-roles.mssql
-    public: true
+  include_tasks: tasks/run_role_with_clear_facts.yml
   vars:
+    __sr_public: true
     mssql_tls_enable: false
 
 - name: Verify connectivity and settings
@@ -128,10 +142,9 @@
     mssql_tls_private_key: "{{ __mssql_pvk_tempfile.path | basename }}"
 
 - name: Test with certs on managed nodes
-  include_role:
-    name: linux-system-roles.mssql
-    public: true
+  include_tasks: tasks/run_role_with_clear_facts.yml
   vars:
+    __sr_public: true
     mssql_tls_enable: true
     mssql_tls_cert: "{{ __mssql_cert_tempfile.path }}"
     mssql_tls_private_key: "{{ __mssql_pvk_tempfile.path }}"
@@ -148,8 +161,7 @@
 
 # Test disabling TLS encryption
 - name: Disable TLS encryption
-  include_role:
-    name: linux-system-roles.mssql
+  include_tasks: tasks/run_role_with_clear_facts.yml
   vars:
     mssql_tls_enable: false
 
@@ -161,14 +173,13 @@
 
 # Test mssql_tls_certificates
 - name: Test with certs created by the certificate role
-  include_role:
-    name: linux-system-roles.mssql
-    public: true
+  include_tasks: tasks/run_role_with_clear_facts.yml
   vars:
+    __sr_public: true
     mssql_tls_enable: true
     mssql_tls_certificates:
       - name: mssql_2019_cert
-        common_name: "{{ ansible_facts['default_ipv4']['address'] }}"
+        common_name: "{{ __mssql_test_ipv4 }}"
         ca: self-sign
 
 - name: Flush handlers
@@ -182,7 +193,6 @@
 
 # Disable TLS encryption for future tests
 - name: Disable TLS encryption
-  include_role:
-    name: linux-system-roles.mssql
+  include_tasks: tasks/run_role_with_clear_facts.yml
   vars:
     mssql_tls_enable: false

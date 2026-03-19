@@ -11,7 +11,6 @@
     # modprobe softdog doesn't work in containers because softdog is not in the
     # container image
     - tests::booted
-  gather_facts: true
   vars:
     __mssql_single_node_test: "{{ ansible_play_hosts_all | length == 1 }}"
     mssql_debug: true

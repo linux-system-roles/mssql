@@ -3,22 +3,25 @@
   setup:
     gather_subset: min
 
+- name: Set fact for unsupported platform/version combination
+  set_fact:
+    __mssql_assert_unsupported_platform: >-
+      {{ (ansible_facts['distribution'] in ['CentOS', 'RedHat'] and
+      ansible_facts['distribution_major_version'] is version('7', '=') and
+      mssql_version | int == 2022) or (
+      ((ansible_facts['distribution'] in ['CentOS', 'RedHat'] and
+      ansible_facts['distribution_major_version'] is version('9', '=')) or
+      (ansible_facts['distribution'] in ['Fedora'])) and
+      mssql_version | int != 2022) }}
+
 - name: Assert fail when used on platform where mssql_version is not supported
-  when: >-
-    (ansible_facts["distribution"] in ['CentOS', 'RedHat']
-    and ansible_facts["distribution_major_version"] is version('7', '=')
-    and mssql_version | int == 2022)
-    or (((ansible_facts["distribution"] in ['CentOS', 'RedHat']
-    and ansible_facts["distribution_major_version"] is version('9', '='))
-    or (ansible_facts["distribution"] in ['Fedora']))
-    and mssql_version | int != 2022)
+  when: __mssql_assert_unsupported_platform | bool
   block:
     - name: Run the role
       vars:
         mssql_password: "p@55w0rD"
         mssql_edition: Evaluation
-      include_role:
-        name: linux-system-roles.mssql
+      include_tasks: tasks/run_role_with_clear_facts.yml
 
     - name: Unreachable task
       fail:

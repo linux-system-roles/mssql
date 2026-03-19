@@ -7,12 +7,10 @@
     mssql_version: "{{ __mssql_version }}"
   block:
     - name: Upgrade to {{ __mssql_version }}
-      include_role:
-        name: linux-system-roles.mssql
+      include_tasks: tasks/run_role_with_clear_facts.yml
 
     - name: Upgrade again to test idempotency - should report not changed
-      include_role:
-        name: linux-system-roles.mssql
+      include_tasks: tasks/run_role_with_clear_facts.yml
   rescue:
     - name: Assert that upgrading EL 7 to 2022 fails
       when:
@@ -45,8 +43,7 @@
     - name: >-
         Upgrade to new version on mssql
         new version {{ __mssql_prev_version }}
-      include_role:
-        name: linux-system-roles.mssql
+      include_tasks: tasks/run_role_with_clear_facts.yml
       vars:
         mssql_version: "{{ __mssql_prev_version }}"
 

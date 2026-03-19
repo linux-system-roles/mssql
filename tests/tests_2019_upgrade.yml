@@ -18,10 +18,9 @@
         - name: Verify the failure when mssql_version is provided incorrectly
           block:
             - name: Run the role with incorrect mssql_version
-              include_role:
-                name: linux-system-roles.mssql
-                public: true
+              include_tasks: tasks/run_role_with_clear_facts.yml
               vars:
+                __sr_public: true
                 mssql_version: 2018
 
             - name: Unreachable task
@@ -39,9 +38,9 @@
         - name: Verify the failure when mssql_version is not provided
           block:
             - name: Run the role with incorrect mssql_version
-              include_role:
-                name: linux-system-roles.mssql
-                public: true
+              include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                __sr_public: true
 
             - name: Unreachable task
               fail:
@@ -56,8 +55,7 @@
                   in ansible_failed_result.msg
 
         - name: Set up MSSQL 2017
-          include_role:
-            name: linux-system-roles.mssql
+          include_tasks: tasks/run_role_with_clear_facts.yml
           vars:
             mssql_version: 2017
             mssql_password: "p@55w0rD"

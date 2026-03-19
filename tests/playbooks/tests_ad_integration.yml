@@ -65,8 +65,7 @@
   tasks:
     # Test general scenario
     - name: Set up MSSQL and configure AD authentication
-      include_role:
-        name: linux-system-roles.mssql
+      include_tasks: ../tasks/run_role_with_clear_facts.yml
 
     - name: Test AD integration
       include_tasks: ../tasks/verify_ad_auth.yml

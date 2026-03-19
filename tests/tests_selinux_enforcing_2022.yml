@@ -2,7 +2,6 @@
 ---
 - name: Test mssql_run_selinux_confined
   hosts: all
-  gather_facts: false
   vars:
     mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
@@ -15,14 +14,19 @@
     - name: Assert expected failures on unsupported platforms
       include_tasks: tasks/assert_fail_on_unsupported_ver.yml
 
+    - name: Set fact for selinux confined unsupported pre-RHEL9
+      set_fact:
+        __mssql_selinux_unsupported_pre_rhel9: >-
+          {{
+            ansible_facts['distribution'] in ['CentOS', 'RedHat']
+            and ansible_facts['distribution_major_version'] is version('9', '<')
+          }}
+
     - name: Check error message on not supported hosts and clean up
-      when:
-        - ansible_facts["distribution"] in ['CentOS', 'RedHat']
-        - ansible_facts["distribution_major_version"] is version('9', '<')
+      when: __mssql_selinux_unsupported_pre_rhel9 | bool
       block:
         - name: Check error message on not supported hosts
-          include_role:
-            name: linux-system-roles.mssql
+          include_tasks: tasks/run_role_with_clear_facts.yml
           vars:
             mssql_manage_selinux: true
             mssql_run_selinux_confined: true
@@ -42,8 +46,7 @@
     - name: Run test in a block to clean up in always
       block:
         - name: Run with selinux_confined
-          include_role:
-            name: linux-system-roles.mssql
+          include_tasks: tasks/run_role_with_clear_facts.yml
           vars:
             mssql_manage_selinux: true
             mssql_run_selinux_confined: true
@@ -65,8 +68,7 @@
             selinux_state: permissive
 
         - name: Run without selinux_confined
-          include_role:
-            name: linux-system-roles.mssql
+          include_tasks: tasks/run_role_with_clear_facts.yml
           vars:
             mssql_manage_selinux: false
             mssql_run_selinux_confined: false

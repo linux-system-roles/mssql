@@ -7,8 +7,7 @@
     __mssql_test_port: 1433
   block:
     - name: Set up SQL Server
-      include_role:
-        name: linux-system-roles.mssql
+      include_tasks: tasks/run_role_with_clear_facts.yml
       vars:
         mssql_password: "p@55w0rD"
         mssql_edition: Evaluation
@@ -27,8 +26,7 @@
     __mssql_test_port: 1433
   block:
     - name: Set up SQL Server
-      include_role:
-        name: linux-system-roles.mssql
+      include_tasks: tasks/run_role_with_clear_facts.yml
       vars:
         mssql_password: "p@55w0rD"
         mssql_edition: Evaluation
@@ -45,8 +43,7 @@
     __mssql_test_port: 1435
   block:
     - name: Set up SQL Server
-      include_role:
-        name: linux-system-roles.mssql
+      include_tasks: tasks/run_role_with_clear_facts.yml
       vars:
         mssql_password: "p@55w0rD"
         mssql_edition: Evaluation

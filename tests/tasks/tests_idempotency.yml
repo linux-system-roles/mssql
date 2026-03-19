@@ -3,8 +3,7 @@
   include_tasks: assert_fail_on_unsupported_ver.yml
 
 - name: Run on a fresh host and set all parameters
-  include_role:
-    name: linux-system-roles.mssql
+  include_tasks: tasks/run_role_with_clear_facts.yml
   vars:
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
@@ -21,8 +20,7 @@
   include_tasks: mssql-sever-increase-start-limit.yml
 
 - name: Run again with the same settings - should report not changed
-  include_role:
-    name: linux-system-roles.mssql
+  include_tasks: tasks/run_role_with_clear_facts.yml
   vars:
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
@@ -50,8 +48,7 @@
     __verify_mssql_logdir: /tmp/mssql_log
 
 - name: Run to edit settings
-  include_role:
-    name: linux-system-roles.mssql
+  include_tasks: tasks/run_role_with_clear_facts.yml
   vars:
     mssql_password: "p@55w0rD1"
     mssql_edition: Standard
@@ -67,8 +64,7 @@
     mssql_logdir_mode: '755'
 
 - name: Run with the edited settings again - should report not changed
-  include_role:
-    name: linux-system-roles.mssql
+  include_tasks: tasks/run_role_with_clear_facts.yml
   vars:
     mssql_password: "p@55w0rD1"
     mssql_edition: Standard

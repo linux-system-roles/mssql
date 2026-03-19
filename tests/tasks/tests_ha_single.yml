@@ -1,15 +1,20 @@
 # SPDX-License-Identifier: MIT
 ---
+- name: Set fact for EL < 8 HA configure unsupported
+  set_fact:
+    __mssql_ha_el7_configure_block: >-
+      {{
+        ansible_facts['distribution'] in ['CentOS', 'RedHat']
+        and ansible_facts['distribution_version'] is version('8', '<')
+      }}
+
 - name: Verify that by default the role fails on EL < 8
-  when:
-    - ansible_facts["distribution"] in ['CentOS', 'RedHat']
-    - ansible_facts["distribution_version"] is version('8', '<')
+  when: __mssql_ha_el7_configure_block | bool
   block:
     - name: Run the role
       vars:
         mssql_ha_configure: true
-      include_role:
-        name: linux-system-roles.mssql
+      include_tasks: tasks/run_role_with_clear_facts.yml
 
     - name: Unreachable task
       fail:
@@ -33,8 +38,7 @@
   when: ansible_play_hosts_all | length == 1
   block:
     - name: Run role with mssql_replica_type=primary not defined
-      include_role:
-        name: linux-system-roles.mssql
+      include_tasks: tasks/run_role_with_clear_facts.yml
 
     - name: Unreachable task
       fail:
@@ -57,11 +61,10 @@
 - name: Verify fail when ag_is_contained=false,reuse_system_db=true
   block:
     - name: Run role with mssql_ha_ag_is_contained=false reuse_db=true
+      include_tasks: tasks/run_role_with_clear_facts.yml
       vars:
         mssql_ha_ag_is_contained: false
         mssql_ha_ag_reuse_system_db: true
-      include_role:
-        name: linux-system-roles.mssql
 
     - name: Unreachable task
       fail:
@@ -78,10 +81,9 @@
   when: mssql_version is version('2022', '<')
   block:
     - name: Run role with mssql_ha_ag_is_contained = true
+      include_tasks: tasks/run_role_with_clear_facts.yml
       vars:
         mssql_ha_ag_is_contained: true
-      include_role:
-        name: linux-system-roles.mssql
 
     - name: Unreachable task
       fail:
@@ -125,8 +127,7 @@
     inventory_hostname: "{{ ansible_play_hosts[0] }}"  # noqa: var-naming
 
 - name: Run on all hosts to configure HA cluster
-  include_role:
-    name: linux-system-roles.mssql
+  include_tasks: tasks/run_role_with_clear_facts.yml
 
 # The following tasks test if templates configure systems correctly
 # Because CI runs on a single node, these templates can't be tested:

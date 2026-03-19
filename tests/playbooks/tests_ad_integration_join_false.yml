@@ -69,8 +69,7 @@
         name: linux-system-roles.ad_integration
 
     - name: Set up MSSQL and configure AD authentication without joining to AD
-      include_role:
-        name: linux-system-roles.mssql
+      include_tasks: ../tasks/run_role_with_clear_facts.yml
       vars:
         mssql_ad_join: false
         # Explicitly set kerberos vars, otherwise the value becomes null

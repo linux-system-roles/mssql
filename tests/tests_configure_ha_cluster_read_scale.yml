@@ -65,8 +65,7 @@
           when: mssql_ha_replica_type == 'primary'
 
         - name: Run on all hosts to configure read-scale cluster
-          include_role:
-            name: linux-system-roles.mssql
+          include_tasks: tasks/run_role_with_clear_facts.yml
 
         - name: Verify that the database exists on the secondary servers
           vars:
