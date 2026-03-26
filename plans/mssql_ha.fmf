@@ -44,6 +44,9 @@ prepare:
       if grep -q 'CentOS Linux release 7.9' /etc/redhat-release; then
         sed -i '/^mirror/d;s/#\?\(baseurl=http:\/\/\)mirror/\1vault/' /etc/yum.repos.d/*.repo
       fi
+  - name: Ensure use of devel site for yum repos
+    script: |
+      sed -i -e 's|\.lab\.bos\.|.devel.|g' -e 's|\.eng\.bos\.|.devel.|g' /etc/yum.repos.d/*.repo
   # Replace with feature: epel: enabled once https://github.com/teemtee/tmt/pull/3128 is merged
   - name: Enable epel to install beakerlib
     script: |
