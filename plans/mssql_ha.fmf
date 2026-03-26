@@ -8,20 +8,20 @@ provision:
     hardware:
       memory: ">= 4096 MB"
     # Provision all machines in the same AWS pool to ensure that they are in the same subnet
-    pool: aws-testing-farm-09
+    pool: aws-09-x86_64
   - name: managed-node2
     role: managed_node
     hardware:
       memory: ">= 4096 MB"
-    pool: aws-testing-farm-09
+    pool: aws-09-x86_64
   - name: managed-node3
     role: managed_node
     hardware:
       memory: ">= 4096 MB"
-    pool: aws-testing-farm-09
+    pool: aws-09-x86_64
   - name: virtualip-node1
     role: virtualip
-    pool: aws-testing-farm-09
+    pool: aws-09-x86_64
 environment:
     SR_ANSIBLE_VER: 2.17
     SR_PYTHON_VERSION: 3.12
