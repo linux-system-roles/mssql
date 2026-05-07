@@ -198,6 +198,8 @@ SQL Server as a Confined Application Variables</a>
 id="toc-mssql_run_selinux_confined">mssql_run_selinux_confined</a></li>
 <li><a href="#mssql_manage_selinux"
 id="toc-mssql_manage_selinux">mssql_manage_selinux</a></li>
+<li><a href="#mssql_secure_logging"
+id="toc-mssql_secure_logging">mssql_secure_logging</a></li>
 </ul></li>
 <li><a
 href="#configuring-sql-server-as-a-confined-application-example-playbook"
@@ -717,6 +719,20 @@ href="#mssql_logdir">mssql_logdir</a>.</li>
 type <a href="#mssql_ha_endpoint_port">mssql_ha_endpoint_port</a>.</li>
 </ol>
 <p>Default: <code>false</code></p>
+<p>Type: <code>bool</code></p>
+<h3 id="mssql_secure_logging">mssql_secure_logging</h3>
+<p>If <code>true</code>, suppress potentially sensitive output from
+tasks that handle credentials, secrets, and other sensitive data by
+setting <code>no_log: true</code> on those tasks. This prevents
+passwords, API tokens, SA passwords, and similar sensitive information
+from appearing in Ansible logs and console output.</p>
+<p>If you need to debug issues with credential handling or secret
+management, you can temporarily set
+<code>mssql_secure_logging: false</code> to see the full output from
+these tasks. However, be aware that this may expose sensitive
+information in logs, so it should only be used in development or
+troubleshooting scenarios.</p>
+<p>Default: <code>true</code></p>
 <p>Type: <code>bool</code></p>
 <h2
 id="configuring-sql-server-as-a-confined-application-example-playbook">Configuring
