@@ -20,6 +20,10 @@ galaxy_info:
     - name: opensuse
       versions:
         - "15.5"
+    - name: Ubuntu
+      versions:
+        - "22.04"
+        - "24.04"
   galaxy_tags:
     - centos
     - containerbuild

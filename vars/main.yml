@@ -36,6 +36,9 @@ __mssql_version_package_mapping:
   - 2017: 14
   - 2019: 15
   - 2022: 16
+  - 2025: 17
+__mssql_tls_cert_dest_dir: /etc/pki/tls/certs
+__mssql_tls_private_key_dest_dir: /etc/pki/tls/private
 __mssql_keytab_path: /var/opt/mssql/secrets/mssql.keytab
 __mssql_conf_path: /var/opt/mssql/mssql.conf
 __mssql_conf_cli: /opt/mssql/bin/mssql-conf

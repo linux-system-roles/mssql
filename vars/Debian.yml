@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: MIT
+---
+__mssql_supported_versions:
+  - 2022
+  - 2025
+__mssql_confined_supported: false
+__mssql_tuned_supported: false
+__mssql_gpg_key_dest: /usr/share/keyrings/microsoft-prod.gpg
+__mssql_tls_cert_dest_dir: /etc/ssl/certs
+__mssql_tls_private_key_dest_dir: /etc/ssl/mssql
+__mssql_server_repository: ''
+__mssql_client_repository: ''
+__mssql_client_packages:
+  - "mssql-tools{{ '' if __sqlcmd_ver | int == 17 else __sqlcmd_ver }}"
+  - unixodbc-dev
