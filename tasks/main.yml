@@ -86,13 +86,6 @@
         mssql_accept_microsoft_odbc_driver_for_sql_server_eula: "{{
           mssql_accept_microsoft_odbc_driver_17_for_sql_server_eula }}"
 
-- name: Fail on RHEL or CentOS 10 because it's not supported
-  fail:
-    msg: This role does not support running against RHEL or CentOS 10 hosts
-  when:
-    - ansible_facts["distribution"] in ['CentOS', 'RedHat']
-    - ansible_facts["distribution_major_version"] is version('10', '=')
-
 - name: Verify that the user accepts EULA variables
   assert:
     that:
@@ -153,7 +146,7 @@
   fail:
     msg: >-
       Variables mssql_run_selinux_confined and mssql_manage_selinux are
-      supported only on RHEL 9 managed nodes
+      supported only on RHEL 9 and later managed nodes
 
 - name: Verify that mssql_manage_selinux is set properly
   when:
@@ -243,10 +236,14 @@
       | first | int > item.value
   with_dict: "{{ __mssql_version_package_mapping }}"
 
-- name: Deploy the GPG key for Microsoft repositories
+- name: Deploy the GPG keys for Microsoft repositories
   rpm_key:
-    key: "{{ mssql_rpm_key }}"
+    key: "{{ item }}"
     state: present
+  # SQL Server 2025 and later packages are signed with a separate GPG key
+  # Original mssql_rpm_key is required to isntall mssql-tools even on 2025
+  loop: "{{ [mssql_rpm_key] +
+    ([mssql_rpm_key_2025] if mssql_version | int == 2025 else []) }}"
   register: __mssql_gpg
   until: __mssql_gpg is success
 
@@ -320,7 +317,7 @@
       when: __mssql_zypper_curr_repo.stdout | length > 0
       changed_when: true
 
-- name: Configure the Microsoft SQL Server repo version {{ mssql_version }}
+- name: Configure the Microsoft SQL Server yum repo version {{ mssql_version }}
   yum_repository:
     name: packages-microsoft-com-mssql-server-{{ mssql_version | int }}
     description: Microsoft SQL Server {{ mssql_version }}
@@ -332,7 +329,7 @@
       (__mssql_server_packages not in ansible_facts.packages) or
       (mssql_upgrade | bool)
 
-- name: Configure the Microsoft SQL Server repo version {{ mssql_version }} # noqa command-instead-of-module
+- name: Configure the Microsoft SQL Server zypper repo version {{ mssql_version }} # noqa command-instead-of-module
   command: >-
     zypper addrepo -c -f --name "Microsoft SQL Server {{ mssql_version }}"
     {{ mssql_server_repository }} packages-microsoft-com-mssql-server-{{ mssql_version | int }}

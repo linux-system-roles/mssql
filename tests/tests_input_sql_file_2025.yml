@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: MIT
+---
+- name: Ensure that the role can input sql files to MSSQL
+  hosts: all
+  tags:
+    # this test doesn't work in container builds
+    - tests::booted
+  vars:
+    mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
+    mssql_debug: true
+    mssql_version: 2025
+    mssql_manage_selinux: "{{ mssql_run_selinux_confined }}"
+    __mssql_gather_facts_no_log: true
+  tasks:
+    - name: Run test in a block to clean up in always
+      block:
+        - name: Run tests_input_sql_file with SQL Server {{ mssql_version }}
+          include_tasks: tasks/tests_input_sql_file.yml
+      always:
+        - name: Clean up after the role invocation
+          include_tasks: tasks/cleanup.yml
