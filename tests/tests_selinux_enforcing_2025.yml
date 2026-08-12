@@ -39,6 +39,7 @@
       always:
         - name: Clean up after the role invocation
           include_tasks: tasks/cleanup.yml
+          tags: cleanup
 
         - name: End unsupported host
           meta: end_host
@@ -82,3 +83,4 @@
       always:
         - name: Clean up after the role invocation
           include_tasks: tasks/cleanup.yml
+          tags: cleanup
