@@ -5,7 +5,7 @@
 - name: Determine the SQL Server versions supported on this platform
   include_role:
     name: linux-system-roles.mssql
-    tasks_from: set_vars
+    tasks_from: set_vars.yml
     public: true
 
 - name: Assert fail when used on platform where mssql_version is not supported
@@ -32,7 +32,7 @@
 
     - name: Clean up after the role invocation
       include_tasks: tasks/cleanup.yml
-      tags: cleanup
+      tags: tests::cleanup
 
     # Putting end_host into a rescue block results in a failed task
     - name: End unsupported host

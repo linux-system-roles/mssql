@@ -28,7 +28,7 @@
         - ansible_facts["distribution"] in ['CentOS', 'RedHat']
         - ansible_facts["distribution_version"] is version('8', '<')
       include_tasks: tasks/cleanup.yml
-      tags: cleanup
+      tags: tests::cleanup
 
     # Putting end_host into a rescue block results in a failed task
     - name: End EL 7 host

@@ -72,4 +72,4 @@
       always:
         - name: Clean up after the role invocation
           include_tasks: tasks/cleanup.yml
-          tags: cleanup
+          tags: tests::cleanup
