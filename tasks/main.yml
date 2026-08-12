@@ -241,7 +241,7 @@
     key: "{{ item }}"
     state: present
   # SQL Server 2025 and later packages are signed with a separate GPG key
-  # Original mssql_rpm_key is required to isntall mssql-tools even on 2025
+  # Original mssql_rpm_key is required to install mssql-tools even on 2025
   loop: "{{ [mssql_rpm_key] +
     ([mssql_rpm_key_2025] if mssql_version | int == 2025 else []) }}"
   register: __mssql_gpg
