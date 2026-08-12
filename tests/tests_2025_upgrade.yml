@@ -1,0 +1,82 @@
+# SPDX-License-Identifier: MIT
+---
+- name: Ensure that the role installs version 2022 and upgrades to 2025
+  hosts: all
+  vars:
+    mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
+    mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
+    mssql_accept_microsoft_sql_server_standard_eula: true
+    __mssql_gather_facts_no_log: true
+  tasks:
+    # Ends hosts where 2022 is unsupported (EL 7 and EL 10)
+    - name: Assert fail on platforms where source version 2022 is unsupported
+      include_tasks: tasks/assert_fail_on_unsupported_ver.yml
+      vars:
+        mssql_version: 2022
+
+    # Ends hosts where 2025 is unsupported (EL 8), leaving only EL 9 where the
+    # 2022 to 2025 upgrade is supported
+    - name: Assert fail on platforms where target version 2025 is unsupported
+      include_tasks: tasks/assert_fail_on_unsupported_ver.yml
+      vars:
+        mssql_version: 2025
+
+    - name: Run test in a block to clean up in always
+      block:
+        - name: Verify the failure when mssql_version is provided incorrectly
+          block:
+            - name: Run the role with incorrect mssql_version
+              include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                __sr_public: true
+                mssql_version: 2018
+
+            - name: Unreachable task
+              fail:
+                msg: The above task must fail
+
+          rescue:
+            - name: Assert that the role failed with the correct message
+              assert:
+                that: >-
+                  'You must set the mssql_version variable to one of
+                  {{ __mssql_supported_versions | join(", ") }}'
+                  in ansible_failed_result.msg
+
+        - name: Verify the failure when mssql_version is not provided
+          block:
+            - name: Run the role with incorrect mssql_version
+              include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                __sr_public: true
+
+            - name: Unreachable task
+              fail:
+                msg: The above task must fail
+
+          rescue:
+            - name: Assert that the role failed with the correct message
+              assert:
+                that: >-
+                  'You must set the mssql_version variable to one of
+                  {{ __mssql_supported_versions | join(", ") }}'
+                  in ansible_failed_result.msg
+
+        - name: Set up MSSQL 2022
+          include_tasks: tasks/run_role_with_clear_facts.yml
+          vars:
+            mssql_version: 2022
+            mssql_password: "p@55w0rD"
+            mssql_edition: Evaluation
+
+        - name: Upgrade to 2025 and assert expected results
+          include_tasks: tasks/upgrade_and_assert.yml
+          vars:
+            __mssql_version: 2025
+            __mssql_prev_version: 2022
+
+        - name: Check the ansible_managed header in the configuration file
+          include_tasks: tasks/check_header.yml
+      always:
+        - name: Clean up after the role invocation
+          include_tasks: tasks/cleanup.yml

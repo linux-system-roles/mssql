@@ -169,7 +169,8 @@ Use these variables to manage SQL Server version.
 * SQL Server does not support a direct upgrade from 2017 to 2022.
   To upgrade from 2017 to 2022, you must perform the upgrade in two steps - upgrade 2017 to 2019 and then 2019 to 2022.
 * SQL Server 2022 does not support EL 7 hosts.
-* The role currently supports installing and configuring SQL Server versions 2017, 2019, and 2022.
+* SQL Server 2025 is supported only on EL 9 and EL 10 hosts. EL 10 supports only SQL Server 2025.
+* The role currently supports installing and configuring SQL Server versions 2017, 2019, 2022, and 2025.
 
 ### Managing Version Variables
 
@@ -177,11 +178,16 @@ Use these variables to manage SQL Server version.
 
 The version of the SQL Server to configure.
 
-The role currently supports installing and configuring SQL Server versions 2017, 2019, and 2022.
+The role currently supports installing and configuring SQL Server versions 2017, 2019, 2022, and 2025.
 
 If unset, the role sets the variable to the currently installed SQL Server version.
 
-Note that RHEL 7 does not support SQL Server 2022.
+The SQL Server versions supported depend on the managed node platform:
+
+* EL 7 supports 2017 and 2019.
+* EL 8 supports 2017, 2019, and 2022.
+* EL 9 supports 2022 and 2025.
+* EL 10 supports 2025 only.
 
 Default: `null`
 
@@ -195,14 +201,14 @@ Default: `false`
 
 Type: `bool`
 
-## Configuring SQL Server as a Confined Application (EL 9)
+## Configuring SQL Server as a Confined Application (EL 9 and Later)
 
-Optional: SQL Server on RHEL 9 supports running as a confined application with SELinux enabled.
+Optional: SQL Server on RHEL 9 and later supports running as a confined application with SELinux enabled.
 For more information, see [Install SQL Server on RHEL 9](https://learn.microsoft.com/en-us/sql/linux/quickstart-install-connect-red-hat?view=sql-server-ver16&tabs=rhel9).
 
 You can use the role to configure SELinux with the `enforcing` mode and install the `mssql-server-selinux` package.
 
-**WARNING**: SQL Server supports this functionality only on RHEL 9 running SQL Server version 2022.
+**WARNING**: SQL Server supports this functionality only on RHEL 9 and later running SQL Server version 2022 or 2025.
 
 ### Configuring SQL Server as a Confined Application Variables
 
@@ -213,14 +219,14 @@ Whether to run SQL Server as a confined application or not.
 * If set to `true`, the role installs the `mssql-server-selinux` package.
 * If set to `false`, the role removes the `mssql-server-selinux` package.
 
-Default: `true` for RHEL 9 managed nodes
-         `false` for not RHEL 9 managed nodes
+Default: `true` for RHEL 9 and later managed nodes
+         `false` for managed nodes older than RHEL 9
 
 Type: `bool`
 
 #### mssql_manage_selinux
 
-Only applicable on RHEL 9 when running as a SELinux-confined application.
+Only applicable on RHEL 9 and later when running as a SELinux-confined application.
 
 Whether to manage SELinux.
 
@@ -411,6 +417,15 @@ When you do not provide these variables, the role uses default values from the `
 The URL or path to the Microsoft rpm gpg keys.
 
 Default: `https://packages.microsoft.com/keys/microsoft.asc`
+
+Type: `string`
+
+#### mssql_rpm_key_2025
+
+The URL or path to the Microsoft rpm gpg key used to sign SQL Server 2025 and later packages.
+The role imports this key in addition to [mssql_rpm_key](#mssql_rpm_key) only when [mssql_version](#mssql_version) is 2025 or later.
+
+Default: `https://packages.microsoft.com/keys/microsoft-2025.asc`
 
 Type: `string`
 
