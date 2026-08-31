@@ -1,21 +1,15 @@
 ---
-- name: Ensure ansible_facts to get ansible_facts["distribution"]
-  setup:
-    gather_subset: min
-
-- name: Set fact for unsupported platform/version combination
-  set_fact:
-    __mssql_assert_unsupported_platform: >-
-      {{ (ansible_facts['distribution'] in ['CentOS', 'RedHat'] and
-      ansible_facts['distribution_major_version'] is version('7', '=') and
-      mssql_version | int == 2022) or (
-      ((ansible_facts['distribution'] in ['CentOS', 'RedHat'] and
-      ansible_facts['distribution_major_version'] is version('9', '=')) or
-      (ansible_facts['distribution'] in ['Fedora'])) and
-      mssql_version | int != 2022) }}
+# Populate __mssql_supported_versions for the current platform by running the
+# role's set_vars, so this assertion tracks the role's own support matrix
+# instead of duplicating it.
+- name: Determine the SQL Server versions supported on this platform
+  include_role:
+    name: linux-system-roles.mssql
+    tasks_from: set_vars.yml
+    public: true
 
 - name: Assert fail when used on platform where mssql_version is not supported
-  when: __mssql_assert_unsupported_platform | bool
+  when: mssql_version | int not in __mssql_supported_versions
   block:
     - name: Run the role
       vars:
@@ -38,6 +32,7 @@
 
     - name: Clean up after the role invocation
       include_tasks: tasks/cleanup.yml
+      tags: tests::cleanup
 
     # Putting end_host into a rescue block results in a failed task
     - name: End unsupported host
