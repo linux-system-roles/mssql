@@ -1,26 +1,19 @@
 # SPDX-License-Identifier: MIT
 ---
-- name: Ensure that tls encryption configuration works
+- name: Ensure that the role is idempotent
   hosts: all
-  tags:
-    # certificate role can not work in container builds
-    - tests::booted
   vars:
     mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
     mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
     mssql_accept_microsoft_sql_server_standard_eula: true
-    mssql_password: "p@55w0rD"
-    mssql_edition: Evaluation
-    mssql_tcp_port: 1433
-    mssql_version: 2022
-    mssql_tls_self_sign: true
+    mssql_version: 2025
     mssql_manage_selinux: "{{ mssql_run_selinux_confined }}"
     __mssql_gather_facts_no_log: true
   tasks:
     - name: Run test in a block to clean up in always
       block:
-        - name: Run tests_tls with SQL Server {{ mssql_version }}
-          include_tasks: tasks/tests_tls.yml
+        - name: Run tests_idempotency with SQL Server {{ mssql_version }}
+          include_tasks: tasks/tests_idempotency.yml
       always:
         - name: Clean up after the role invocation
           include_tasks: tasks/cleanup.yml

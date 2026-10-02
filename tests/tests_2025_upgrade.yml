@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 ---
-- name: Ensure that the role installs version 2017 and upgrades to 2019
+- name: Ensure that the role installs version 2022 and upgrades to 2025
   hosts: all
   vars:
     mssql_accept_microsoft_odbc_driver_for_sql_server_eula: true
@@ -8,10 +8,18 @@
     mssql_accept_microsoft_sql_server_standard_eula: true
     __mssql_gather_facts_no_log: true
   tasks:
-    - name: Assert fail on EL 7 with version=2022 and EL 9 with version!=2022
+    # Ends hosts where 2022 is unsupported (EL 7 and EL 10)
+    - name: Assert fail on platforms where source version 2022 is unsupported
       include_tasks: tasks/assert_fail_on_unsupported_ver.yml
       vars:
-        mssql_version: 2019
+        mssql_version: 2022
+
+    # Ends hosts where 2025 is unsupported (EL 8), leaving only EL 9 where the
+    # 2022 to 2025 upgrade is supported
+    - name: Assert fail on platforms where target version 2025 is unsupported
+      include_tasks: tasks/assert_fail_on_unsupported_ver.yml
+      vars:
+        mssql_version: 2025
 
     - name: Run test in a block to clean up in always
       block:
@@ -54,18 +62,18 @@
                   {{ __mssql_supported_versions | join(", ") }}'
                   in ansible_failed_result.msg
 
-        - name: Set up MSSQL 2019
+        - name: Set up MSSQL 2022
           include_tasks: tasks/run_role_with_clear_facts.yml
           vars:
-            mssql_version: 2019
+            mssql_version: 2022
             mssql_password: "p@55w0rD"
             mssql_edition: Evaluation
 
-        - name: Upgrade to 2022 and assert expected results
+        - name: Upgrade to 2025 and assert expected results
           include_tasks: tasks/upgrade_and_assert.yml
           vars:
-            __mssql_version: 2022
-            __mssql_prev_version: 2019
+            __mssql_version: 2025
+            __mssql_prev_version: 2022
 
         - name: Check the ansible_managed header in the configuration file
           include_tasks: tasks/check_header.yml

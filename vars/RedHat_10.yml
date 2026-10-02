@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: MIT
 ---
 __mssql_server_repository: >-
-  https://packages.microsoft.com/rhel/9/mssql-server-{{ mssql_version | int }}/
+  https://packages.microsoft.com/rhel/10/mssql-server-{{ mssql_version | int }}/
+# Microsoft ships the SQL Server tools for RHEL 10 in the RHEL 9 prod repository
 __mssql_client_repository: >-
   https://packages.microsoft.com/rhel/9/prod/
 __mssql_supported_versions:
-  - 2022
+  - 2025
 __mssql_confined_supported: true
-__mssql_tuned_supported: true
