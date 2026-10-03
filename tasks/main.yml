@@ -93,6 +93,24 @@
     - ansible_facts["distribution"] in ['CentOS', 'RedHat']
     - ansible_facts["distribution_major_version"] is version('10', '=')
 
+- name: Fail on Ubuntu when mssql_ha_configure is requested because it is not supported
+  fail:
+    msg: >-
+      This role does not support mssql_ha_configure on Ubuntu. HA configuration
+      is only supported on RHEL, CentOS, Fedora, and SLES platforms.
+  when:
+    - mssql_ha_configure | bool
+    - ansible_facts["distribution"] == 'Ubuntu'
+
+- name: Fail on Ubuntu when mssql_ad_configure is requested because it is not supported
+  fail:
+    msg: >-
+      This role does not support mssql_ad_configure on Ubuntu. AD configuration
+      is only supported on RHEL platforms.
+  when:
+    - mssql_ad_configure | bool
+    - ansible_facts["distribution"] == 'Ubuntu'
+
 - name: Verify that the user accepts EULA variables
   assert:
     that:
@@ -249,6 +267,49 @@
     state: present
   register: __mssql_gpg
   until: __mssql_gpg is success
+  when: ansible_facts["pkg_mgr"] != 'apt'
+
+- name: Deploy the GPG key for Microsoft repositories on Ubuntu
+  when: ansible_facts["pkg_mgr"] == 'apt'
+  block:
+    - name: Ensure gnupg is installed for key conversion
+      apt:
+        name: gnupg
+        state: present
+        update_cache: true
+
+    - name: Download Microsoft GPG key
+      get_url:
+        url: "{{ mssql_rpm_key }}"
+        dest: /tmp/microsoft.asc
+        mode: '0644'
+      register: __mssql_gpg_download
+      until: __mssql_gpg_download is success
+      retries: 3
+      delay: 5
+
+    - name: Check if Microsoft GPG keyring already exists
+      stat:
+        path: "{{ __mssql_gpg_key_dest }}"
+      register: __mssql_gpg_key_stat
+
+    - name: Convert Microsoft GPG key to binary keyring format
+      command: >-
+        gpg --batch --no-tty --yes --dearmor -o {{ __mssql_gpg_key_dest }} /tmp/microsoft.asc
+      when: __mssql_gpg_download is changed or not __mssql_gpg_key_stat.stat.exists
+      changed_when: __mssql_gpg_download is changed or not __mssql_gpg_key_stat.stat.exists
+
+    - name: Ensure correct permissions on Microsoft GPG keyring
+      file:
+        path: "{{ __mssql_gpg_key_dest }}"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Remove temporary Microsoft GPG key file
+      file:
+        path: /tmp/microsoft.asc
+        state: absent
 
 - name: Prepare for the upgrade on RedHat
   when:
@@ -345,6 +406,63 @@
   failed_when: not __zypper_addrepo_server_output.rc in [0, 4]
   changed_when: __zypper_addrepo_server_output.rc != 4
 
+- name: Prepare for the upgrade on Ubuntu
+  when:
+    - __mssql_current_version is defined
+    - mssql_upgrade | bool
+    - ansible_facts["pkg_mgr"] == 'apt'
+    - __mssql_server_repository_list_url is defined
+    - __mssql_current_version | int != mssql_version | int
+  file:
+    path: /etc/apt/sources.list.d/mssql-server-{{ __mssql_current_version | int }}.list
+    state: absent
+
+- name: Configure the Microsoft SQL Server repositories on Ubuntu
+  when:
+    - ansible_facts["pkg_mgr"] == 'apt'
+    - >-
+      (__mssql_server_packages not in ansible_facts.packages) or
+      (mssql_upgrade | bool)
+  block:
+    - name: Download packages-microsoft-prod.deb
+      get_url:
+        url: "{{ __mssql_prod_pkg_url }}"
+        dest: /tmp/packages-microsoft-prod.deb
+        mode: '0644'
+      when: __mssql_prod_pkg_url is defined
+
+    - name: Install packages-microsoft-prod.deb
+      apt:
+        deb: /tmp/packages-microsoft-prod.deb
+      when: __mssql_prod_pkg_url is defined
+
+    - name: Download SQL Server repository list file to temp location
+      get_url:
+        url: "{{ __mssql_server_repository_list_url }}"
+        dest: /tmp/mssql-server-{{ mssql_version | int }}.list
+        mode: '0644'
+        force: true
+      when: __mssql_server_repository_list_url is defined
+
+    - name: Install SQL Server repository list file only if content changed
+      copy:
+        src: /tmp/mssql-server-{{ mssql_version | int }}.list
+        dest: /etc/apt/sources.list.d/mssql-server-{{ mssql_version | int }}.list
+        remote_src: true
+        mode: '0644'
+      when: __mssql_server_repository_list_url is defined
+
+    - name: Remove temporary SQL Server repository list file
+      file:
+        path: /tmp/mssql-server-{{ mssql_version | int }}.list
+        state: absent
+      when: __mssql_server_repository_list_url is defined
+
+- name: Update apt cache after configuring Microsoft SQL Server repository
+  apt:
+    update_cache: true
+  when: ansible_facts["pkg_mgr"] == 'apt'
+
 - name: Configure to run as a confined application with SELinux
   package:
     name: "{{ __mssql_server_selinux_packages }}"
@@ -367,6 +485,8 @@
     else
       echo ""
     fi
+  args:
+    executable: /bin/bash
   changed_when: false
   register: __mssql_errorlog
   check_mode: false
@@ -570,6 +690,21 @@
   failed_when: not __zypper_addrepo_tools_output.rc in [0, 4]
   changed_when: __zypper_addrepo_tools_output.rc != 4
 
+- name: Configure the Microsoft SQL Server Tools repository on Ubuntu 22 using list file
+  get_url:
+    url: "{{ __mssql_client_repository_list_url }}"
+    dest: /etc/apt/sources.list.d/mssql-release.list
+    mode: '0644'
+  when:
+    - ansible_facts["pkg_mgr"] == 'apt'
+    - __mssql_client_repository_list_url is defined
+
+- name: Update apt cache after configuring Microsoft SQL Server Tools repository
+  apt:
+    update_cache: true
+    cache_valid_time: 3600
+  when: ansible_facts["pkg_mgr"] == 'apt'
+
 - name: Ensure that SQL Server client tools are installed
   package:
     name: "{{ __mssql_client_packages }}"
@@ -580,6 +715,15 @@
 - name: Configure TLS encryption
   when: mssql_tls_enable is not none
   block:
+    - name: Ensure TLS private key directory exists
+      file:
+        path: "{{ __mssql_tls_private_key_dest_dir }}"
+        state: directory
+        owner: mssql
+        group: mssql
+        mode: "0700"
+      when: mssql_tls_enable | bool
+
     - name: >-
         Create certificate and private_key files and set mssql_tls_cert
         and _private_key
@@ -621,8 +765,8 @@
         src: "{{ item }}"
         remote_src: "{{ mssql_tls_remote_src }}"
         dest: >-
-          /etc/pki/tls/{{ 'certs' if item == mssql_tls_cert
-          else 'private' }}/{{ item | basename }}
+          {{ __mssql_tls_cert_dest_dir if item == mssql_tls_cert
+          else __mssql_tls_private_key_dest_dir }}/{{ item | basename }}
         owner: mssql
         group: mssql
         mode: "0600"
@@ -635,7 +779,7 @@
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_tls_cert_dest: >-
-          /etc/pki/tls/certs/{{ mssql_tls_cert | basename }}
+          {{ __mssql_tls_cert_dest_dir }}/{{ mssql_tls_cert | basename }}
         __mssql_conf_setting: "network tlscert"
         __mssql_conf_setting_value: >-
           {{ __mssql_tls_cert_dest if mssql_tls_enable else 'unset' }}
@@ -644,7 +788,7 @@
       include_tasks: mssql_conf_setting.yml
       vars:
         __mssql_tls_private_key_dest: >-
-          /etc/pki/tls/private/{{ mssql_tls_private_key | basename }}
+          {{ __mssql_tls_private_key_dest_dir }}/{{ mssql_tls_private_key | basename }}
         __mssql_conf_setting: "network tlskey"
         __mssql_conf_setting_value: >-
           {{ __mssql_tls_private_key_dest if mssql_tls_enable else 'unset' }}
@@ -670,6 +814,8 @@
         set -euo pipefail;
         grep '^forceencryption' {{ __mssql_conf_path }}
         | sed 's/forceencryption = //g'
+      args:
+        executable: /bin/bash
       changed_when: false
       failed_when: false
       register: __mssql_forceencryption_val
