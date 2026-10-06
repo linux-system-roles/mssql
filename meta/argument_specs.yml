@@ -1,0 +1,593 @@
+# SPDX-License-Identifier: MIT
+---
+argument_specs:
+  main:
+    short_description: The mssql role.
+    description: >
+      The mssql role installs, configures, and starts Microsoft SQL
+      Server. It can also apply the `mssql` Tuned profile, configure
+      TLS encryption, Always On availability groups, Active Directory
+      authentication, and optional SQL script input.
+    options:
+      mssql_accept_microsoft_odbc_driver_for_sql_server_eula:
+        type: bool
+        default: false
+        description: >
+          Whether the Microsoft ODBC Driver for SQL Server EULA is
+          accepted. Must be `true` to install `msodbcsql17` or
+          `msodbcsql18`.
+      mssql_accept_microsoft_cli_utilities_for_sql_server_eula:
+        type: bool
+        default: false
+        description: >
+          Whether the Microsoft Command Line Utilities for SQL Server
+          EULA is accepted. Must be `true` to install `mssql-tools`.
+      mssql_accept_microsoft_sql_server_standard_eula:
+        type: bool
+        default: false
+        description: >
+          Whether the Microsoft SQL Server EULA is accepted. Must be
+          `true` to install and configure SQL Server.
+      mssql_version:
+        type: raw
+        default: null
+        description: >
+          The SQL Server version to install or configure. Accepts an
+          integer or string such as `2017`, `2019`, or `2022`, or
+          `null` to use the currently installed version.
+      mssql_upgrade:
+        type: bool
+        default: false
+        description: >
+          Whether to upgrade SQL Server to the version set with
+          `mssql_version`.
+      mssql_password:
+        type: str
+        default: null
+        description: >
+          The password for the SQL Server `sa` user. Required when
+          installing SQL Server. The password must be at least 8
+          characters and include uppercase and lowercase letters,
+          digits, or non-alphanumeric symbols. Single quotes, double
+          quotes, and spaces are not supported.
+      mssql_edition:
+        type: str
+        default: null
+        description: >
+          The SQL Server edition to install. Required when installing
+          SQL Server. Named editions are `Enterprise`, `Standard`,
+          `Web`, `Developer`, `Express`, and `Evaluation`. A product
+          key in the form `#####-#####-#####-#####-#####` is also
+          accepted.
+      mssql_tools_versions:
+        type: list
+        elements: int
+        default:
+          - 18
+        description: >
+          Versions of the SQL Tools package (`mssql-tools`) to install.
+          When multiple versions are listed, the role installs each
+          version and uses `sqlcmd` from the latest listed version.
+      mssql_tcp_port:
+        type: int
+        default: 1433
+        description: >
+          The TCP port that SQL Server listens on.
+      mssql_manage_firewall:
+        type: bool
+        default: false
+        description: >
+          Whether to open the firewall ports required by this role
+          using the firewall role.
+      mssql_ip_address:
+        type: str
+        default: null
+        description: >
+          The IP address that SQL Server listens on. When unset during
+          installation, SQL Server listens on `0.0.0.0`.
+      mssql_enable_sql_agent:
+        type: raw
+        default: null
+        description: >
+          Whether the SQL Server Agent is enabled. Accepts `true`,
+          `false`, or `null` to leave the current setting unchanged.
+      mssql_install_fts:
+        type: raw
+        default: null
+        description: >
+          Whether to install (`true`) or remove (`false`) the
+          `mssql-server-fts` full-text search package. Accepts a
+          boolean or `null` to leave the package unchanged.
+      mssql_install_powershell:
+        type: raw
+        default: null
+        description: >
+          Whether to install (`true`) or remove (`false`) the
+          `powershell` package. Accepts a boolean or `null` to leave
+          the package unchanged.
+      mssql_tune_for_fua_storage:
+        type: raw
+        default: null
+        description: >
+          Whether to apply settings that improve performance on hosts
+          with Forced Unit Access (FUA) capable storage. Accepts
+          `true`, `false`, or `null` to leave the current settings
+          unchanged. Only set to `true` when the host supports FUA.
+      mssql_datadir:
+        type: str
+        default: null
+        description: >
+          The directory SQL Server uses to store data. When set, the
+          role creates the directory and ensures ownership and
+          permissions.
+      mssql_datadir_mode:
+        type: str
+        default: "755"
+        description: >
+          The permissions to set on `mssql_datadir`, in the format used
+          by the Ansible `file` module `mode` parameter. Quote the
+          value such as `'755'` so Ansible treats it as a string.
+      mssql_logdir:
+        type: str
+        default: null
+        description: >
+          The directory SQL Server uses to store logs. When set, the
+          role creates the directory and ensures ownership and
+          permissions.
+      mssql_logdir_mode:
+        type: str
+        default: "755"
+        description: >
+          The permissions to set on `mssql_logdir`, in the format used
+          by the Ansible `file` module `mode` parameter. Quote the
+          value such as `'755'` so Ansible treats it as a string.
+      mssql_pre_input_sql_file:
+        type: raw
+        default: []
+        description: >
+          SQL script files to input immediately after the role
+          configures SQL Server. Accepts a single file path string or
+          a list of file path strings.
+      mssql_post_input_sql_file:
+        type: raw
+        default: []
+        description: >
+          SQL script files to input at the end of the role invocation.
+          Accepts a single file path string or a list of file path
+          strings.
+      mssql_pre_input_sql_content:
+        type: raw
+        default: []
+        description: >
+          SQL script content to input immediately after the role
+          configures SQL Server. Accepts a single script string or a
+          list of script strings.
+      mssql_post_input_sql_content:
+        type: raw
+        default: []
+        description: >
+          SQL script content to input at the end of the role
+          invocation. Accepts a single script string or a list of
+          script strings.
+      mssql_debug:
+        type: bool
+        default: false
+        description: >
+          Whether to print `sqlcmd` output when inputting T-SQL
+          statements and procedures.
+      mssql_tls_enable:
+        type: raw
+        default: null
+        description: >
+          Whether TLS encryption is enabled for SQL Server connections.
+          Accepts `true`, `false`, or `null` to leave the current
+          setting unchanged.
+      mssql_tls_cert:
+        type: str
+        default: null
+        description: >
+          The certificate file to copy for TLS encryption. Used with
+          `mssql_tls_private_key` instead of `mssql_tls_certificates`.
+      mssql_tls_private_key:
+        type: str
+        default: null
+        description: >
+          The private key file to copy for TLS encryption. Used with
+          `mssql_tls_cert` instead of `mssql_tls_certificates`.
+      mssql_tls_force:
+        type: bool
+        default: false
+        description: >
+          Whether to replace existing certificate and private key files
+          under `/etc/pki/tls/certs/` and `/etc/pki/tls/private/`.
+      mssql_tls_version:
+        type: raw
+        default: 1.2
+        description: >
+          The TLS protocol version to use, such as `1.2`. Accepts a
+          string or a number.
+      mssql_tls_remote_src:
+        type: bool
+        default: false
+        description: >
+          Whether `mssql_tls_cert` and `mssql_tls_private_key` already
+          exist on the managed node (`true`) or should be copied from
+          the controller (`false`).
+      mssql_tls_certificates:
+        type: list
+        elements: dict
+        default: []
+        description: >
+          Certificate request specifications passed to the certificate
+          role to generate TLS files for SQL Server. Do not set
+          `mssql_tls_cert` or `mssql_tls_private_key` when this list
+          is used.
+        options:
+          name:
+            type: str
+            required: true
+            description: >
+              The name of the certificate. A full path can be used to
+              choose the directory where files will be stored.
+          ca:
+            type: str
+            required: true
+            description: >
+              The CA that will issue the certificate (for example
+              `self-sign` or `ipa`).
+          dns:
+            type: raw
+            description: >
+              A domain name or list of domain names to include in the
+              certificate Subject Alternative Name (SAN).
+          email:
+            type: raw
+            description: >
+              An email address or list of email addresses to include in
+              the certificate Subject Alternative Name (SAN).
+          ip:
+            type: raw
+            description: >
+              An IP address or list of IP addresses to include in the
+              certificate Subject Alternative Name (SAN).
+          auto_renew:
+            type: bool
+            default: true
+            description: >
+              Whether the certificate should be renewed automatically
+              before it expires.
+          owner:
+            type: str
+            description: >
+              The user name or user id for the certificate and key
+              files.
+          group:
+            type: str
+            description: >
+              The group name or group id for the certificate and key
+              files.
+          mode:
+            type: raw
+            description: >
+              The file system permissions for the certificate and key
+              files. Accepts a string (for example `0644`) or an
+              integer.
+          key_size:
+            type: int
+            description: >
+              The key size in bits.
+          common_name:
+            type: str
+            description: >
+              The Common Name requested for the certificate subject.
+          country:
+            type: str
+            description: >
+              The country code requested for the certificate subject.
+          state:
+            type: str
+            description: >
+              The state requested for the certificate subject.
+          locality:
+            type: str
+            description: >
+              The locality requested for the certificate subject.
+          organization:
+            type: str
+            description: >
+              The organization requested for the certificate subject.
+          organizational_unit:
+            type: str
+            description: >
+              The organizational unit requested for the certificate
+              subject.
+          contact_email:
+            type: str
+            description: >
+              The contact email requested for the certificate subject.
+          key_usage:
+            type: list
+            elements: str
+            choices:
+              - digitalSignature
+              - nonRepudiation
+              - keyEncipherment
+              - dataEncipherment
+              - keyAgreement
+              - keyCertSign
+              - cRLSign
+              - encipherOnly
+              - decipherOnly
+            default:
+              - digitalSignature
+              - keyEncipherment
+            description: >
+              The allowed Key Usage extensions for the certificate.
+          extended_key_usage:
+            type: list
+            elements: str
+            default:
+              - id-kp-serverAuth
+              - id-kp-clientAuth
+            description: >
+              The Extended Key Usage attributes for the certificate.
+          run_before:
+            type: str
+            description: >
+              A command to run before saving the certificate.
+          run_after:
+            type: str
+            description: >
+              A command to run after saving the certificate.
+          principal:
+            type: raw
+            description: >
+              A Kerberos principal or list of Kerberos principals.
+          provider:
+            type: str
+            default: certmonger
+            description: >
+              The underlying method used to request and manage the
+              certificate.
+          issuer:
+            type: str
+            description: >
+              The issuer certificate nickname or template name.
+      mssql_tls_self_sign:
+        type: bool
+        default: false
+        description: >
+          Whether the TLS certificates are self-signed. When `true`,
+          the role runs `sqlcmd` with `-C` so self-signed certificates
+          are trusted.
+      mssql_rpm_key:
+        type: str
+        default: https://packages.microsoft.com/keys/microsoft.asc
+        description: >
+          The URL or path to the Microsoft RPM GPG key.
+      mssql_server_repository:
+        type: str
+        default: "{{ __mssql_server_repository | d('') }}"
+        description: >
+          The URL of the Microsoft SQL Server package repository.
+      mssql_client_repository:
+        type: str
+        default: "{{ __mssql_client_repository | d('') }}"
+        description: >
+          The URL of the Microsoft production package repository used
+          for client tools.
+      mssql_ha_configure:
+        type: bool
+        default: false
+        description: >
+          Whether to configure SQL Server Always On availability
+          groups. Setting this to `false` does not remove an existing
+          high availability configuration.
+      mssql_ha_ag_cluster_type:
+        type: str
+        default: external
+        choices:
+          - external
+          - none
+        description: >
+          The Always On availability group cluster type. `external`
+          configures high availability with Pacemaker. `none`
+          configures a read-scale availability group without
+          Pacemaker.
+      mssql_ha_replica_type:
+        type: raw
+        default: null
+        description: >
+          The replica type to configure on this host. Accepts
+          `primary`, `synchronous`, `asynchronous`, `witness`,
+          `absent`, or `null`. Exactly one host must be `primary`.
+      mssql_ha_endpoint_port:
+        type: int
+        default: 5022
+        description: >
+          The TCP port used to replicate data for an Always On
+          availability group.
+      mssql_ha_cert_name:
+        type: str
+        default: null
+        description: >
+          The name of the certificate used to secure transactions
+          between availability group members.
+      mssql_ha_private_key_password:
+        type: str
+        default: null
+        description: >
+          The password for the private key used with the availability
+          group certificate.
+      mssql_ha_master_key_password:
+        type: str
+        default: null
+        description: >
+          The password for the master key used with the availability
+          group certificate.
+      mssql_ha_reset_cert:
+        type: bool
+        default: false
+        description: >
+          Whether to reset certificates used by an Always On
+          availability group.
+      mssql_ha_endpoint_name:
+        type: str
+        default: null
+        description: >
+          The name of the database mirroring endpoint to configure.
+      mssql_ha_ag_name:
+        type: str
+        default: null
+        description: >
+          The name of the Always On availability group to configure.
+      mssql_ha_db_names:
+        type: list
+        elements: str
+        default: []
+        description: >
+          Names of existing SQL Server databases to replicate in the
+          availability group.
+      mssql_ha_ag_is_contained:
+        type: bool
+        default: false
+        description: >
+          Whether to configure the availability group as contained.
+          Supported on SQL Server 2022 and later.
+      mssql_ha_ag_reuse_system_db:
+        type: bool
+        default: false
+        description: >
+          Whether to configure the contained availability group with
+          `reuse_system_db`. Applicable only when
+          `mssql_ha_ag_is_contained` is `true`.
+      mssql_ha_ag_secondary_role_allow_connections:
+        type: raw
+        default: null
+        description: >
+          The `SECONDARY_ROLE (ALLOW_CONNECTIONS)` setting for this
+          replica. Accepts `ALL`, `READ_ONLY`, `NO`, or `null`.
+      mssql_ha_ag_read_only_routing_list:
+        type: str
+        default: null
+        description: >
+          The `PRIMARY_ROLE (READ_ONLY_ROUTING_LIST)` setting for the
+          primary replica. The value must be enclosed in parentheses,
+          for example `('node-2','node-3')`.
+      mssql_ha_prep_for_pacemaker:
+        type: bool
+        default: "{{ (mssql_ha_ag_cluster_type | d('external') | lower) != 'none' }}"
+        description: >
+          Whether to configure SQL Server for Pacemaker, including the
+          virtual IP, Pacemaker login, and optional ha_cluster role
+          invocation.
+      mssql_ha_virtual_ip:
+        type: str
+        default: null
+        description: >
+          The virtual IP address for the SQL Server availability group
+          listener.
+      mssql_ha_login:
+        type: str
+        default: null
+        description: >
+          The SQL Server login created for the Pacemaker resource
+          agent.
+      mssql_ha_login_password:
+        type: str
+        default: null
+        description: >
+          The password for the `mssql_ha_login` SQL Server login.
+      mssql_manage_ha_cluster:
+        type: bool
+        default: false
+        description: >
+          Whether to run the ha_cluster role from this role to
+          configure Pacemaker.
+      mssql_ad_configure:
+        type: bool
+        default: false
+        description: >
+          Whether to configure Active Directory authentication for SQL
+          Server. Setting this to `false` does not remove an existing
+          AD authentication configuration.
+      mssql_ad_join:
+        type: bool
+        default: true
+        description: >
+          Whether to join managed nodes to Active Directory using the
+          ad_integration role. Set to `false` when nodes are already
+          joined.
+      mssql_ad_sql_user:
+        type: str
+        default: null
+        description: >
+          The Active Directory user created and used for SQL Server
+          authentication.
+      mssql_ad_sql_password:
+        type: str
+        default: null
+        description: >
+          The password for `mssql_ad_sql_user`. Not required when
+          `mssql_ad_keytab_file` is provided.
+      mssql_ad_sql_user_dn:
+        type: str
+        default: >-
+          CN={{ mssql_ad_sql_user | d('') }},
+          CN=Users,
+          {{ (ad_integration_realm | d('')).split(".")
+          | map("regex_replace", "^", "DC=")
+          | join(",") }}
+        description: >
+          The Active Directory distinguished name at which
+          `mssql_ad_sql_user` is created, such as
+          `CN=sqluser,CN=Users,DC=DOMAIN,DC=COM`.
+      mssql_ad_keytab_file:
+        type: str
+        default: null
+        description: >
+          A pre-created Kerberos keytab file to copy for SQL Server
+          instead of generating one.
+      mssql_ad_keytab_remote_src:
+        type: bool
+        default: false
+        description: >
+          Whether `mssql_ad_keytab_file` already exists on the managed
+          node (`true`) or should be copied from the controller
+          (`false`).
+      mssql_ad_kerberos_user:
+        type: str
+        default: >-
+          {{ ad_integration_user if ad_integration_user is defined
+          else mssql_ad_sql_user }}
+        description: >
+          The user used to obtain a Kerberos ticket when creating
+          `mssql_ad_sql_user` and the keytab.
+      mssql_ad_kerberos_password:
+        type: str
+        default: >-
+          {{ ad_integration_password if ad_integration_user is defined
+          else mssql_ad_sql_password }}
+        description: >
+          The password used to obtain a Kerberos ticket for
+          `mssql_ad_kerberos_user`.
+      mssql_run_selinux_confined:
+        type: bool
+        default: "{{ __mssql_confined_supported | d(false) }}"
+        description: >
+          Whether SQL Server runs as an SELinux-confined application
+          by installing (`true`) or removing (`false`)
+          `mssql-server-selinux`. Supported on RHEL 9.
+      mssql_manage_selinux:
+        type: bool
+        default: false
+        description: >
+          Whether to configure SELinux port types and file contexts
+          for SQL Server. Applicable only when
+          `mssql_run_selinux_confined` is `true`.
+      mssql_secure_logging:
+        type: bool
+        default: true
+        description: >
+          Whether to suppress logging of tasks that handle credentials
+          and other sensitive data. Set to `false` for troubleshooting.

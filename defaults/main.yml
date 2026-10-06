@@ -36,8 +36,8 @@ mssql_tls_certificates: []
 mssql_tls_self_sign: false
 
 mssql_rpm_key: https://packages.microsoft.com/keys/microsoft.asc
-mssql_server_repository: "{{ __mssql_server_repository }}"
-mssql_client_repository: "{{ __mssql_client_repository }}"
+mssql_server_repository: "{{ __mssql_server_repository | d('') }}"
+mssql_client_repository: "{{ __mssql_client_repository | d('') }}"
 
 mssql_ha_configure: false
 mssql_ha_ag_cluster_type: external
@@ -58,7 +58,7 @@ mssql_ha_ag_reuse_system_db: false
 mssql_ha_ag_secondary_role_allow_connections: null
 mssql_ha_ag_read_only_routing_list: null
 
-mssql_ha_prep_for_pacemaker: "{{ mssql_ha_ag_cluster_type | lower != 'none' }}"
+mssql_ha_prep_for_pacemaker: "{{ (mssql_ha_ag_cluster_type | d('external') | lower) != 'none' }}"
 mssql_ha_virtual_ip: null
 mssql_ha_login: null
 mssql_ha_login_password: null
@@ -70,9 +70,9 @@ mssql_ad_sql_user: null
 mssql_ad_sql_password: null
 # Default to CN={{ mssql_ad_sql_user }},CN=Users,DC=DOMAIN,DC=SUBDOMAIN...
 mssql_ad_sql_user_dn: >-
-  CN={{ mssql_ad_sql_user }},
+  CN={{ mssql_ad_sql_user | d('') }},
   CN=Users,
-  {{ ad_integration_realm.split(".")
+  {{ (ad_integration_realm | d('')).split(".")
   | map("regex_replace", "^", "DC=")
   | join(",") }}
 mssql_ad_keytab_file: null

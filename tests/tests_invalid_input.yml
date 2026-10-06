@@ -1,0 +1,647 @@
+# SPDX-License-Identifier: MIT
+---
+# Verify meta/argument_specs.yml and tasks/assert_role_vars.yml reject bad
+# parameters.  Each block runs the role expecting failure; rescue records
+# that outcome.
+- name: Verify invalid parameters are rejected
+  hosts: all
+  tasks:
+    - name: Run invalid input tests
+      block:
+        # ====================================================
+        # Section 1: Verify valid default types are accepted
+        # ====================================================
+        # Default parameters are type-valid but the role still fails
+        # because EULAs are not accepted (or the platform is
+        # unsupported). That failure means argument_specs and
+        # assert_role_vars did not reject the defaults.
+        - name: Run role with valid default types
+          block:
+            - name: Run role with default parameters
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+
+            - name: Unreachable task after valid defaults
+              ansible.builtin.fail:
+                msg: >-
+                  The role should fail on defaults because EULA is not
+                  accepted or the platform is unsupported
+          rescue:
+            - name: Assert defaults failed after type validation
+              ansible.builtin.assert:
+                that: >-
+                  'You must accept EULA' in
+                  (ansible_failed_result | default({}) | to_json)
+                  or 'does not support running against RHEL or CentOS 10' in
+                  (ansible_failed_result | default({}) | to_json)
+                fail_msg: >-
+                  Role with valid default types should fail only because
+                  EULA is not accepted or the platform is unsupported,
+                  got {{ ansible_failed_result | default({}) | to_json }}
+
+        # ====================================================
+        # Section 2: argument_specs validation (Ansible 2.11+)
+        # ====================================================
+        - name: Run argument specs validation tests
+          when: ansible_version.full is version('2.11', '>=')
+          block:
+            - name: Argument specs reject missing required name
+              block:
+                - name: Run role without required name in mssql_tls_certificates
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    mssql_tls_certificates:
+                      - ca: self-sign
+              rescue:
+                - name: Mark missing name rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_missing_name_failed: true
+                  when: >-
+                    'missing required arguments' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert missing name was rejected
+              ansible.builtin.assert:
+                that:
+                  - __invalid_input_missing_name_failed | default(false)
+                fail_msg: >-
+                  argument_specs should reject mssql_tls_certificates
+                  entries missing the required name field
+
+            - name: Argument specs reject missing required ca
+              block:
+                - name: Run role without required ca in mssql_tls_certificates
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    mssql_tls_certificates:
+                      - name: test_cert
+              rescue:
+                - name: Mark missing ca rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_missing_ca_failed: true
+                  when: >-
+                    'missing required arguments' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert missing ca was rejected
+              ansible.builtin.assert:
+                that:
+                  - __invalid_input_missing_ca_failed | default(false)
+                fail_msg: >-
+                  argument_specs should reject mssql_tls_certificates
+                  entries missing the required ca field
+
+            - name: Argument specs reject non-boolean mssql_upgrade
+              block:
+                - name: Run role with non-boolean mssql_upgrade
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    mssql_upgrade: not_a_bool
+              rescue:
+                - name: Mark invalid mssql_upgrade type rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_upgrade_type_failed: true
+                  when: >-
+                    'mssql_upgrade' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert invalid mssql_upgrade type was rejected
+              ansible.builtin.assert:
+                that:
+                  - __invalid_input_upgrade_type_failed | default(false)
+                fail_msg: >-
+                  argument_specs should reject mssql_upgrade with a
+                  non-boolean value
+
+            - name: Argument specs reject non-boolean mssql_secure_logging
+              block:
+                - name: Run role with non-boolean mssql_secure_logging
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    mssql_secure_logging: not_a_bool
+              rescue:
+                - name: Mark invalid mssql_secure_logging type rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_secure_logging_type_failed: true
+                  when: >-
+                    'mssql_secure_logging' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert invalid mssql_secure_logging type was rejected
+              ansible.builtin.assert:
+                that:
+                  - __invalid_input_secure_logging_type_failed | default(false)
+                fail_msg: >-
+                  argument_specs should reject mssql_secure_logging
+                  with a non-boolean value
+
+            - name: Argument specs reject non-integer mssql_tcp_port
+              block:
+                - name: Run role with non-integer mssql_tcp_port
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    mssql_tcp_port: not_an_int
+              rescue:
+                - name: Mark invalid mssql_tcp_port type rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_tcp_port_type_failed: true
+                  when: >-
+                    'mssql_tcp_port' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert invalid mssql_tcp_port type was rejected
+              ansible.builtin.assert:
+                that:
+                  - __invalid_input_tcp_port_type_failed | default(false)
+                fail_msg: >-
+                  argument_specs should reject mssql_tcp_port with a
+                  non-integer value
+
+            - name: Argument specs reject non-integer mssql_ha_endpoint_port
+              block:
+                - name: Run role with non-integer mssql_ha_endpoint_port
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    mssql_ha_endpoint_port: not_an_int
+              rescue:
+                - name: Mark invalid mssql_ha_endpoint_port type rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_endpoint_port_type_failed: true
+                  when: >-
+                    'mssql_ha_endpoint_port' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert invalid mssql_ha_endpoint_port type was rejected
+              ansible.builtin.assert:
+                that:
+                  - __invalid_input_endpoint_port_type_failed | default(false)
+                fail_msg: >-
+                  argument_specs should reject mssql_ha_endpoint_port
+                  with a non-integer value
+
+            - name: Argument specs reject non-list mssql_ha_db_names
+              block:
+                - name: Run role with non-list mssql_ha_db_names
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    mssql_ha_db_names:
+                      not_a_list: true
+              rescue:
+                - name: Mark invalid mssql_ha_db_names type rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_db_names_type_failed: true
+                  when: >-
+                    'mssql_ha_db_names' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert invalid mssql_ha_db_names type was rejected
+              ansible.builtin.assert:
+                that:
+                  - __invalid_input_db_names_type_failed | default(false)
+                fail_msg: >-
+                  argument_specs should reject mssql_ha_db_names with a
+                  non-list value
+
+            - name: Argument specs reject non-list mssql_tools_versions
+              block:
+                - name: Run role with non-list mssql_tools_versions
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    mssql_tools_versions:
+                      not_a_list: true
+              rescue:
+                - name: Mark invalid mssql_tools_versions type rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_tools_versions_type_failed: true
+                  when: >-
+                    'mssql_tools_versions' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert invalid mssql_tools_versions type was rejected
+              ansible.builtin.assert:
+                that:
+                  - __invalid_input_tools_versions_type_failed | default(false)
+                fail_msg: >-
+                  argument_specs should reject mssql_tools_versions
+                  with a non-list value
+
+            - name: Argument specs reject invalid mssql_ha_ag_cluster_type
+              block:
+                - name: Run role with invalid mssql_ha_ag_cluster_type
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    mssql_ha_ag_cluster_type: invalid_choice
+              rescue:
+                - name: Mark invalid mssql_ha_ag_cluster_type rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_cluster_type_choice_failed: true
+                  when: >-
+                    'mssql_ha_ag_cluster_type' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert invalid mssql_ha_ag_cluster_type was rejected
+              ansible.builtin.assert:
+                that:
+                  - __invalid_input_cluster_type_choice_failed | default(false)
+                fail_msg: >-
+                  argument_specs should reject mssql_ha_ag_cluster_type
+                  value 'invalid_choice'
+
+            - name: Argument specs reject invalid key_usage choice
+              block:
+                - name: Run role with invalid key_usage in mssql_tls_certificates
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    mssql_tls_certificates:
+                      - name: test_cert
+                        ca: self-sign
+                        key_usage:
+                          - invalid_choice
+              rescue:
+                - name: Mark invalid key_usage choice rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_key_usage_choice_failed: true
+                  when: >-
+                    'key_usage' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert invalid key_usage choice was rejected
+              ansible.builtin.assert:
+                that:
+                  - __invalid_input_key_usage_choice_failed | default(false)
+                fail_msg: >-
+                  argument_specs should reject mssql_tls_certificates
+                  key_usage value 'invalid_choice'
+
+        # ====================================================
+        # Section 3: assert_role_vars validation (all versions)
+        # ====================================================
+        - name: Assert rejects mssql_version as a dict
+          block:
+            - name: Run role with mssql_version as a dict
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                mssql_version:
+                  major: 2022
+          rescue:
+            - name: Mark mssql_version dict rejected
+              ansible.builtin.set_fact:
+                __invalid_input_version_dict_failed: true
+              when: >-
+                'mssql_version must be' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert mssql_version as dict was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_version_dict_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject mssql_version when given
+              a dictionary value
+
+        - name: Assert rejects mssql_enable_sql_agent as a string
+          block:
+            - name: Run role with mssql_enable_sql_agent as a string
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                mssql_enable_sql_agent: not_a_bool
+          rescue:
+            - name: Mark mssql_enable_sql_agent string rejected
+              ansible.builtin.set_fact:
+                __invalid_input_sql_agent_string_failed: true
+              when: >-
+                'mssql_enable_sql_agent must be' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert mssql_enable_sql_agent as string was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_sql_agent_string_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject mssql_enable_sql_agent
+              when given a string value
+
+        - name: Assert rejects mssql_install_fts as a string
+          block:
+            - name: Run role with mssql_install_fts as a string
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                mssql_install_fts: not_a_bool
+          rescue:
+            - name: Mark mssql_install_fts string rejected
+              ansible.builtin.set_fact:
+                __invalid_input_install_fts_string_failed: true
+              when: >-
+                'mssql_install_fts must be' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert mssql_install_fts as string was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_install_fts_string_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject mssql_install_fts when
+              given a string value
+
+        - name: Assert rejects mssql_install_powershell as an integer
+          block:
+            - name: Run role with mssql_install_powershell as an integer
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                mssql_install_powershell: 123
+          rescue:
+            - name: Mark mssql_install_powershell integer rejected
+              ansible.builtin.set_fact:
+                __invalid_input_install_powershell_int_failed: true
+              when: >-
+                'mssql_install_powershell must be' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert mssql_install_powershell as integer was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_install_powershell_int_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject mssql_install_powershell
+              when given an integer value
+
+        - name: Assert rejects mssql_tune_for_fua_storage as a string
+          block:
+            - name: Run role with mssql_tune_for_fua_storage as a string
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                mssql_tune_for_fua_storage: not_a_bool
+          rescue:
+            - name: Mark mssql_tune_for_fua_storage string rejected
+              ansible.builtin.set_fact:
+                __invalid_input_tune_fua_string_failed: true
+              when: >-
+                'mssql_tune_for_fua_storage must be' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert mssql_tune_for_fua_storage as string was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_tune_fua_string_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject mssql_tune_for_fua_storage
+              when given a string value
+
+        - name: Assert rejects mssql_tls_enable as a string
+          block:
+            - name: Run role with mssql_tls_enable as a string
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                mssql_tls_enable: not_a_bool
+          rescue:
+            - name: Mark mssql_tls_enable string rejected
+              ansible.builtin.set_fact:
+                __invalid_input_tls_enable_string_failed: true
+              when: >-
+                'mssql_tls_enable must be' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert mssql_tls_enable as string was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_tls_enable_string_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject mssql_tls_enable when
+              given a string value
+
+        - name: Assert rejects mssql_pre_input_sql_file as an integer
+          block:
+            - name: Run role with mssql_pre_input_sql_file as an integer
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                mssql_pre_input_sql_file: 123
+          rescue:
+            - name: Mark mssql_pre_input_sql_file integer rejected
+              ansible.builtin.set_fact:
+                __invalid_input_pre_sql_file_int_failed: true
+              when: >-
+                'mssql_pre_input_sql_file must be' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert mssql_pre_input_sql_file as integer was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_pre_sql_file_int_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject mssql_pre_input_sql_file
+              when given an integer value
+
+        - name: Assert rejects mssql_post_input_sql_file as an integer
+          block:
+            - name: Run role with mssql_post_input_sql_file as an integer
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                mssql_post_input_sql_file: 123
+          rescue:
+            - name: Mark mssql_post_input_sql_file integer rejected
+              ansible.builtin.set_fact:
+                __invalid_input_post_sql_file_int_failed: true
+              when: >-
+                'mssql_post_input_sql_file must be' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert mssql_post_input_sql_file as integer was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_post_sql_file_int_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject mssql_post_input_sql_file
+              when given an integer value
+
+        - name: Assert rejects mssql_pre_input_sql_content as an integer
+          block:
+            - name: Run role with mssql_pre_input_sql_content as an integer
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                mssql_pre_input_sql_content: 123
+          rescue:
+            - name: Mark mssql_pre_input_sql_content integer rejected
+              ansible.builtin.set_fact:
+                __invalid_input_pre_sql_content_int_failed: true
+              when: >-
+                'mssql_pre_input_sql_content must be' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert mssql_pre_input_sql_content as integer was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_pre_sql_content_int_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject mssql_pre_input_sql_content
+              when given an integer value
+
+        - name: Assert rejects mssql_post_input_sql_content as an integer
+          block:
+            - name: Run role with mssql_post_input_sql_content as an integer
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                mssql_post_input_sql_content: 123
+          rescue:
+            - name: Mark mssql_post_input_sql_content integer rejected
+              ansible.builtin.set_fact:
+                __invalid_input_post_sql_content_int_failed: true
+              when: >-
+                'mssql_post_input_sql_content must be' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert mssql_post_input_sql_content as integer was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_post_sql_content_int_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject
+              mssql_post_input_sql_content when given an integer value
+
+        - name: Assert rejects mssql_tls_version as a list
+          block:
+            - name: Run role with mssql_tls_version as a list
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                mssql_tls_version:
+                  - 1.2
+          rescue:
+            - name: Mark mssql_tls_version list rejected
+              ansible.builtin.set_fact:
+                __invalid_input_tls_version_list_failed: true
+              when: >-
+                'mssql_tls_version must be' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert mssql_tls_version as list was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_tls_version_list_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject mssql_tls_version when
+              given a list value
+
+        - name: Assert rejects mssql_ha_replica_type as an integer
+          block:
+            - name: Run role with mssql_ha_replica_type as an integer
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                mssql_ha_replica_type: 123
+          rescue:
+            - name: Mark mssql_ha_replica_type integer rejected
+              ansible.builtin.set_fact:
+                __invalid_input_replica_type_int_failed: true
+              when: >-
+                'mssql_ha_replica_type must be' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert mssql_ha_replica_type as integer was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_replica_type_int_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject mssql_ha_replica_type when
+              given an integer value
+
+        - name: Assert rejects invalid mssql_ha_replica_type choice
+          block:
+            - name: Run role with invalid mssql_ha_replica_type
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                mssql_ha_replica_type: invalid_choice
+          rescue:
+            - name: Mark invalid mssql_ha_replica_type rejected
+              ansible.builtin.set_fact:
+                __invalid_input_replica_type_choice_failed: true
+              when: >-
+                'mssql_ha_replica_type must be' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert invalid mssql_ha_replica_type was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_replica_type_choice_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject mssql_ha_replica_type
+              value 'invalid_choice'
+
+        - name: Assert rejects invalid secondary role allow connections
+          block:
+            - name: Run role with invalid secondary role allow connections
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                mssql_ha_ag_secondary_role_allow_connections: invalid_choice
+          rescue:
+            - name: Mark invalid secondary role allow connections rejected
+              ansible.builtin.set_fact:
+                __invalid_input_secondary_role_choice_failed: true
+              when: >-
+                'mssql_ha_ag_secondary_role_allow_connections must be' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert invalid secondary role allow connections was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_secondary_role_choice_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject
+              mssql_ha_ag_secondary_role_allow_connections value
+              'invalid_choice'
+
+        - name: Assert rejects mssql_tls_certificates dns as an integer
+          block:
+            - name: Run role with mssql_tls_certificates dns as an integer
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                mssql_tls_certificates:
+                  - name: test_cert
+                    ca: self-sign
+                    dns: 123
+          rescue:
+            - name: Mark mssql_tls_certificates dns integer rejected
+              ansible.builtin.set_fact:
+                __invalid_input_cert_dns_int_failed: true
+              when: >-
+                'mssql_tls_certificates' in
+                (ansible_failed_result | default({}) | to_json)
+                and '.dns must be' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert mssql_tls_certificates dns as integer was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_cert_dns_int_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject mssql_tls_certificates
+              entries where dns is an integer
+
+      always:
+        - name: Clean up after the role invocation
+          ansible.builtin.include_tasks: tasks/cleanup.yml
+          tags: tests::cleanup
+        - name: Clear test facts
+          ansible.builtin.set_fact:
+            __invalid_input_missing_name_failed:
+            __invalid_input_missing_ca_failed:
+            __invalid_input_upgrade_type_failed:
+            __invalid_input_secure_logging_type_failed:
+            __invalid_input_tcp_port_type_failed:
+            __invalid_input_endpoint_port_type_failed:
+            __invalid_input_db_names_type_failed:
+            __invalid_input_tools_versions_type_failed:
+            __invalid_input_cluster_type_choice_failed:
+            __invalid_input_key_usage_choice_failed:
+            __invalid_input_version_dict_failed:
+            __invalid_input_sql_agent_string_failed:
+            __invalid_input_install_fts_string_failed:
+            __invalid_input_install_powershell_int_failed:
+            __invalid_input_tune_fua_string_failed:
+            __invalid_input_tls_enable_string_failed:
+            __invalid_input_pre_sql_file_int_failed:
+            __invalid_input_post_sql_file_int_failed:
+            __invalid_input_pre_sql_content_int_failed:
+            __invalid_input_post_sql_content_int_failed:
+            __invalid_input_tls_version_list_failed:
+            __invalid_input_replica_type_int_failed:
+            __invalid_input_replica_type_choice_failed:
+            __invalid_input_secondary_role_choice_failed:
+            __invalid_input_cert_dns_int_failed:
+          tags: tests::cleanup
