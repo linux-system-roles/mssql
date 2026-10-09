@@ -1,0 +1,160 @@
+# SPDX-License-Identifier: MIT
+---
+- name: Assert mssql_version is a string or integer
+  ansible.builtin.assert:
+    that:
+      - >-
+        mssql_version is string
+        or (mssql_version | type_debug) == 'int'
+    fail_msg: >-
+      mssql_version must be a string or integer,
+      got {{ mssql_version | type_debug }}
+  when:
+    - mssql_version is defined
+    - mssql_version is not none
+
+- name: Assert optional boolean variables are null or a boolean
+  ansible.builtin.assert:
+    that:
+      - >-
+        (lookup('vars', item) is none)
+        or (lookup('vars', item) is sameas true)
+        or (lookup('vars', item) is sameas false)
+    fail_msg: >-
+      {{ item }} must be null or a boolean,
+      got {{ lookup('vars', item) | type_debug }}
+  loop:
+    - mssql_enable_sql_agent
+    - mssql_install_fts
+    - mssql_install_powershell
+    - mssql_tune_for_fua_storage
+    - mssql_tls_enable
+
+- name: Assert SQL input variables are a string or list of strings
+  ansible.builtin.assert:
+    that:
+      - >-
+        lookup('vars', item) is string
+        or (lookup('vars', item) is sequence
+            and lookup('vars', item) is not mapping
+            and lookup('vars', item) | reject('string') | list | length == 0)
+    fail_msg: >-
+      {{ item }} must be a string or list of strings,
+      got {{ lookup('vars', item) | type_debug }}
+  loop:
+    - mssql_pre_input_sql_file
+    - mssql_post_input_sql_file
+    - mssql_pre_input_sql_content
+    - mssql_post_input_sql_content
+  when: lookup('vars', item) is defined
+
+- name: Assert mssql_tls_version is a string or number
+  ansible.builtin.assert:
+    that:
+      - >-
+        mssql_tls_version is string
+        or (mssql_tls_version | type_debug) in ['float', 'int']
+    fail_msg: >-
+      mssql_tls_version must be a string or number,
+      got {{ mssql_tls_version | type_debug }}
+  when: mssql_tls_version is defined
+
+- name: Assert mssql_ha_replica_type is null or a valid replica type
+  ansible.builtin.assert:
+    that:
+      - >-
+        (mssql_ha_replica_type is none)
+        or (mssql_ha_replica_type in __mssql_ha_replica_types_all)
+    fail_msg: >-
+      mssql_ha_replica_type must be null or one of
+      {{ __mssql_ha_replica_types_all | join(', ') }},
+      got {{ mssql_ha_replica_type | type_debug }}
+
+- name: Assert mssql_ha_ag_secondary_role_allow_connections is null or valid
+  ansible.builtin.assert:
+    that:
+      - >-
+        (mssql_ha_ag_secondary_role_allow_connections is none)
+        or (mssql_ha_ag_secondary_role_allow_connections in
+            ['ALL', 'READ_ONLY', 'NO'])
+    fail_msg: >-
+      mssql_ha_ag_secondary_role_allow_connections must be null or one of
+      ALL, READ_ONLY, NO, got
+      {{ mssql_ha_ag_secondary_role_allow_connections | type_debug }}
+
+- name: Assert dns in mssql_tls_certificates is a string or list of strings
+  ansible.builtin.assert:
+    that:
+      - >-
+        item.dns is string
+        or (item.dns is sequence and item.dns is not mapping
+            and item.dns | reject('string') | list | length == 0)
+    fail_msg: >-
+      mssql_tls_certificates[{{ idx }}].dns must be a string or list of
+      strings, got {{ item.dns | type_debug }}
+  loop: "{{ mssql_tls_certificates }}"
+  loop_control:
+    index_var: idx
+    label: "{{ item.name | d('unnamed') }}"
+  when: item.dns is defined
+
+- name: Assert email in mssql_tls_certificates is a string or list of strings
+  ansible.builtin.assert:
+    that:
+      - >-
+        item.email is string
+        or (item.email is sequence and item.email is not mapping
+            and item.email | reject('string') | list | length == 0)
+    fail_msg: >-
+      mssql_tls_certificates[{{ idx }}].email must be a string or list of
+      strings, got {{ item.email | type_debug }}
+  loop: "{{ mssql_tls_certificates }}"
+  loop_control:
+    index_var: idx
+    label: "{{ item.name | d('unnamed') }}"
+  when: item.email is defined
+
+- name: Assert ip in mssql_tls_certificates is a string or list of strings
+  ansible.builtin.assert:
+    that:
+      - >-
+        item.ip is string
+        or (item.ip is sequence and item.ip is not mapping
+            and item.ip | reject('string') | list | length == 0)
+    fail_msg: >-
+      mssql_tls_certificates[{{ idx }}].ip must be a string or list of
+      strings, got {{ item.ip | type_debug }}
+  loop: "{{ mssql_tls_certificates }}"
+  loop_control:
+    index_var: idx
+    label: "{{ item.name | d('unnamed') }}"
+  when: item.ip is defined
+
+- name: Assert principal in mssql_tls_certificates is a string or list of strings
+  ansible.builtin.assert:
+    that:
+      - >-
+        item.principal is string
+        or (item.principal is sequence and item.principal is not mapping
+            and item.principal | reject('string') | list | length == 0)
+    fail_msg: >-
+      mssql_tls_certificates[{{ idx }}].principal must be a string or list of
+      strings, got {{ item.principal | type_debug }}
+  loop: "{{ mssql_tls_certificates }}"
+  loop_control:
+    index_var: idx
+    label: "{{ item.name | d('unnamed') }}"
+  when: item.principal is defined
+
+- name: Assert mode in mssql_tls_certificates is a string or integer
+  ansible.builtin.assert:
+    that:
+      - (item.mode | type_debug) in ['str', 'int', 'unicode']
+    fail_msg: >-
+      mssql_tls_certificates[{{ idx }}].mode must be a string or integer,
+      got {{ item.mode | type_debug }}
+  loop: "{{ mssql_tls_certificates }}"
+  loop_control:
+    index_var: idx
+    label: "{{ item.name | d('unnamed') }}"
+  when: item.mode is defined
