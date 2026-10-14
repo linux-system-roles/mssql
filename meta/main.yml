@@ -5,21 +5,6 @@ galaxy_info:
   company: Red Hat, Inc.
   license: MIT
   min_ansible_version: "2.9"
-  platforms:
-    - name: Fedora
-      versions:
-        - all
-    - name: EL
-      versions:
-        - "9"
-        - "8"
-        - "7"
-    - name: SLES
-      versions:
-        - "15SP5"
-    - name: opensuse
-      versions:
-        - "15.5"
   galaxy_tags:
     - centos
     - containerbuild
@@ -27,6 +12,7 @@ galaxy_info:
     - el7
     - el8
     - el9
+    - el10
     - fedora
     - microsoft
     - mssql
