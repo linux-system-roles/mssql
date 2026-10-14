@@ -367,15 +367,16 @@ argument_specs:
           The URL or path to the Microsoft RPM GPG key.
       mssql_server_repository:
         type: str
-        default: "{{ __mssql_server_repository | d('') }}"
         description: >
-          The URL of the Microsoft SQL Server package repository.
+          The URL of the Microsoft SQL Server package repository. When
+          unset, the role uses the platform-specific Microsoft SQL
+          Server repository URL.
       mssql_client_repository:
         type: str
-        default: "{{ __mssql_client_repository | d('') }}"
         description: >
           The URL of the Microsoft production package repository used
-          for client tools.
+          for client tools. When unset, the role uses the
+          platform-specific Microsoft production repository URL.
       mssql_ha_configure:
         type: bool
         default: false
