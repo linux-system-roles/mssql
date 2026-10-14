@@ -30,8 +30,7 @@
             - name: Run the role with default parameters
               include_tasks: tasks/run_role_with_clear_facts.yml
               vars:
-                mssql_version: "{{
-                  __mssql_test_vars.ansible_facts.__mssql_test_version }}"
+                mssql_version: "{{ __mssql_test_version }}"
                 mssql_manage_selinux: "{{
                   __mssql_test_vars.ansible_facts.__mssql_test_confined_supported
                   | bool }}"

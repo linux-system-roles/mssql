@@ -116,15 +116,6 @@
     - ansible_facts["distribution"] in ['CentOS', 'RedHat']
     - ansible_facts["distribution_version"] is version('8', '<')
 
-- name: Verify if the mssql_ha_replica_type variable is provided correctly
-  assert:
-    that: mssql_ha_replica_type in __mssql_ha_replica_types_all
-    # noqa jinja[spacing]
-    fail_msg: >-
-      You must set the mssql_ha_replica_type variable to one of
-      {{ __mssql_ha_replica_types_all | join (', ') }}
-  when: mssql_ha_configure | bool
-
 - name: Verify that 'mssql_ha_replica_type = primary' is provided once
   assert:
     that: ansible_play_hosts_all |

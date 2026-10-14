@@ -63,10 +63,12 @@
   ansible.builtin.assert:
     that:
       - >-
-        (mssql_ha_replica_type is none)
-        or (mssql_ha_replica_type in __mssql_ha_replica_types_all)
+        mssql_ha_replica_type in __mssql_ha_replica_types_all
+        or ((not mssql_ha_configure | bool)
+            and (mssql_ha_replica_type is none))
     fail_msg: >-
-      mssql_ha_replica_type must be null or one of
+      mssql_ha_replica_type must be
+      {{ 'one of' if mssql_ha_configure | bool else 'null or one of' }}
       {{ __mssql_ha_replica_types_all | join(', ') }},
       got {{ mssql_ha_replica_type | type_debug }}
 
