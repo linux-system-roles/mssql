@@ -22,7 +22,7 @@ jobs:
           sudo apt install -y git
 
       - name: checkout PR
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
@@ -79,17 +79,17 @@ jobs:
           pip install --upgrade pip galaxy-importer ansible-core pyyaml ruamel_yaml
 
       - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        uses: actions/setup-python@v7.0.0
 
       - name: checkout auto-maintenance
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
           repository: linux-system-roles/auto-maintenance
           path: auto-maintenance
 
       - name: checkout mssql into a separate directory
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
           path: mssql
@@ -173,7 +173,7 @@ jobs:
           echo ::info Done
 
       - name: Create tag
-        uses: mathieudutour/github-tag-action@af99e60ce8132224b8e6ebab5023449fe256ed46  # v7
+        uses: linux-system-roles/.github/github-actions/tag@main
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           custom_tag: ${{ steps.tag.outputs.tagname }}
@@ -181,7 +181,7 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd  # v1.21.0
+        uses: linux-system-roles/.github/github-actions/release@main
         with:
           tag: ${{ steps.tag.outputs.tagname }}
           name: Version ${{ steps.tag.outputs.tagname }}
