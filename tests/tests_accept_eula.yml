@@ -9,7 +9,9 @@
     __mssql_gather_facts_no_log: true
   tasks:
     # Resolve fact-dependent values while ansible_facts is populated.
-    # Register the result; meta: clear_facts does not clear registered vars.
+    # set_fact evaluates eagerly, so the values are captured before
+    # clear_facts wipes ansible_facts. clear_facts does not clear
+    # set_fact vars, so they remain available after the clear.
     - name: Set version and SELinux variables from gathered facts
       set_fact:
         __mssql_test_version: "{{
@@ -21,7 +23,6 @@
           ((ansible_facts['distribution'] in ['CentOS', 'RedHat']) and
           (ansible_facts['distribution_major_version'] is version('9', '>=')))
           or (ansible_facts['distribution'] in ['Fedora']) }}"
-      register: __mssql_test_vars
 
     - name: Run test in a block to clean up in always
       block:
@@ -32,11 +33,9 @@
               vars:
                 mssql_version: "{{ __mssql_test_version }}"
                 mssql_manage_selinux: "{{
-                  __mssql_test_vars.ansible_facts.__mssql_test_confined_supported
-                  | bool }}"
+                  __mssql_test_confined_supported | bool }}"
                 mssql_run_selinux_confined: "{{
-                  __mssql_test_vars.ansible_facts.__mssql_test_confined_supported
-                  | bool }}"
+                  __mssql_test_confined_supported | bool }}"
 
             - name: Unreachable task
               fail:
