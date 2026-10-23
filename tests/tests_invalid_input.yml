@@ -5,6 +5,13 @@
 # that outcome.
 - name: Verify invalid parameters are rejected
   hosts: all
+  vars:
+    __invalid_input_failure_messages: >-
+      {{ ([ansible_failed_result.msg | default('') | string,
+           ansible_failed_result.msg.msg | default('') | string]
+          + (ansible_failed_result.results | default([])
+             | map(attribute='msg') | map('default', '') | list))
+         | join(' ') }}
   tasks:
     - name: Run invalid input tests
       block:
@@ -56,8 +63,8 @@
                   ansible.builtin.set_fact:
                     __invalid_input_missing_name_failed: true
                   when: >-
-                    'missing required arguments' in
-                    (ansible_failed_result | default({}) | to_json)
+                    'missing required arguments: name found in mssql_tls_certificates' in
+                    __invalid_input_failure_messages
 
             - name: Assert missing name was rejected
               ansible.builtin.assert:
@@ -79,8 +86,8 @@
                   ansible.builtin.set_fact:
                     __invalid_input_missing_ca_failed: true
                   when: >-
-                    'missing required arguments' in
-                    (ansible_failed_result | default({}) | to_json)
+                    'missing required arguments: ca found in mssql_tls_certificates' in
+                    __invalid_input_failure_messages
 
             - name: Assert missing ca was rejected
               ansible.builtin.assert:
@@ -101,8 +108,10 @@
                   ansible.builtin.set_fact:
                     __invalid_input_upgrade_type_failed: true
                   when: >-
-                    'mssql_upgrade' in
-                    (ansible_failed_result | default({}) | to_json)
+                    "argument 'mssql_upgrade'" in
+                    __invalid_input_failure_messages and
+                    'convert to bool' in
+                    __invalid_input_failure_messages
 
             - name: Assert invalid mssql_upgrade type was rejected
               ansible.builtin.assert:
@@ -123,8 +132,10 @@
                   ansible.builtin.set_fact:
                     __invalid_input_secure_logging_type_failed: true
                   when: >-
-                    'mssql_secure_logging' in
-                    (ansible_failed_result | default({}) | to_json)
+                    "argument 'mssql_secure_logging'" in
+                    __invalid_input_failure_messages and
+                    'convert to bool' in
+                    __invalid_input_failure_messages
 
             - name: Assert invalid mssql_secure_logging type was rejected
               ansible.builtin.assert:
@@ -145,8 +156,10 @@
                   ansible.builtin.set_fact:
                     __invalid_input_tcp_port_type_failed: true
                   when: >-
-                    'mssql_tcp_port' in
-                    (ansible_failed_result | default({}) | to_json)
+                    "argument 'mssql_tcp_port'" in
+                    __invalid_input_failure_messages and
+                    'convert to int' in
+                    __invalid_input_failure_messages
 
             - name: Assert invalid mssql_tcp_port type was rejected
               ansible.builtin.assert:
@@ -167,8 +180,10 @@
                   ansible.builtin.set_fact:
                     __invalid_input_endpoint_port_type_failed: true
                   when: >-
-                    'mssql_ha_endpoint_port' in
-                    (ansible_failed_result | default({}) | to_json)
+                    "argument 'mssql_ha_endpoint_port'" in
+                    __invalid_input_failure_messages and
+                    'convert to int' in
+                    __invalid_input_failure_messages
 
             - name: Assert invalid mssql_ha_endpoint_port type was rejected
               ansible.builtin.assert:
@@ -190,8 +205,10 @@
                   ansible.builtin.set_fact:
                     __invalid_input_db_names_type_failed: true
                   when: >-
-                    'mssql_ha_db_names' in
-                    (ansible_failed_result | default({}) | to_json)
+                    "argument 'mssql_ha_db_names'" in
+                    __invalid_input_failure_messages and
+                    'convert to list' in
+                    __invalid_input_failure_messages
 
             - name: Assert invalid mssql_ha_db_names type was rejected
               ansible.builtin.assert:
@@ -213,8 +230,10 @@
                   ansible.builtin.set_fact:
                     __invalid_input_tools_versions_type_failed: true
                   when: >-
-                    'mssql_tools_versions' in
-                    (ansible_failed_result | default({}) | to_json)
+                    "argument 'mssql_tools_versions'" in
+                    __invalid_input_failure_messages and
+                    'convert to list' in
+                    __invalid_input_failure_messages
 
             - name: Assert invalid mssql_tools_versions type was rejected
               ansible.builtin.assert:
@@ -235,8 +254,10 @@
                   ansible.builtin.set_fact:
                     __invalid_input_cluster_type_choice_failed: true
                   when: >-
-                    'mssql_ha_ag_cluster_type' in
-                    (ansible_failed_result | default({}) | to_json)
+                    'value of mssql_ha_ag_cluster_type must be one of' in
+                    __invalid_input_failure_messages and
+                    'got: invalid_choice' in
+                    __invalid_input_failure_messages
 
             - name: Assert invalid mssql_ha_ag_cluster_type was rejected
               ansible.builtin.assert:
@@ -261,8 +282,10 @@
                   ansible.builtin.set_fact:
                     __invalid_input_key_usage_choice_failed: true
                   when: >-
-                    'key_usage' in
-                    (ansible_failed_result | default({}) | to_json)
+                    'value of key_usage must be one or more of' in
+                    __invalid_input_failure_messages and
+                    'invalid_choice found in mssql_tls_certificates' in
+                    __invalid_input_failure_messages
 
             - name: Assert invalid key_usage choice was rejected
               ansible.builtin.assert:
@@ -287,8 +310,8 @@
               ansible.builtin.set_fact:
                 __invalid_input_version_dict_failed: true
               when: >-
-                'mssql_version must be' in
-                (ansible_failed_result | default({}) | to_json)
+                'mssql_version must be a string or integer, got dict' in
+                __invalid_input_failure_messages
 
         - name: Assert mssql_version as dict was rejected
           ansible.builtin.assert:
@@ -309,8 +332,10 @@
               ansible.builtin.set_fact:
                 __invalid_input_sql_agent_string_failed: true
               when: >-
-                'mssql_enable_sql_agent must be' in
-                (ansible_failed_result | default({}) | to_json)
+                'mssql_enable_sql_agent must be null or a boolean' in
+                __invalid_input_failure_messages and
+                ('got str' in __invalid_input_failure_messages or
+                 'got AnsibleUnsafeText' in __invalid_input_failure_messages)
 
         - name: Assert mssql_enable_sql_agent as string was rejected
           ansible.builtin.assert:
@@ -331,8 +356,10 @@
               ansible.builtin.set_fact:
                 __invalid_input_install_fts_string_failed: true
               when: >-
-                'mssql_install_fts must be' in
-                (ansible_failed_result | default({}) | to_json)
+                'mssql_install_fts must be null or a boolean' in
+                __invalid_input_failure_messages and
+                ('got str' in __invalid_input_failure_messages or
+                 'got AnsibleUnsafeText' in __invalid_input_failure_messages)
 
         - name: Assert mssql_install_fts as string was rejected
           ansible.builtin.assert:
@@ -353,8 +380,8 @@
               ansible.builtin.set_fact:
                 __invalid_input_install_powershell_int_failed: true
               when: >-
-                'mssql_install_powershell must be' in
-                (ansible_failed_result | default({}) | to_json)
+                'mssql_install_powershell must be null or a boolean, got int' in
+                __invalid_input_failure_messages
 
         - name: Assert mssql_install_powershell as integer was rejected
           ansible.builtin.assert:
@@ -375,8 +402,10 @@
               ansible.builtin.set_fact:
                 __invalid_input_tune_fua_string_failed: true
               when: >-
-                'mssql_tune_for_fua_storage must be' in
-                (ansible_failed_result | default({}) | to_json)
+                'mssql_tune_for_fua_storage must be null or a boolean' in
+                __invalid_input_failure_messages and
+                ('got str' in __invalid_input_failure_messages or
+                 'got AnsibleUnsafeText' in __invalid_input_failure_messages)
 
         - name: Assert mssql_tune_for_fua_storage as string was rejected
           ansible.builtin.assert:
@@ -397,8 +426,10 @@
               ansible.builtin.set_fact:
                 __invalid_input_tls_enable_string_failed: true
               when: >-
-                'mssql_tls_enable must be' in
-                (ansible_failed_result | default({}) | to_json)
+                'mssql_tls_enable must be null or a boolean' in
+                __invalid_input_failure_messages and
+                ('got str' in __invalid_input_failure_messages or
+                 'got AnsibleUnsafeText' in __invalid_input_failure_messages)
 
         - name: Assert mssql_tls_enable as string was rejected
           ansible.builtin.assert:
@@ -419,8 +450,8 @@
               ansible.builtin.set_fact:
                 __invalid_input_pre_sql_file_int_failed: true
               when: >-
-                'mssql_pre_input_sql_file must be' in
-                (ansible_failed_result | default({}) | to_json)
+                'mssql_pre_input_sql_file must be a string or list of strings, got int' in
+                __invalid_input_failure_messages
 
         - name: Assert mssql_pre_input_sql_file as integer was rejected
           ansible.builtin.assert:
@@ -441,8 +472,8 @@
               ansible.builtin.set_fact:
                 __invalid_input_post_sql_file_int_failed: true
               when: >-
-                'mssql_post_input_sql_file must be' in
-                (ansible_failed_result | default({}) | to_json)
+                'mssql_post_input_sql_file must be a string or list of strings, got int' in
+                __invalid_input_failure_messages
 
         - name: Assert mssql_post_input_sql_file as integer was rejected
           ansible.builtin.assert:
@@ -463,8 +494,8 @@
               ansible.builtin.set_fact:
                 __invalid_input_pre_sql_content_int_failed: true
               when: >-
-                'mssql_pre_input_sql_content must be' in
-                (ansible_failed_result | default({}) | to_json)
+                'mssql_pre_input_sql_content must be a string or list of strings, got int' in
+                __invalid_input_failure_messages
 
         - name: Assert mssql_pre_input_sql_content as integer was rejected
           ansible.builtin.assert:
@@ -485,8 +516,8 @@
               ansible.builtin.set_fact:
                 __invalid_input_post_sql_content_int_failed: true
               when: >-
-                'mssql_post_input_sql_content must be' in
-                (ansible_failed_result | default({}) | to_json)
+                'mssql_post_input_sql_content must be a string or list of strings, got int' in
+                __invalid_input_failure_messages
 
         - name: Assert mssql_post_input_sql_content as integer was rejected
           ansible.builtin.assert:
@@ -508,8 +539,8 @@
               ansible.builtin.set_fact:
                 __invalid_input_tls_version_list_failed: true
               when: >-
-                'mssql_tls_version must be' in
-                (ansible_failed_result | default({}) | to_json)
+                'mssql_tls_version must be a string or number, got list' in
+                __invalid_input_failure_messages
 
         - name: Assert mssql_tls_version as list was rejected
           ansible.builtin.assert:
@@ -530,8 +561,10 @@
               ansible.builtin.set_fact:
                 __invalid_input_replica_type_int_failed: true
               when: >-
-                'mssql_ha_replica_type must be' in
-                (ansible_failed_result | default({}) | to_json)
+                'mssql_ha_replica_type must be null or one of' in
+                __invalid_input_failure_messages and
+                'got int' in
+                __invalid_input_failure_messages
 
         - name: Assert mssql_ha_replica_type as integer was rejected
           ansible.builtin.assert:
@@ -552,8 +585,10 @@
               ansible.builtin.set_fact:
                 __invalid_input_replica_type_choice_failed: true
               when: >-
-                'mssql_ha_replica_type must be' in
-                (ansible_failed_result | default({}) | to_json)
+                'mssql_ha_replica_type must be null or one of' in
+                __invalid_input_failure_messages and
+                ('got str' in __invalid_input_failure_messages or
+                 'got AnsibleUnicode' in __invalid_input_failure_messages)
 
         - name: Assert invalid mssql_ha_replica_type was rejected
           ansible.builtin.assert:
@@ -574,8 +609,10 @@
               ansible.builtin.set_fact:
                 __invalid_input_secondary_role_choice_failed: true
               when: >-
-                'mssql_ha_ag_secondary_role_allow_connections must be' in
-                (ansible_failed_result | default({}) | to_json)
+                'mssql_ha_ag_secondary_role_allow_connections must be null or one of' in
+                __invalid_input_failure_messages and
+                ('got str' in __invalid_input_failure_messages or
+                 'got AnsibleUnicode' in __invalid_input_failure_messages)
 
         - name: Assert invalid secondary role allow connections was rejected
           ansible.builtin.assert:
@@ -600,10 +637,8 @@
               ansible.builtin.set_fact:
                 __invalid_input_cert_dns_int_failed: true
               when: >-
-                'mssql_tls_certificates' in
-                (ansible_failed_result | default({}) | to_json)
-                and '.dns must be' in
-                (ansible_failed_result | default({}) | to_json)
+                'mssql_tls_certificates[0].dns must be a string or list of strings, got int' in
+                __invalid_input_failure_messages
 
         - name: Assert mssql_tls_certificates dns as integer was rejected
           ansible.builtin.assert:
