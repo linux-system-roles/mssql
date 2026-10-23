@@ -6,7 +6,7 @@
       yum_repository:
         name: packages-microsoft-com-mssql-server-{{ mssql_version | int }}
         description: Microsoft SQL Server {{ mssql_version }}
-        baseurl: "{{ mssql_server_repository }}"
+        baseurl: "{{ mssql_server_repository | d(__mssql_server_repository) }}"
         gpgcheck: true
 
     - name: Install required packages

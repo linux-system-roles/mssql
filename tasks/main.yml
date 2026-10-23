@@ -3,6 +3,9 @@
 - name: Ensure ansible_facts and variables used by role
   include_tasks: set_vars.yml
 
+- name: Validate role parameters
+  include_tasks: assert_role_vars.yml
+
 # This is required to prevent the role from using a __mssql_sqlcmd_login_cmd
 # variable value from a previous role invocation
 - name: Unset internal role facts
@@ -112,15 +115,6 @@
     - mssql_ha_configure | bool
     - ansible_facts["distribution"] in ['CentOS', 'RedHat']
     - ansible_facts["distribution_version"] is version('8', '<')
-
-- name: Verify if the mssql_ha_replica_type variable is provided correctly
-  assert:
-    that: mssql_ha_replica_type in __mssql_ha_replica_types_all
-    # noqa jinja[spacing]
-    fail_msg: >-
-      You must set the mssql_ha_replica_type variable to one of
-      {{ __mssql_ha_replica_types_all | join (', ') }}
-  when: mssql_ha_configure | bool
 
 - name: Verify that 'mssql_ha_replica_type = primary' is provided once
   assert:
@@ -324,7 +318,7 @@
   yum_repository:
     name: packages-microsoft-com-mssql-server-{{ mssql_version | int }}
     description: Microsoft SQL Server {{ mssql_version }}
-    baseurl: "{{ mssql_server_repository }}"
+    baseurl: "{{ mssql_server_repository | d(__mssql_server_repository) }}"
     gpgcheck: true
   when:
     - ansible_facts["pkg_mgr"] in ["yum", "dnf", "dnf5"]
@@ -335,7 +329,7 @@
 - name: Configure the Microsoft SQL Server repo version {{ mssql_version }} # noqa command-instead-of-module
   command: >-
     zypper addrepo -c -f --name "Microsoft SQL Server {{ mssql_version }}"
-    {{ mssql_server_repository }} packages-microsoft-com-mssql-server-{{ mssql_version | int }}
+    {{ mssql_server_repository | d(__mssql_server_repository) }} packages-microsoft-com-mssql-server-{{ mssql_version | int }}
   when:
     - ansible_facts["pkg_mgr"] == "zypper"
     - >-
@@ -557,14 +551,14 @@
   yum_repository:
     name: packages-microsoft-com-prod
     description: Microsoft SQL Server Tools
-    baseurl: "{{ mssql_client_repository }}"
+    baseurl: "{{ mssql_client_repository | d(__mssql_client_repository) }}"
     gpgcheck: true
   when: ansible_facts["pkg_mgr"] in ["yum", "dnf", "dnf5"]
 
 - name: Configure the Microsoft SQL Server Tools repository # noqa command-instead-of-module
   command: >-
     zypper addrepo -c -f --name "Microsoft SQL Server Tools"
-    {{ mssql_client_repository }} packages-microsoft-com-prod
+    {{ mssql_client_repository | d(__mssql_client_repository) }} packages-microsoft-com-prod
   when: ansible_facts["pkg_mgr"] == "zypper"
   register: __zypper_addrepo_tools_output
   failed_when: not __zypper_addrepo_tools_output.rc in [0, 4]

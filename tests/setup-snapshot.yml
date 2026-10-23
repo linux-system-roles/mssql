@@ -18,7 +18,7 @@
       yum_repository:
         name: packages-microsoft-com-prod
         description: Microsoft SQL Server Tools
-        baseurl: "{{ mssql_client_repository }}"
+        baseurl: "{{ mssql_client_repository | d(__mssql_client_repository) }}"
         gpgcheck: true
 
     - name: Cache packages required for tests
