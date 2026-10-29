@@ -79,7 +79,7 @@ jobs:
           pip install --upgrade pip galaxy-importer ansible-core pyyaml ruamel_yaml
 
       - name: Setup Python
-        uses: actions/setup-python@v7.0.0
+        uses: actions/setup-python@v7.1.0
 
       - name: checkout auto-maintenance
         uses: actions/checkout@v7.0.1
