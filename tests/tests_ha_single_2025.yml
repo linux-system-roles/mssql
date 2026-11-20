@@ -21,7 +21,7 @@
     mssql_edition: Evaluation
     mssql_version: 2025
     mssql_manage_firewall: true
-    __mssql_gather_facts_no_log: true
+    mssql_secure_logging: false
     mssql_manage_selinux: false
     mssql_run_selinux_confined: false
     mssql_ha_configure: true

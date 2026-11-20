@@ -258,7 +258,7 @@ Type: `bool`
 
 ### Configuring SQL Server as a Confined Application Example Playbook
 
-Run the following playbook against a RHEL 9 system role to configure SQL Server as a confined application.
+Run the following playbook against a RHEL 9 or later system role to configure SQL Server as a confined application.
 
 ```yaml
 - hosts: all
@@ -453,7 +453,7 @@ Optional: Use these variables to configure SQL Server to store data and logs in 
 
 Use these variables to configure custom storage paths.
 
-On RHEL 9, you can set [mssql_manage_selinux](#mssql_manage_selinux) to `true` to set a correct SELinux context for custom directories.
+On RHEL 9 and later, you can set [mssql_manage_selinux](#mssql_manage_selinux) to `true` to set a correct SELinux context for custom directories.
 
 #### mssql_datadir
 

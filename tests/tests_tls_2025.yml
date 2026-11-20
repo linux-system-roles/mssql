@@ -15,7 +15,7 @@
     mssql_version: 2025
     mssql_tls_self_sign: true
     mssql_manage_selinux: "{{ mssql_run_selinux_confined }}"
-    __mssql_gather_facts_no_log: true
+    mssql_secure_logging: false
   tasks:
     - name: Run test in a block to clean up in always
       block:

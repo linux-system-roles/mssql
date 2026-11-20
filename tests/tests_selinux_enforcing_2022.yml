@@ -35,7 +35,7 @@
           assert:
             that: >-
               'Variables mssql_run_selinux_confined and mssql_manage_selinux are
-              supported only on RHEL 9' in ansible_failed_result.msg
+              supported only on RHEL 9 and later' in ansible_failed_result.msg
       always:
         - name: Clean up after the role invocation
           include_tasks: tasks/cleanup.yml

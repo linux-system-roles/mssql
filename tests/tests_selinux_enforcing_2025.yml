@@ -9,7 +9,7 @@
     mssql_version: 2025
     mssql_password: "p@55w0rD"
     mssql_edition: Evaluation
-    __mssql_gather_facts_no_log: true
+    mssql_secure_logging: false
   tasks:
     - name: Assert expected failures on unsupported platforms
       include_tasks: tasks/assert_fail_on_unsupported_ver.yml
@@ -35,7 +35,7 @@
           assert:
             that: >-
               'Variables mssql_run_selinux_confined and mssql_manage_selinux are
-              supported only on RHEL 9' in ansible_failed_result.msg
+              supported only on RHEL 9 and later' in ansible_failed_result.msg
       always:
         - name: Clean up after the role invocation
           include_tasks: tasks/cleanup.yml
