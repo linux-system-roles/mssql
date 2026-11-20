@@ -30,6 +30,11 @@
     name: fedora.linux_system_roles.firewall
   when: ansible_facts.packages.firewalld is defined
 
+- name: Clear selinux restore directories before purge
+  set_fact:
+    selinux_restore_dirs: []
+  when: mssql_manage_selinux | d(false) | bool
+
 - name: Purge selinux configuration
   vars:
     selinux_all_purge: true
