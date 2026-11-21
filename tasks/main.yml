@@ -236,6 +236,12 @@
       | first | int > item.value
   with_dict: "{{ __mssql_version_package_mapping }}"
 
+- name: Ensure gnupg2 is installed for rpm_key on RHEL 10
+  package:
+    name: gnupg2
+    state: present
+  when: __mssql_is_rh_distro_10 | bool
+
 - name: Deploy the GPG keys for Microsoft repositories
   rpm_key:
     key: "{{ item }}"
