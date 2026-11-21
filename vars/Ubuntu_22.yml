@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: MIT
+---
+__mssql_server_repository_list_url: >-
+  https://packages.microsoft.com/config/ubuntu/22.04/mssql-server-{{ mssql_version | int }}.list
+__mssql_client_repository_list_url: >-
+  https://packages.microsoft.com/config/ubuntu/22.04/prod.list
