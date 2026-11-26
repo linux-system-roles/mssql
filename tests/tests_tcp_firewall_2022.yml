@@ -13,7 +13,7 @@
     mssql_manage_firewall: true
     mssql_version: 2022
     mssql_manage_selinux: "{{ mssql_run_selinux_confined }}"
-    __mssql_gather_facts_no_log: true
+    mssql_secure_logging: false
   tasks:
     - name: Run test in a block to clean up in always
       block:
@@ -22,3 +22,4 @@
       always:
         - name: Clean up after the role invocation
           include_tasks: tasks/cleanup.yml
+          tags: tests::cleanup

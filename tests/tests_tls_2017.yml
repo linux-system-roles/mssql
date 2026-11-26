@@ -11,7 +11,7 @@
     mssql_tcp_port: 1433
     mssql_version: 2017
     mssql_tls_self_sign: true
-    __mssql_gather_facts_no_log: true
+    mssql_secure_logging: false
   tasks:
     - name: Run test in a block to clean up in always
       block:
@@ -20,3 +20,4 @@
       always:
         - name: Clean up after the role invocation
           include_tasks: tasks/cleanup.yml
+          tags: tests::cleanup

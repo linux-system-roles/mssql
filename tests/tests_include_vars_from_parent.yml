@@ -63,7 +63,8 @@
             mssql_accept_microsoft_cli_utilities_for_sql_server_eula: true
             mssql_accept_microsoft_sql_server_standard_eula: true
             mssql_version: "{{
-              '2022' if (ansible_facts['distribution_major_version']
+              '2025' if ansible_facts['distribution_major_version'] is version('10', '>=')
+              else '2022' if (ansible_facts['distribution_major_version']
               is version('9', '>=') or
               ansible_facts['distribution'] in ['Fedora'])
               else '2017' }}"
@@ -128,3 +129,4 @@
 
         - name: Clean up after the role invocation
           include_tasks: tasks/cleanup.yml
+          tags: tests::cleanup

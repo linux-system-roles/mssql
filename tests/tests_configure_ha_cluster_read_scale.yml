@@ -23,6 +23,7 @@
     mssql_edition: Evaluation
     mssql_version: 2022
     mssql_manage_firewall: true
+    mssql_secure_logging: false
     __mssql_gather_facts_no_log: true
     mssql_manage_selinux: false
     mssql_run_selinux_confined: false
@@ -95,3 +96,4 @@
       always:
         - name: Clean up after the role invocation
           include_tasks: tasks/cleanup.yml
+          tags: tests::cleanup

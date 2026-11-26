@@ -36,6 +36,8 @@ mssql_tls_certificates: []
 mssql_tls_self_sign: false
 
 mssql_rpm_key: https://packages.microsoft.com/keys/microsoft.asc
+# SQL Server 2025 and later packages are signed with a separate GPG key
+mssql_rpm_key_2025: https://packages.microsoft.com/keys/microsoft-2025.asc
 mssql_server_repository: "{{ __mssql_server_repository }}"
 mssql_client_repository: "{{ __mssql_client_repository }}"
 
